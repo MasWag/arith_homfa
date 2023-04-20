@@ -2,7 +2,6 @@
 #include <sstream>
 
 #include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
 #include <cereal/archives/json.hpp>
 
 #include "../src/seal_config.hh"
@@ -11,8 +10,9 @@ BOOST_AUTO_TEST_SUITE(SealConfigTest)
 
     BOOST_AUTO_TEST_CASE(save) {
         const ArithHomFA::SealConfig config = {
-                8192,
-                std::vector<int>{60, 40, 60}
+                8192, // poly_modulus_degree
+                std::vector<int>{60, 40, 60}, // base_sizes
+                std::pow(2, 40) // scale
         };
 
         std::stringstream stream;
@@ -28,7 +28,8 @@ BOOST_AUTO_TEST_SUITE(SealConfigTest)
                                "            60,\n"
                                "            40,\n"
                                "            60\n"
-                               "        ]\n"
+                               "        ],\n"
+                               "        \"scale\": 1099511627776.0\n"
                                "    }\n"
                                "}";
 
@@ -37,8 +38,9 @@ BOOST_AUTO_TEST_SUITE(SealConfigTest)
 
     BOOST_AUTO_TEST_CASE(load) {
         const ArithHomFA::SealConfig expected = {
-                8192,
-                std::vector<int>{60, 40, 60}
+                8192, // poly_modulus_degree
+                std::vector<int>{60, 40, 60}, // base_sizes
+                std::pow(2, 40) // scale
         };
 
         std::stringstream stream;
@@ -49,7 +51,8 @@ BOOST_AUTO_TEST_SUITE(SealConfigTest)
                                "            60,\n"
                                "            40,\n"
                                "            60\n"
-                               "        ]\n"
+                               "        ],\n"
+                               "        \"scale\": 1099511627776.0\n"
                                "    }\n"
                                "}\n";
         stream << asJsonStr;

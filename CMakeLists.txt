@@ -62,6 +62,8 @@ include_directories(
         ${SEAL_INCLUDE_DIRS}
         ${HOMFA_DIR}/src
         ${HOMFA_DIR}/thirdparty/backward-cpp
+        ${HOMFA_DIR}/thirdparty/CLI11/include
+        ${HOMFA_DIR}/thirdparty/ThreadPool
         ${HOMFA_DIR}/thirdparty/spdlog/include
         ${HOMFA_DIR}/thirdparty/TFHEpp/include
         ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/spqlios
@@ -74,6 +76,21 @@ link_directories(
 link_libraries(
         seal
         hexl
+        )
+
+add_executable(ahomfa
+        src/main.cc
+        src/tfhe_lvl3_inst.cc
+        )
+
+target_link_libraries(ahomfa
+        # profiler
+        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+        ${Boost_GRAPH_LIBRARY}
+        seal
+        hexl
+        randen
+        tfhe++
         )
 
 ## Config for Test

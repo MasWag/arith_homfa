@@ -25,6 +25,7 @@ namespace ArithHomFA {
 
         std::size_t poly_modulus_degree;
         std::vector<int> base_sizes;
+        double scale;
 
         template<class Archive>
         static SealConfig load(Archive &archive) {
@@ -34,20 +35,21 @@ namespace ArithHomFA {
             }
             std::size_t poly_modulus_degree;
             std::vector<int> base_sizes;
+            double scale;
             archive.startNode();
-            archive(CEREAL_NVP(poly_modulus_degree), CEREAL_NVP(base_sizes));
+            archive(CEREAL_NVP(poly_modulus_degree), CEREAL_NVP(base_sizes), CEREAL_NVP(scale));
 
-            return {poly_modulus_degree, base_sizes};
+            return {poly_modulus_degree, base_sizes, scale};
         }
 
         template<class Archive>
         void serialize(Archive &archive) const {
-            archive(CEREAL_NVP(poly_modulus_degree), CEREAL_NVP(base_sizes));
+            archive(CEREAL_NVP(poly_modulus_degree), CEREAL_NVP(base_sizes), CEREAL_NVP(scale));
         }
 
         bool operator==(const SealConfig &rhs) const {
             return poly_modulus_degree == rhs.poly_modulus_degree &&
-                   base_sizes == rhs.base_sizes;
+                   base_sizes == rhs.base_sizes && scale == rhs.scale;
         }
 
         bool operator!=(const SealConfig &rhs) const {
