@@ -60,9 +60,12 @@ include_directories(
         ${PROJECT_BINARY_DIR}
         #${Boost_INCLUDE_DIRS}
         ${SEAL_INCLUDE_DIRS}
+        ${HOMFA_DIR}/src
+        ${HOMFA_DIR}/thirdparty/backward-cpp
+        ${HOMFA_DIR}/thirdparty/spdlog/include
         ${HOMFA_DIR}/thirdparty/TFHEpp/include
-        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/spqlios/
-        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/randen/
+        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/spqlios
+        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/randen
         ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/cereal/include)
 
 link_directories(
@@ -82,6 +85,7 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         src/tfhe_lvl3_inst.cc
         test/ckks_to_tfhe_test.cc
         test/ckks_no_embed_test.cc
+        test/seal_config_test.cc
         )
 
 target_include_directories(unit_test PUBLIC
