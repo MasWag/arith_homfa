@@ -1,0 +1,3 @@
+[submodule "thirdparty/homfa"]
+	path = thirdparty/homfa
+	url = https://github.com/virtualsecureplatform/homfa.git
