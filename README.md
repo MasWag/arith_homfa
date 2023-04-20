@@ -8,9 +8,19 @@ Technically, Arithmetic HomFA combines two FHE schemes (CKKS and TFHE) to enjoy 
 Usage
 -----
 
+```sh
+# Generate a secret key of CKKS
+./build/ahomfa ckks genkey -f ./example/config.json -o /tmp/ckks.key
+
+# Encrypt an input
+./build/ahomfa ckks enc -f ./example/config.json -o /tmp/data.ckks < data.txt
+```
+
 Requirements
 ------------
 
+- CMake
+- Boost
 - [Microsoft SEAL](https://github.com/microsoft/SEAL): An CKKS library. We tested with SEAL 4.1.1.
 
 Installation
