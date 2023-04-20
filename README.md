@@ -1,7 +1,7 @@
-Arithmetic HomFA
-================
+Arithmetic HomFA (ArithHomFA)
+=============================
 
-Arithmetic HomFA (arith-homfa) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables an STL monitoring without disclosing the log to the monitor.
+Arithmetic HomFA (ArithHomFA) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables an STL monitoring without disclosing the log to the monitor.
 
 Technically, Arithmetic HomFA combines two FHE schemes (CKKS and TFHE) to enjoy both of their advantages, i.e., linear arithmetic operations and logical operations.
 
