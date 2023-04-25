@@ -22,6 +22,7 @@ Requirements
 - CMake
 - Boost
 - [Microsoft SEAL](https://github.com/microsoft/SEAL): An CKKS library. We tested with SEAL 4.1.1.
+- [Spot](https://spot.lre.epita.fr/)
 
 Installation
 ------------
