@@ -25,9 +25,9 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # find_package (OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} -fopenmp")
 
 # Get git revision
 # Thanks to: https://stackoverflow.com/a/6526533
@@ -114,6 +114,7 @@ target_link_libraries(ahomfa
         tfhe++
         spot
         bddx
+        pthread
         )
 target_compile_definitions(ahomfa PRIVATE ${COMPILE_DEFINITIONS})
 
@@ -143,4 +144,5 @@ target_link_libraries(unit_test
         hexl
         randen
         rapidcheck
+        pthread
         )

@@ -301,7 +301,7 @@ namespace {
     auto skey = read_from_archive<SecretKey>(skey_filename);
     auto enc_res = read_from_archive<TLWELvl1>(istream);
     bool res = decrypt_TLWELvl1_to_bit(enc_res, skey);
-    ostream << res ? "true" : "false";
+    ostream << (res ? "true" : "false");
   }
 
   void dumpBasicInfo(int argc, char **argv) {
