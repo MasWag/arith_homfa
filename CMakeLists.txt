@@ -56,7 +56,8 @@ if (COMPILER_SUPPORTS_MARCH_NATIVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif ()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-flto -O3 -DRELEASE")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
 find_package(SEAL 4.1.1 EXACT REQUIRED)
@@ -105,9 +106,6 @@ add_executable(ahomfa
         )
 
 target_link_libraries(ahomfa
-        # profiler
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
-        ${Boost_GRAPH_LIBRARY}
         seal
         hexl
         randen
@@ -117,6 +115,19 @@ target_link_libraries(ahomfa
         pthread
         )
 target_compile_definitions(ahomfa PRIVATE ${COMPILE_DEFINITIONS})
+
+add_library(ahomfa_runner
+        src/ahomfa_runner.cc)
+
+target_link_libraries(ahomfa_runner
+        seal
+        hexl
+        randen
+        tfhe++
+        bddx
+        pthread
+        )
+target_compile_definitions(ahomfa_runner PRIVATE ${COMPILE_DEFINITIONS})
 
 ## Config for Test
 enable_testing()
@@ -128,7 +139,8 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/ckks_to_tfhe_test.cc
         test/ckks_no_embed_test.cc
         test/seal_config_test.cc
-        )
+        test/blood_glucose_one.cc
+        test/ckks_predicate_test.cc)
 
 target_include_directories(unit_test PUBLIC
         thirdparty/rapidcheck/include
@@ -140,7 +152,7 @@ target_link_libraries(unit_test
         ${Boost_PROGRAM_OPTIONS_LIBRARY}
         ${Boost_GRAPH_LIBRARY}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-        seal
+        SEAL::seal
         hexl
         randen
         rapidcheck
