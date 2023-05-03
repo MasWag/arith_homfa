@@ -1,4 +1,7 @@
 cmake_policy(SET CMP0048 NEW)
+if(POLICY CMP0069)
+  cmake_policy(SET CMP0069 NEW)
+endif()
 project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 
 cmake_minimum_required(VERSION 3.16)
@@ -140,7 +143,7 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/ckks_no_embed_test.cc
         test/seal_config_test.cc
         test/blood_glucose_one.cc
-        test/ckks_predicate_test.cc)
+        test/ckks_predicate_test.cc test/tfhepp_keygen_test.cc)
 
 target_include_directories(unit_test PUBLIC
         thirdparty/rapidcheck/include
@@ -157,4 +160,5 @@ target_link_libraries(unit_test
         randen
         rapidcheck
         pthread
+        tfhe++
         )

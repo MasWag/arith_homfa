@@ -428,6 +428,10 @@ int main(int argc, char **argv) {
             spdlog::info(app.help());
         }
     }
+    // Close fstream
+    if (typeid(*args.output) == typeid(std::ofstream)) {
+      dynamic_cast<std::ofstream*>(args.output)->close();
+    }
 
     return 0;
 }
