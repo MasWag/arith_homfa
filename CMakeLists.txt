@@ -106,14 +106,14 @@ link_libraries(
         hexl
         )
 
-add_executable(ahomfa
+add_executable(ahomfa_util
         src/main.cc
         src/tfhe_lvl3_inst.cc
         thirdparty/homfa/src/tfhepp_util.cpp
         thirdparty/homfa/src/graph.cpp
         )
 
-target_link_libraries(ahomfa
+target_link_libraries(ahomfa_util
         seal
         hexl
         randen
@@ -122,7 +122,7 @@ target_link_libraries(ahomfa
         bddx
         pthread
         )
-target_compile_definitions(ahomfa PRIVATE ${COMPILE_DEFINITIONS})
+target_compile_definitions(ahomfa_util PRIVATE ${COMPILE_DEFINITIONS})
 
 add_library(ahomfa_runner
         src/ahomfa_runner.cc
