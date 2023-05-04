@@ -42,6 +42,25 @@ namespace ArithHomFA {
             evalPredicateInternal(valuation, result);
         }
 
+      /*!
+       * @brief Evaluate the predicates with the given valuation without encryption
+       *
+       * @param [in] valuation The evaluated signal valuation
+       * @param [out] result The plaintext such that result.at(i) > 0 if and only if the i-th predicate is true
+       *
+       * @pre valuation.size() == this->signalSize
+       * @pre result.size() == this->predicateSize
+       */
+      void eval(const std::vector<double> &valuation, std::vector<double> &result) {
+        // Assert the preconditions
+        if (valuation.size() != ArithHomFA::CKKSPredicate::signalSize ||
+            result.size() != ArithHomFA::CKKSPredicate::predicateSize) {
+          throw std::runtime_error("Invalid size of valuation or result is given");
+        }
+        // Call the actual evaluation
+        evalPredicateInternal(valuation, result);
+      }
+
         static size_t getSignalSize() {
             return signalSize;
         }
@@ -50,8 +69,8 @@ namespace ArithHomFA {
             return predicateSize;
         }
 
-        void setRelinKeys(const seal::RelinKeys &relinKeys) {
-            this->relinKeys = relinKeys;
+        void setRelinKeys(const seal::RelinKeys &keys) {
+            this->relinKeys = keys;
         }
     protected:
         double scale;
@@ -67,5 +86,7 @@ namespace ArithHomFA {
 
         //! Function for the actual evaluation
         void evalPredicateInternal(const std::vector<seal::Ciphertext> &, std::vector<seal::Ciphertext> &);
+        //! Function for the actual evaluation
+        void evalPredicateInternal(const std::vector<double> &, std::vector<double> &);
     };
 }

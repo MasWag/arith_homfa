@@ -72,6 +72,11 @@ find_package(SEAL 4.1.1 EXACT REQUIRED)
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+# Import spot
+find_package(PkgConfig)
+pkg_check_modules(SPOT REQUIRED libspot)
+pkg_check_modules(BDDX REQUIRED libbddx)
+
 # Import Boost
 find_package(Boost REQUIRED COMPONENTS
         program_options unit_test_framework iostreams graph)
@@ -143,11 +148,17 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/ckks_no_embed_test.cc
         test/seal_config_test.cc
         test/blood_glucose_one.cc
-        test/ckks_predicate_test.cc test/tfhepp_keygen_test.cc)
+        test/ckks_predicate_test.cc
+        test/tfhepp_keygen_test.cc
+        test/plain_runner_test.cc
+        thirdparty/homfa/src/graph.cpp
+        )
 
 target_include_directories(unit_test PUBLIC
         thirdparty/rapidcheck/include
         thirdparty/rapidcheck/extras/boost_test/include
+        ${SPOT_INCLUDE_DIRS}
+        ${BDDX_INCLUDE_DIRS}
         )
 
 target_link_libraries(unit_test
@@ -161,4 +172,6 @@ target_link_libraries(unit_test
         rapidcheck
         pthread
         tfhe++
+        ${SPOT_LIBRARIES}
+        ${BDDX_LIBRARIES}
         )

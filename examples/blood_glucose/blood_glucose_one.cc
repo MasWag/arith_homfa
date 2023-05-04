@@ -18,6 +18,10 @@ namespace ArithHomFA {
         this->encoder.encode(70, this->scale, plain);
         this->evaluator.sub_plain(valuation.front(), plain, result.front());
     }
+    void CKKSPredicate::evalPredicateInternal(const std::vector<double> &valuation,
+                                              std::vector<double> &result) {
+      result.front() = valuation.front() - 70;
+    }
 
     // Define the signal and predicate sizes
     const std::size_t CKKSPredicate::signalSize = 1;
