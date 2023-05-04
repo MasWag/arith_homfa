@@ -1,5 +1,5 @@
 CXXFLAGS += -std=c++20 -I /usr/local/include/SEAL-4.1 -I ../../thirdparty/homfa/thirdparty/TFHEpp/thirdparties/cereal/include 
-LDLIBS += -lahomfa_runner -lseal
+LDLIBS += -lahomfa_runner -lseal $(shell pkg-config libspot --libs)
 
 CXX_DEBUG_FLAGS = -g -O0
 CXX_RELEASE_FLAGS = -s -O3 -flto
@@ -18,6 +18,7 @@ release: CXXFLAGS+=$(CXX_RELEASE_FLAGS)
 release: AHOMFA_BUILD_PATH = ../../cmake-build-release
 release: all
 
+.PHONY: all
 all: $(AHOMFA_BUILD_PATH)/libahomfa_runner.a 
 all: blood_glucose_one
 

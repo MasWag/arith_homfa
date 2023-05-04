@@ -125,7 +125,9 @@ target_link_libraries(ahomfa
 target_compile_definitions(ahomfa PRIVATE ${COMPILE_DEFINITIONS})
 
 add_library(ahomfa_runner
-        src/ahomfa_runner.cc)
+        src/ahomfa_runner.cc
+        thirdparty/homfa/src/graph.cpp
+  )
 
 target_link_libraries(ahomfa_runner
         seal
