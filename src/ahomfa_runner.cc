@@ -167,6 +167,8 @@ namespace {
       // Print the result
       ostream << std::boolalpha << result << std::endl;
     }
+
+    runner.printTime();
   }
 
   void dumpBasicInfo(int argc, char **argv) {

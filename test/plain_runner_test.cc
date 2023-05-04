@@ -21,5 +21,7 @@ BOOST_AUTO_TEST_SUITE (PlainRunnerTest)
     for (std::size_t i = 0; i < input.size(); ++i) {
       BOOST_CHECK_EQUAL(expected.at(i), runner.feed({input.at(i)}));
     }
+
+    runner.printTime();
   }
 BOOST_AUTO_TEST_SUITE_END()
