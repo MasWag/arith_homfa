@@ -165,7 +165,7 @@ namespace {
       // Evaluate
       const auto result = runner.feed(valuations);
       // Print the result
-      ostream << std::boolalpha << result;
+      ostream << std::boolalpha << result << std::endl;
     }
   }
 
