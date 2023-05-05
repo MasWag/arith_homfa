@@ -1,0 +1,21 @@
+Standard: c++20
+IndentWidth: 2
+BreakBeforeBraces: Attach
+AllowShortCaseLabelsOnASingleLine: false
+IndentCaseLabels: true
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+IncludeBlocks: Preserve
+DerivePointerAlignment: false
+PointerAlignment: Right
+FixNamespaceComments: true
+NamespaceIndentation: All
+SpaceBeforeRangeBasedForLoopColon: false
+MacroBlockBegin: "BOOST_AUTO_TEST_SUITE"
+MacroBlockEnd: "BOOST_AUTO_TEST_SUITE_END"
+StatementMacros:
+  - "BOOST_AUTO_TEST_SUITE_END"
+ForEachMacros:
+  - BOOST_AUTO_TEST_SUITE
