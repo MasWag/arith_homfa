@@ -94,7 +94,7 @@ namespace {
             args.sealConfig = ArithHomFA::SealConfig::load(archive);
           };
       subcommand
-          ->add_option_function("-f,--file", configCallback,
+          ->add_option_function("-c,--config", configCallback,
                                 "The configuration file of SEAL")
           ->required();
 
