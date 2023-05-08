@@ -7,7 +7,7 @@ project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 cmake_minimum_required(VERSION 3.16)
 
 ## Configure PATH
-set(HOMFA_DIR "${CMAKE_SOURCE_DIR}/thirdparty/homfa")
+set(HOMFA_DIR "./thirdparty/homfa")
 set(CMAKE_MODULE_PATH
         ${CMAKE_SOURCE_DIR}
         "${HOMFA_DIR}/thirdparty/sanitizers-cmake/cmake"
