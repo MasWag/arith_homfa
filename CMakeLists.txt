@@ -1,6 +1,6 @@
 cmake_policy(SET CMP0048 NEW)
 if(POLICY CMP0069)
-  cmake_policy(SET CMP0069 NEW)
+  cmake_policy(SET CMP0069 OLD)
 endif()
 project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 
@@ -60,7 +60,7 @@ if (COMPILER_SUPPORTS_MARCH_NATIVE)
 endif ()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+#set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
 find_package(SEAL 4.1.1 EXACT REQUIRED)
@@ -153,7 +153,9 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/ckks_predicate_test.cc
         test/tfhepp_keygen_test.cc
         test/plain_runner_test.cc
+        test/tfhe_lvl3_to_lvl1_test.cc
         thirdparty/homfa/src/graph.cpp
+        thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
         )
 
 target_include_directories(unit_test PUBLIC
