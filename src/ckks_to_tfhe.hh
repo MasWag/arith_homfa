@@ -12,6 +12,7 @@
 
 // Tentative
 #include "my_params.hh"
+#include "lvl3_to_lvl1.hh"
 
 namespace ArithHomFA {
     /*!
@@ -19,6 +20,10 @@ namespace ArithHomFA {
      */
     class CKKSToTFHE {
     public:
+        /*!
+         * @brief Constructor for CKKSToTFHE
+         * @param context The SEALContext for the class
+         */
         explicit CKKSToTFHE(const seal::SEALContext &context) : context(context) {}
 
         /*!
@@ -73,7 +78,7 @@ namespace ArithHomFA {
          *
          * @pre The degree of the given ciphertexts are the same
          */
-        void toLv3TRLWE(seal::Ciphertext cipher, TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe) {
+        void toLv3TRLWE(seal::Ciphertext cipher, TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe) const {
             // Assert the precondition
             const auto poly_modulus_degree = cipher.poly_modulus_degree();
             assert(poly_modulus_degree == TFHEpp::lvl3param::n);
@@ -115,8 +120,50 @@ namespace ArithHomFA {
             }
         }
 
+        /*!
+         * @brief Convert a CKKS ciphertext of SEAL to a TLWE of TFHEpp
+         *
+         * The resulting TLWE is true if cipher is positive
+         *
+         * @param [in] cipher The CKKS ciphertext to convert
+         * @param [out] tlwe The resulting TLWE ciphertext
+         *
+         * @pre The degree of the given ciphertexts are the same
+         */
+        void toLv3TLWE(seal::Ciphertext cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe) const {
+            // Convert CKKS ciphertext to TRLWE lvl3 first
+            TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
+            toLv3TRLWE(cipher, trlwe);
+            TFHEpp::SampleExtractIndex<TFHEpp::lvl3param>(tlwe, trlwe, 0);
+        }
+
+
+        void initializeConverter(const BootstrappingKey &bKey) {
+            converter = Lvl3ToLvl1(bKey);
+        }
+
+        /*!
+         * @brief Convert a CKKS ciphertext of SEAL to a TLWE of TFHEpp at lvl1
+         *
+         * @param [in] cipher The CKKS ciphertext to convert
+         * @param [out] tlwe The resulting TLWE ciphertext at lvl1
+         *
+         * @pre converter is initialized
+         */
+        void toLv1TLWE(const seal::Ciphertext &cipher,
+                       TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe) const {
+            assert(converter);
+            // Convert CKKS ciphertext to TRLWE lvl3 first
+            TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
+            toLv3TLWE(cipher, lvl3TLWE);
+
+            // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+            converter->toLv1TLWEWithBoostrapping(lvl3TLWE, tlwe);
+        }
+
     private:
         const seal::SEALContext &context;
+        std::optional<ArithHomFA::Lvl3ToLvl1> converter;
     };
 
 } // ArithHomFA

@@ -39,9 +39,8 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
 
     BOOST_FIXTURE_TEST_CASE(toLv1TLWE, Lvl3ToLvl1TestFixture) {
         constexpr auto numtest = 10;
-        constexpr uint64_t numdigits = 8;
-        constexpr uint basebit = 4;
-        constexpr uint base = 1ULL << basebit;
+        constexpr uint64_t numdigits = ArithHomFA::Lvl3ToLvl1::numdigits;
+        constexpr uint basebit = ArithHomFA::Lvl3ToLvl1::basebit;
 
         // Test input
         std::random_device seed_gen;
@@ -64,7 +63,7 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
 
         // Convert TLWE
         for (uint i = 0; i < numtest; i++) {
-            converter.toLv1TLWE<numdigits>(ciphers.at(i), result_multiple.at(i));
+            converter.toLv1TLWE(ciphers.at(i), result_multiple.at(i));
         }
         for (uint i = 0; i < numtest; i++) {
             converter.toLv1TLWE(ciphers.at(i), result_single.at(i));
@@ -83,8 +82,47 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
             int plainResult = TFHEpp::tlweSymIntDecrypt<typename ArithHomFA::BootstrappingKey::high2midP::targetP>(
                     result_single[test],
                     skey.key.get<typename ArithHomFA::BootstrappingKey::high2midP::targetP>());
-            const int plainExpected = ((plains[test] >> (basebit * 0)) & ((1ULL << basebit) - 1));
+            const int plainExpected = ((plains[test] >> (basebit * (numdigits - 1))) & ((1ULL << basebit) - 1));
             BOOST_TEST(plainExpected == plainResult);
+        }
+    }
+
+    BOOST_FIXTURE_TEST_CASE(toLv1TLWEBool, Lvl3ToLvl1TestFixture) {
+        constexpr auto numtest = 30;
+        constexpr uint64_t numdigits = ArithHomFA::Lvl3ToLvl1::numdigits;
+        constexpr uint basebit = ArithHomFA::Lvl3ToLvl1::basebit;
+
+        // Test input
+        std::random_device seed_gen;
+        std::default_random_engine engine(seed_gen());
+        std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
+                0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
+        TFHEpp::TLWE<TFHEpp::lvl3param> input;
+        std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
+        for (typename TFHEpp::lvl3param::T &i: plains) {
+            i = messagegen(engine);
+        }
+        std::array<TFHEpp::TLWE<TFHEpp::lvl3param>, numtest> ciphers{};
+        for (uint i = 0; i < numtest; i++) {
+            ciphers[i] = TFHEpp::tlweSymIntEncrypt<TFHEpp::lvl3param>(plains[i], TFHEpp::lvl3param::α, lvl3key);
+        }
+
+        // Convert TLWE
+        std::array<TFHEpp::TLWE<typename ArithHomFA::BootstrappingKey::brP::targetP>, numtest> result_single{};
+        for (uint i = 0; i < numtest; i++) {
+            TFHEpp::TLWE<typename ArithHomFA::BootstrappingKey::brP::targetP> tlwe;
+            converter.toLv1TLWE(ciphers.at(i), tlwe);
+            // We use GateBootstrapping to get the signature
+            TFHEpp::GateBootstrapping<TFHEpp::lvl10param, TFHEpp::lvl01param, TFHEpp::lvl1param::μ>(result_single.at(i),
+                                                                                                    tlwe, *bootKey.ekey);
+        }
+
+        // Check the correctness of the results
+        constexpr typename TFHEpp::lvl3param::T offset = TFHEpp::offsetgen<TFHEpp::lvl3param, basebit, numdigits>();
+        for (uint test = 0; test < numtest; test++) {
+            // TODO: This does not always pass
+            BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
+                    TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));
         }
     }
 

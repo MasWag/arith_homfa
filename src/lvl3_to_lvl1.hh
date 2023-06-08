@@ -23,8 +23,9 @@ namespace ArithHomFA {
     private:
         //! @brief A BootstrappingKey to be used for conversion
         BootstrappingKey bk;
-        static constexpr uint basebit = 4;
     public:
+        static constexpr uint basebit = 4;
+        static constexpr uint numdigits = 32 / basebit;
         /*!
          * @brief Constructor for Lvl3ToLvl1
          * @param bootKey A BootstrappingKey to be used for conversion
@@ -33,13 +34,11 @@ namespace ArithHomFA {
 
         /*!
          * @brief Convert a TLWE ciphertext from level 3 to an array of TLWE ciphertexts at level 1
-         * @tparam numdigits The size of the output array
          * @param input The level 3 TLWE ciphertext
          * @param output The array of level 1 TLWE ciphertexts
          */
-        template<uint numdigits>
         void toLv1TLWE(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
-                       std::array<TFHEpp::TLWE<typename BootstrappingKey::brP::targetP>, numdigits> &output) const {
+                       std::array<TFHEpp::TLWE<TFHEpp::lvl1param>, numdigits> &output) const {
             TFHEpp::HomDecomp<typename BootstrappingKey::high2midP, typename BootstrappingKey::mid2lowP, typename BootstrappingKey::brP, basebit, numdigits>(
                     output, input, *bk.kskh2m, *bk.kskm2l, *bk.bkfft);
         }
@@ -50,10 +49,23 @@ namespace ArithHomFA {
          * @param output The level 1 TLWE ciphertext
          */
         void toLv1TLWE(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
-                       TFHEpp::TLWE<typename BootstrappingKey::brP::targetP> &output) const {
-            std::array<TFHEpp::TLWE<typename BootstrappingKey::brP::targetP>, 1> output_array{};
-            toLv1TLWE<1>(input, output_array);
-            output = output_array[0];
+                       TFHEpp::TLWE<TFHEpp::lvl1param> &output) const {
+            std::array<TFHEpp::TLWE<TFHEpp::lvl1param>, numdigits> output_array{};
+            toLv1TLWE(input, output_array);
+            output = output_array.back();
+        }
+
+        /*!
+         * @brief Convert a TLWE ciphertext from level 3 to a single TLWE ciphertext at level 1
+         * @param input The level 3 TLWE ciphertext
+         * @param output The level 1 TLWE ciphertext after bootstrapping
+         */
+        void toLv1TLWEWithBoostrapping(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
+                                       TFHEpp::TLWE<TFHEpp::lvl1param> &output) const {
+            TFHEpp::TLWE<TFHEpp::lvl1param> tmp;
+            toLv1TLWE(input, tmp);
+            TFHEpp::GateBootstrapping<TFHEpp::lvl10param, TFHEpp::lvl01param, TFHEpp::lvl1param::μ>(output, tmp,
+                                                                                                    *bk.ekey);
         }
     };
 
