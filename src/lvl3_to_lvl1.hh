@@ -64,6 +64,7 @@ namespace ArithHomFA {
                                        TFHEpp::TLWE<TFHEpp::lvl1param> &output) const {
             TFHEpp::TLWE<TFHEpp::lvl1param> tmp;
             toLv1TLWE(input, tmp);
+            tmp[TFHEpp::lvl1param::k*TFHEpp::lvl1param::n] += 1ULL<<(32-5);
             TFHEpp::GateBootstrapping<TFHEpp::lvl10param, TFHEpp::lvl01param, TFHEpp::lvl1param::μ>(output, tmp,
                                                                                                     *bk.ekey);
         }

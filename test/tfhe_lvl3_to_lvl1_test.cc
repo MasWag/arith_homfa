@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
             TFHEpp::TLWE<typename ArithHomFA::BootstrappingKey::brP::targetP> tlwe;
             converter.toLv1TLWE(ciphers.at(i), tlwe);
             // We use GateBootstrapping to get the signature
-	    result_single[i][TFHEpp::lvl1param::k*TFHEpp::lvl1param::n] += 1ULL<<(32-5);
+	          tlwe[TFHEpp::lvl1param::k*TFHEpp::lvl1param::n] += 1ULL<<(32-5);
             TFHEpp::GateBootstrapping<TFHEpp::lvl10param, TFHEpp::lvl01param, TFHEpp::lvl1param::μ>(result_single.at(i),
                                                                                                     tlwe, *bootKey.ekey);
         }
