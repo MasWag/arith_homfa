@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include <seal/seal.h>
 #include "tfhe++.hpp"
 
