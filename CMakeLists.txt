@@ -62,11 +62,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
 #set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
-# Import Microsoft SEAL
-find_package(SEAL 4.1.1 EXACT REQUIRED)
-
 # Import GSL
 # find_package(Microsoft.GSL CONFIG REQUIRED)
+
+#Build SEAL
+option(SEAL_USE_ZSTD OFF)
+add_subdirectory(thirdparty/SEAL)
+
+# Build HEXL
+add_subdirectory(thirdparty/homfa/thirdparty/TFHEpp/thirdparties/hexl/)
 
 # Import Eigen3
 find_package(Eigen3 REQUIRED)

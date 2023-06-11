@@ -4,3 +4,6 @@
 [submodule "thirdparty/rapidcheck"]
 	path = thirdparty/rapidcheck
 	url = https://github.com/emil-e/rapidcheck.git
+[submodule "thirdparty/SEAL"]
+	path = thirdparty/SEAL
+	url = https://github.com/microsoft/SEAL.git
