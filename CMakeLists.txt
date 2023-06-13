@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_STANDARD 20) # C++ standard C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(COMPILE_DEFINITIONS )
+#set(COMPILE_DEFINITIONS )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -30,7 +30,8 @@ find_package(Threads REQUIRED)
 # find_package (OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -fopenmp")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fopenmp")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS
+  "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} -fopenmp")
 
 # Get git revision
 # Thanks to: https://stackoverflow.com/a/6526533
@@ -45,8 +46,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
     message(STATUS "Git revision: ${HOMFA_GIT_REVISION}")
-  endif(GIT_FOUND)
-endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  endif()
+endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
 
 # add_subdirectory(thirdparty/homfa)
@@ -55,9 +56,9 @@ add_subdirectory(${HOMFA_DIR}/thirdparty/TFHEpp)
 # Hack to disable -march=native if it is not supported
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-if (COMPILER_SUPPORTS_MARCH_NATIVE)
+if(COMPILER_SUPPORTS_MARCH_NATIVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-endif ()
+endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
 #set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
