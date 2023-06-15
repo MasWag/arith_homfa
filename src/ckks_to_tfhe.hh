@@ -132,7 +132,7 @@ namespace ArithHomFA {
          *
          * @pre The degree of the given ciphertexts are the same
          */
-        void toLv3TLWE(seal::Ciphertext cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe) const {
+        void toLv3TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe) const {
             // Convert CKKS ciphertext to TRLWE lvl3 first
             TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
             toLv3TRLWE(cipher, trlwe);
@@ -160,7 +160,7 @@ namespace ArithHomFA {
             toLv3TLWE(cipher, lvl3TLWE);
 
             // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
-            converter->toLv1TLWEWithBoostrapping(lvl3TLWE, tlwe);
+            converter->toLv1TLWEWithBootstrapping(lvl3TLWE, tlwe);
         }
 
     private:

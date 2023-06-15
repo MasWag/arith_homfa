@@ -60,10 +60,11 @@ namespace ArithHomFA {
          * @param input The level 3 TLWE ciphertext
          * @param output The level 1 TLWE ciphertext after bootstrapping
          */
-        void toLv1TLWEWithBoostrapping(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
-                                       TFHEpp::TLWE<TFHEpp::lvl1param> &output) const {
+        void toLv1TLWEWithBootstrapping(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
+                                        TFHEpp::TLWE<TFHEpp::lvl1param> &output) const {
             TFHEpp::TLWE<TFHEpp::lvl1param> tmp;
             toLv1TLWE(input, tmp);
+            tmp[TFHEpp::lvl1param::k*TFHEpp::lvl1param::n] += 1ULL<<(32-5);
             TFHEpp::GateBootstrapping<TFHEpp::lvl10param, TFHEpp::lvl01param, TFHEpp::lvl1param::μ>(output, tmp,
                                                                                                     *bk.ekey);
         }
