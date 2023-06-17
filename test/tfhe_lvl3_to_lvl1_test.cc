@@ -119,7 +119,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         }
 
         // Check the correctness of the results
-        constexpr typename TFHEpp::lvl3param::T offset = TFHEpp::offsetgen<TFHEpp::lvl3param, basebit, numdigits>();
         for (uint test = 0; test < numtest; test++) {
             BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
                     TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));

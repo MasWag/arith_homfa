@@ -162,7 +162,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     const std::size_t log2_poly_modulus_degree = TFHEpp::lvl3param::nbit;
     const std::size_t poly_modulus_degree = 1 << log2_poly_modulus_degree;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 60}));
+    // parms.set_coeff_modulus(seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 60}));
+    parms.set_coeff_modulus(seal::CoeffModulus::Create(poly_modulus_degree, {60}));
     seal::SEALContext context(parms);
 
     // Generate Key
@@ -199,9 +200,10 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     ThreeToOne.toLv1TLWEWithBootstrapping(tlweThree, tlweM);
 
     // Decrypt the TLWE with TFHEpp
-    const auto tlweThreePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(tlweThree, lvl3Key);
     const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
     const auto tlwePlainM = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlweM, skey.key.lvl1);
+    const auto tlweThreePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(tlweThree, lvl3Key);
+    std::cout<<TFHEpp::tlweSymIntDecrypt<TFHEpp::lvl3param>(tlweThree, lvl3Key)<<std::endl;
     const bool negative = !tlwePlain;
     const bool negativeM = !tlwePlainM;
     const bool negativeThree = !tlweThreePlain;
