@@ -45,7 +45,8 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         // Test input
         std::random_device seed_gen;
         std::default_random_engine engine(seed_gen());
-        std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(0, UINT64_MAX);
+        std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
+                0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
         TFHEpp::TLWE<TFHEpp::lvl3param> input;
         std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
         for (typename TFHEpp::lvl3param::T &i: plains) {
@@ -69,7 +70,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         }
 
         // Check the correctness of the results
-        constexpr typename TFHEpp::lvl3param::T offset = TFHEpp::offsetgen<TFHEpp::lvl3param, basebit, numdigits>();
         for (uint test = 0; test < numtest; test++) {
             for (uint digit = 0; digit < numdigits; digit++) {
                 int plainResult = TFHEpp::tlweSymIntDecrypt<typename ArithHomFA::BootstrappingKey::high2midP::targetP>(
@@ -88,13 +88,12 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
 
     BOOST_FIXTURE_TEST_CASE(toLv1TLWEBool, Lvl3ToLvl1TestFixture) {
         constexpr auto numtest = 30;
-        constexpr uint64_t numdigits = ArithHomFA::Lvl3ToLvl1::numdigits;
-        constexpr uint basebit = ArithHomFA::Lvl3ToLvl1::basebit;
 
         // Test input
         std::random_device seed_gen;
         std::default_random_engine engine(seed_gen());
-        std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(0, UINT64_MAX);
+        std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
+                0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
         TFHEpp::TLWE<TFHEpp::lvl3param> input;
         std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
         for (typename TFHEpp::lvl3param::T &i: plains) {
@@ -117,7 +116,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         }
 
         // Check the correctness of the results
-        constexpr typename TFHEpp::lvl3param::T offset = TFHEpp::offsetgen<TFHEpp::lvl3param, basebit, numdigits>();
         for (uint test = 0; test < numtest; test++) {
             BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
                     TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));
@@ -126,13 +124,12 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
 
   BOOST_FIXTURE_TEST_CASE(toLv1TLWEWithBootstrapping, Lvl3ToLvl1TestFixture) {
     constexpr auto numtest = 30;
-    constexpr uint64_t numdigits = ArithHomFA::Lvl3ToLvl1::numdigits;
-    constexpr uint basebit = ArithHomFA::Lvl3ToLvl1::basebit;
 
     // Test input
     std::random_device seed_gen;
     std::default_random_engine engine(seed_gen());
-    std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(0, UINT64_MAX);
+    std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
+            0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
     TFHEpp::TLWE<TFHEpp::lvl3param> input;
     std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
     for (typename TFHEpp::lvl3param::T &i: plains) {
@@ -150,7 +147,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
     }
 
     // Check the correctness of the results
-    constexpr typename TFHEpp::lvl3param::T offset = TFHEpp::offsetgen<TFHEpp::lvl3param, basebit, numdigits>();
     for (uint test = 0; test < numtest; test++) {
       BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
                         TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));

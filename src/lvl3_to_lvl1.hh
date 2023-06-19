@@ -25,7 +25,7 @@ namespace ArithHomFA {
         BootstrappingKey bk;
     public:
         static constexpr uint basebit = 4;
-        static constexpr uint numdigits = 64 / basebit;
+        static constexpr uint numdigits = 32 / basebit;
         /*!
          * @brief Constructor for Lvl3ToLvl1
          * @param bootKey A BootstrappingKey to be used for conversion

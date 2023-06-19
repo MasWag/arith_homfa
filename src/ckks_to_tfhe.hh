@@ -26,7 +26,7 @@ namespace ArithHomFA {
          * @brief Constructor for CKKSToTFHE
          * @param context The SEALContext for the class
          */
-        explicit CKKSToTFHE(const seal::SEALContext &context) : context(context) {}
+        explicit CKKSToTFHE(const seal::SEALContext &context) : context(context), evaluator(context), encoder(context){}
 
         /*!
          * @brief Convert a secret key of SEAL to a lvl3Key of TFHEpp
@@ -77,14 +77,19 @@ namespace ArithHomFA {
          *
          * @param [in] cipher The CKKS ciphertext to convert
          * @param [out] trlwe The resulting TRLWE ciphertext
+         * @param [in] reference the reference value to decide the amount of amplification
          *
          * @pre The degree of the given ciphertexts are the same
          */
-        void toLv3TRLWE(seal::Ciphertext cipher, TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe) const {
+        void toLv3TRLWE(seal::Ciphertext cipher, TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe,
+                        const double reference = 1024) const {
             // Assert the precondition
             const auto poly_modulus_degree = cipher.poly_modulus_degree();
             assert(poly_modulus_degree == TFHEpp::lvl3param::n);
             const auto &context_data = *context.get_context_data(cipher.parms_id());
+
+            // amplify the ciphertext
+            this->amplify(cipher, reference);
 
             assert(cipher.is_ntt_form());
             seal::util::PolyIter cipherIter = seal::util::iter(cipher);
@@ -129,13 +134,15 @@ namespace ArithHomFA {
          *
          * @param [in] cipher The CKKS ciphertext to convert
          * @param [out] tlwe The resulting TLWE ciphertext
+         * @param [in] reference the reference value to decide the amount of amplification
          *
          * @pre The degree of the given ciphertexts are the same
          */
-        void toLv3TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe) const {
+        void toLv3TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe,
+                       double reference = 1024) const {
             // Convert CKKS ciphertext to TRLWE lvl3 first
             TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
-            toLv3TRLWE(cipher, trlwe);
+            toLv3TRLWE(cipher, trlwe, reference);
             TFHEpp::SampleExtractIndex<TFHEpp::lvl3param>(tlwe, trlwe, 0);
         }
 
@@ -149,22 +156,53 @@ namespace ArithHomFA {
          *
          * @param [in] cipher The CKKS ciphertext to convert
          * @param [out] tlwe The resulting TLWE ciphertext at lvl1
+         * @param [in] reference the reference value to decide the amount of amplification
          *
          * @pre converter is initialized
          */
         void toLv1TLWE(const seal::Ciphertext &cipher,
-                       TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe) const {
+                       TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe, double reference = 1024) const {
             assert(converter);
             // Convert CKKS ciphertext to TRLWE lvl3 first
             TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
-            toLv3TLWE(cipher, lvl3TLWE);
+            toLv3TLWE(cipher, lvl3TLWE, reference);
 
             // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
             converter->toLv1TLWEWithBootstrapping(lvl3TLWE, tlwe);
         }
 
+        /*!
+         * @brief Adaptively amplify the value so that the absolute value is sufficiently large
+         *
+         * We amplify the value by multiplying modulus * ratio / (2.0 * reference * scale)
+         *
+         * @param [inout] cipher the amplified ciphertext
+         * @param [in] reference (approximate) upper bound of the value represented by cipher. By default, we use reference = 2^32 * 0.001.
+         *
+         * @pre reference must be positive
+         * @invariant The signature of the cipher does not change
+         */
+        void amplify(seal::Ciphertext &cipher, double reference = std::pow(2, 32) * 0.001) const {
+          assert(reference > 0);
+
+          const double amplifiedRatio = 0.9;
+          const auto& context_data = context.get_context_data(cipher.parms_id());
+          const double scaledModulus = std::pow(2.0, context_data->total_coeff_modulus_bit_count()) * amplifiedRatio;
+          const double factor = scaledModulus / (2.0 * reference * cipher.scale());
+
+          seal::Plaintext plain;
+          encoder.encode(factor, 1.0, plain);
+          if (cipher.parms_id() != plain.parms_id()) {
+            evaluator.mod_switch_to_inplace(plain, cipher.parms_id());
+          }
+
+          evaluator.multiply_plain_inplace(cipher, plain);
+        }
+
     private:
         const seal::SEALContext &context;
+        const seal::Evaluator evaluator;
+        const ArithHomFA::CKKSNoEmbedEncoder encoder;
         std::optional<ArithHomFA::Lvl3ToLvl1> converter;
     };
 
