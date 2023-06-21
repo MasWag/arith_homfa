@@ -7,6 +7,7 @@ AccessModifierOffset: -2
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
+ColumnLimit: 120
 IncludeBlocks: Preserve
 DerivePointerAlignment: false
 PointerAlignment: Right
@@ -17,5 +18,3 @@ MacroBlockBegin: "BOOST_AUTO_TEST_SUITE"
 MacroBlockEnd: "BOOST_AUTO_TEST_SUITE_END"
 StatementMacros:
   - "BOOST_AUTO_TEST_SUITE_END"
-ForEachMacros:
-  - BOOST_AUTO_TEST_SUITE
