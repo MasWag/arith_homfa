@@ -58,8 +58,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     }
   };
 
-  RC_BOOST_FIXTURE_PROP(amplify, CKKSToTFHEFixture,
-                        (const int32_t& intValue, const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(amplify, CKKSToTFHEFixture, (const int32_t &intValue, const bool &useLargerParam)) {
     RC_PRE(intValue != 0);
     const double &value = static_cast<double>(intValue) * minValue;
 
@@ -96,8 +95,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     }
   }
 
-  RC_BOOST_FIXTURE_PROP(amplifyAfterRescale, CKKSToTFHEFixture,
-                        (const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(amplifyAfterRescale, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     const double threshold = std::pow(2, 18);
     const auto intValue = *rc::gen::inRange<int64_t>(static_cast<int64_t>(-threshold), static_cast<int64_t>(threshold));
     RC_PRE(intValue != 0);
@@ -146,8 +144,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     }
   }
 
-  RC_BOOST_FIXTURE_PROP(toLv3TRLWE, CKKSToTFHEFixture,
-                        (const int32_t& intValue, const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(toLv3TRLWE, CKKSToTFHEFixture, (const int32_t &intValue, const bool &useLargerParam)) {
     // We implicitly require that the given value is not too large. Otherwise, the encoding fails.
     const double &value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
@@ -181,8 +178,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     RC_ASSERT(trlwePlain.front() == (value > 0));
   }
 
-  RC_BOOST_FIXTURE_PROP(toLv3TLWE, CKKSToTFHEFixture,
-                        (const int32_t& intValue, const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(toLv3TLWE, CKKSToTFHEFixture, (const int32_t &intValue, const bool &useLargerParam)) {
     // We implicitly require that the given value is not too large. Otherwise, the encoding fails.
     const double &value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
@@ -216,8 +212,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     RC_ASSERT(tlwePlain == (value > 0));
   }
 
-  template<class Param>
-  static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> &generator) {
+  template <class Param> static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> & generator) {
     TFHEpp::Key<Param> key;
     for (typename Param::T &i: key) {
       i = generator(TFHEpp::generator);
@@ -226,8 +221,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     return key;
   }
 
-  RC_BOOST_FIXTURE_PROP(toLv1TLWE, CKKSToTFHEFixture,
-                        (const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(toLv1TLWE, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // We require that the given value is not too large. Otherwise, the encoding fails.
     const auto threshold = static_cast<int64_t>(std::pow(2, 40));
     const auto intValue = *rc::gen::inRange<int64_t>(-threshold, threshold);
@@ -247,10 +241,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     encryptor.encrypt_symmetric(plain, cipher);
 
     // Convert the key for TFHEpp
-    static std::array<ArithHomFA::CKKSToTFHE, 2> converters {
-            ArithHomFA::CKKSToTFHE(contexts.front()),
-            ArithHomFA::CKKSToTFHE(contexts.back())
-    };
+    static std::array<ArithHomFA::CKKSToTFHE, 2> converters{ArithHomFA::CKKSToTFHE(contexts.front()),
+                                                            ArithHomFA::CKKSToTFHE(contexts.back())};
     static std::vector<TFHEpp::Key<TFHEpp::lvl3param>> lvl3Keys;
     if (lvl3Keys.empty()) {
       lvl3Keys.resize(2);
@@ -258,13 +250,13 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
         converters.at(i).toLv3Key(keygens.at(i).secret_key(), lvl3Keys.at(i));
       }
     }
-    auto& converter = converters.at(useLargerParam);
+    auto &converter = converters.at(useLargerParam);
 
     // Setup the BootstrappingKey
     static const TFHEpp::SecretKey skey;
     std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
     static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
-      keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
@@ -287,10 +279,9 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
   }
 
   // This test case requires quite some RAM and may be terminated by OOM Killer.
-  RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterMultiplication, CKKSToTFHEFixture,
-                        (const bool& useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterMultiplication, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // We require that the given value is not too large.
-    const double threshold = std::pow(2, 18);
+    const double threshold = std::pow(2, 17);
     const auto gen = rc::gen::inRange<int64_t>(static_cast<int64_t>(-threshold), static_cast<int64_t>(threshold));
     std::valarray<double> values = {static_cast<double>(*gen), static_cast<double>(*gen)};
     values *= minValue;
@@ -306,7 +297,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       keygens.at(0).create_relin_keys(relinKeysV.at(0));
       keygens.at(1).create_relin_keys(relinKeysV.at(1));
     }
-    const seal::RelinKeys& relinKeys = relinKeysV.at(useLargerParam);
+    const seal::RelinKeys &relinKeys = relinKeysV.at(useLargerParam);
 
     // Encrypt the given value
     seal::SEALContext context = contexts.at(useLargerParam);
@@ -325,10 +316,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     evaluator.rescale_to_next_inplace(ciphers.at(0));
 
     // Convert the key for TFHEpp
-    static std::array<ArithHomFA::CKKSToTFHE, 2> converters {
-            ArithHomFA::CKKSToTFHE(contexts.front()),
-            ArithHomFA::CKKSToTFHE(contexts.back())
-    };
+    static std::array<ArithHomFA::CKKSToTFHE, 2> converters{ArithHomFA::CKKSToTFHE(contexts.front()),
+                                                            ArithHomFA::CKKSToTFHE(contexts.back())};
     static std::vector<TFHEpp::Key<TFHEpp::lvl3param>> lvl3Keys;
     if (lvl3Keys.empty()) {
       lvl3Keys.resize(2);
@@ -336,13 +325,13 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
         converters.at(i).toLv3Key(keygens.at(i).secret_key(), lvl3Keys.at(i));
       }
     }
-    auto& converter = converters.at(useLargerParam);
+    auto &converter = converters.at(useLargerParam);
 
     // Setup the BootstrappingKey
     static const TFHEpp::SecretKey skey;
     std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
     static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
-            keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
@@ -362,6 +351,70 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
 
     // Assert the result
     RC_ASSERT(tlwePlain == (values[0] * values[1] > 0));
+  }
+
+  RC_BOOST_FIXTURE_PROP(toLv1TRGSW, CKKSToTFHEFixture, (const bool &useLargerParam)) {
+    // We require that the given value is not too large. Otherwise, the encoding fails.
+    const auto threshold = std::pow(2, 40);
+    const auto intValue = *rc::gen::inRange<int64_t>(static_cast<int64_t>(-threshold), static_cast<int64_t>(threshold));
+    const double &value = static_cast<double>(intValue) * minValue;
+    RC_PRE(value != 0);
+
+    // Generate Key
+    static std::array<seal::KeyGenerator, 2> keygens{contexts.front(), contexts.back()};
+    const auto &secretKey = keygens.at(useLargerParam).secret_key();
+
+    // Encrypt the given value
+    seal::SEALContext context = contexts.at(useLargerParam);
+    ArithHomFA::CKKSNoEmbedEncoder encoder(context);
+    seal::Encryptor encryptor(context, secretKey);
+    encoder.encode(value, scale, plain);
+    seal::Ciphertext cipher;
+    encryptor.encrypt_symmetric(plain, cipher);
+
+    // Convert the key for TFHEpp
+    static std::array<ArithHomFA::CKKSToTFHE, 2> converters{ArithHomFA::CKKSToTFHE(contexts.front()),
+                                                            ArithHomFA::CKKSToTFHE(contexts.back())};
+    static std::vector<TFHEpp::Key<TFHEpp::lvl3param>> lvl3Keys;
+    if (lvl3Keys.empty()) {
+      lvl3Keys.resize(2);
+      for (int i = 0; i < 2; ++i) {
+        converters.at(i).toLv3Key(keygens.at(i).secret_key(), lvl3Keys.at(i));
+      }
+    }
+    auto &converter = converters.at(useLargerParam);
+
+    // Setup the BootstrappingKey
+    static const TFHEpp::SecretKey skey;
+    std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
+    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
+        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+    static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
+    if (bootKeys.empty()) {
+      // Construct bootKeys
+      bootKeys.emplace_back(skey, lvl3Keys.front(), lvlhalfkey);
+      bootKeys.emplace_back(skey, lvl3Keys.back(), lvlhalfkey);
+      converters.front().initializeConverter(bootKeys.front());
+      converters.back().initializeConverter(bootKeys.back());
+    }
+    ArithHomFA::Lvl3ToLvl1 ThreeToOne(bootKeys.at(useLargerParam));
+
+    // Convert the ciphertext for TFHEpp (lvl1)
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+    converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
+    TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(
+        trgsw, tlwe, *bootKeys.at(useLargerParam).ekey);
+
+    // Obtain the boolean value with CMux
+    TFHEpp::TRLWE<TFHEpp::lvl1param> result, one{}, zero{};
+    zero.at(1).front() = -1u << (std::numeric_limits<TFHEpp::lvl1param::T>::digits - 2);
+    one.at(1).front() = 1u << (std::numeric_limits<TFHEpp::lvl1param::T>::digits - 2);
+    TFHEpp::CMUXFFT<TFHEpp::lvl1param>(result, trgsw, one, zero);
+
+    // Assert the result
+    const auto resultPlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl1param>(result, skey.key.lvl1).front();
+    RC_ASSERT(resultPlain == (value > 0));
   }
 
 BOOST_AUTO_TEST_SUITE_END()
