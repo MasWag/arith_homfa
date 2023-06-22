@@ -124,7 +124,7 @@ namespace {
                     const seal::RelinKeys &relinKeys, std::istream &istream,
                     std::ostream &ostream) {
     const auto context = config.makeContext();
-    ArithHomFA::CKKSPredicate predicate{config};
+    ArithHomFA::CKKSPredicate predicate{context, config.scale};
     predicate.setRelinKeys(relinKeys);
     ArithHomFA::SizedCipherReader reader{istream};
     ArithHomFA::SizedCipherWriter writer{ostream};

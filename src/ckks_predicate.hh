@@ -20,8 +20,8 @@ namespace ArithHomFA {
      */
     class CKKSPredicate {
     public:
-        explicit CKKSPredicate(const SealConfig &config) : scale(config.scale), encoder(config.makeContext()),
-                                                           evaluator(config.makeContext()) {}
+        explicit CKKSPredicate(const seal::SEALContext &context, double scale) : scale(scale), encoder(context),
+                                                                                 evaluator(context) {}
 
         /*!
          * @brief Evaluate the predicates with the given valuation

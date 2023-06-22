@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(CKKSPredicateTest)
         valuation.resize(1);
         encryptor.encrypt_symmetric(plain, valuation.front());
         result.resize(1);
-        ArithHomFA::CKKSPredicate predicate{config};
+        ArithHomFA::CKKSPredicate predicate{context, config.scale};
         predicate.eval(valuation, result);
         seal::Decryptor decryptor(context, secretKey);
         decryptor.decrypt(result.front(), plain);

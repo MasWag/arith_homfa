@@ -17,7 +17,7 @@ namespace ArithHomFA {
     }
 
     PlainRunner(const SealConfig &config, const Graph &graph)
-        : graph(graph), state(graph.initial_state()), predicate(config) {
+        : graph(graph), state(graph.initial_state()), predicate(config.makeContext(), config.scale) {
     }
 
     bool feed(const std::vector<double> &valuations) {

@@ -157,6 +157,11 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/tfhe_lvl3_to_lvl1_test.cc
         thirdparty/homfa/src/graph.cpp
         thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
+        test/offline_runner_test.cc
+        thirdparty/homfa/src/offline_dfa.cpp
+        thirdparty/homfa/src/backstream_dfa_runner.cpp
+        thirdparty/homfa/src/timeit.cpp
+        thirdparty/homfa/src/tfhepp_util.cpp
         )
 
 target_include_directories(unit_test PUBLIC
@@ -173,6 +178,7 @@ target_link_libraries(unit_test
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
         SEAL::seal
         hexl
+        tbb
         randen
         rapidcheck
         pthread

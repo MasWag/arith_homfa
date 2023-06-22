@@ -16,8 +16,7 @@ namespace ArithHomFA {
   class TicToc {
   private:
     std::chrono::system_clock::time_point start;
-    std::chrono::system_clock::duration total =
-        std::chrono::system_clock::duration::zero();
+    std::chrono::system_clock::duration total = std::chrono::system_clock::duration::zero();
     bool measuring = false;
 
   public:
@@ -37,16 +36,15 @@ namespace ArithHomFA {
 
   struct TicTocForRunner {
     TicToc predicate;
+    TicToc ckks_to_tfhe;
     TicToc dfa;
     void print() const {
-      spdlog::info(
-          "Execution time for Predicate evaluation: {} [us]",
-          std::chrono::duration_cast<std::chrono::microseconds>(predicate.getTotal())
-              .count());
-      spdlog::info(
-          "Execution time for DFA evaluation: {} [us]",
-          std::chrono::duration_cast<std::chrono::microseconds>(dfa.getTotal())
-              .count());
+      spdlog::info("Execution time for Predicate evaluation: {} [us]",
+                   std::chrono::duration_cast<std::chrono::microseconds>(predicate.getTotal()).count());
+      spdlog::info("Execution time for bridging CKKS and TFHE: {} [us]",
+                   std::chrono::duration_cast<std::chrono::microseconds>(ckks_to_tfhe.getTotal()).count());
+      spdlog::info("Execution time for DFA evaluation: {} [us]",
+                   std::chrono::duration_cast<std::chrono::microseconds>(dfa.getTotal()).count());
     }
   };
 } // namespace ArithHomFA
