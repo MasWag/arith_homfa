@@ -1,6 +1,6 @@
 /**
  * @author Masaki Waga
- * @date 2023/06/22.
+ * @date 2023/06/23.
  */
 
 #pragma once
@@ -16,34 +16,30 @@
 #include "abstract_runner.hh"
 #include "ckks_predicate.hh"
 #include "ckks_to_tfhe.hh"
+#include "online_dfa.hpp"
 #include "seal_config.hh"
 #include "tic_toc.hh"
 
 namespace ArithHomFA {
   /*!
-   * @brief Class for offline monitoring
+   * @brief Class for online monitoring with the reverse algorithm
    */
-  class OfflineRunner : public AbstractRunner {
+  class ReverseRunner : public AbstractRunner {
   public:
-    OfflineRunner(const seal::SEALContext &context, double scale, const std::string &spec_filename, size_t input_size,
+    ReverseRunner(const seal::SEALContext &context, double scale, const std::string &spec_filename,
                   size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references)
-        : OfflineRunner(context, scale, Graph::from_file(spec_filename), input_size, boot_interval, bkey, references) {
+        : ReverseRunner(context, scale, Graph::from_file(spec_filename), boot_interval, bkey, references) {
     }
 
-    OfflineRunner(const seal::SEALContext &context, double scale, const Graph &graph, size_t input_size,
-                  size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references)
-        : runner(graph, input_size, boot_interval, bkey.ekey, false), predicate(context, scale), bkey(bkey),
+    ReverseRunner(const seal::SEALContext &context, double scale, const Graph &graph, size_t boot_interval,
+                  const BootstrappingKey &bkey, const std::vector<double> &references)
+        : runner(graph, boot_interval, false, bkey.ekey, false), predicate(context, scale), bkey(bkey),
           converter(context), references(references) {
       converter.initializeConverter(this->bkey);
     }
 
     /*!
      * @brief Feeds a valuation to the DFA with valuations
-     *
-     * @note We expect that the sequence of valuations is given from back to front, and result is for the current
-     * suffix. Namely, let \f$w = a_1, a_2, \dots, a_n\f$ be the monitored sequence. We expect that the valuations is
-     * fed from \f$a_n\f$ to $\fa_1\f$. The result after feeding \f$w = a_i, a_{i+1}, \dots, a_n\f$ shows if \f$w = a_i,
-     * a_{i+1}, \dots, a_n\f$ satisfies the specification.
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feed(const std::vector<seal::Ciphertext> &valuations) override {
       assert(valuations.size() == predicate.getSignalSize());
@@ -70,7 +66,7 @@ namespace ArithHomFA {
                     });
       timer.ckks_to_tfhe.toc();
 
-      for (const auto &trgsw: std::ranges::reverse_view(trgsws)) {
+      for (const auto &trgsw: trgsws) {
         timer.dfa.tic();
         runner.eval_one(trgsw);
         timer.dfa.toc();
@@ -80,7 +76,7 @@ namespace ArithHomFA {
     }
 
   private:
-    OfflineDFARunner runner;
+    OnlineDFARunner2 runner;
     CKKSPredicate predicate;
     const BootstrappingKey &bkey;
     CKKSToTFHE converter;

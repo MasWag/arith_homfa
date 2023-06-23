@@ -159,9 +159,11 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
         test/offline_runner_test.cc
         thirdparty/homfa/src/offline_dfa.cpp
+        thirdparty/homfa/src/online_dfa.cpp
         thirdparty/homfa/src/backstream_dfa_runner.cpp
         thirdparty/homfa/src/timeit.cpp
         thirdparty/homfa/src/tfhepp_util.cpp
+        test/reverse_runner_test.cc
         )
 
 target_include_directories(unit_test PUBLIC
