@@ -164,6 +164,7 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         thirdparty/homfa/src/timeit.cpp
         thirdparty/homfa/src/tfhepp_util.cpp
         test/reverse_runner_test.cc
+        test/block_runner_test.cc
         )
 
 target_include_directories(unit_test PUBLIC
