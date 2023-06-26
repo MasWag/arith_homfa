@@ -26,8 +26,8 @@ namespace TFHEpp {
         using T = uint64_t;                                 // Torus representation
         static constexpr T μ = 1ULL << 61;
         static constexpr uint32_t plain_modulusbit = 31;
-        static constexpr uint64_t plain_modulus = 1ULL<<plain_modulusbit;
-        static constexpr double Δ = 1ULL<<(64-plain_modulusbit-1);
+        static constexpr uint64_t plain_modulus = 1ULL << plain_modulusbit;
+        static constexpr double Δ = 1ULL << (64 - plain_modulusbit - 1);
     };
 
     struct lvlhalfparam {
@@ -45,7 +45,7 @@ namespace TFHEpp {
                 plain_modulus;
     };
 
-    struct lvl32param{
+    struct lvl32param {
         static constexpr std::uint32_t t = 7;  // number of addition in keyswitching
         static constexpr std::uint32_t basebit =
                 3;  // how many bit should be encrypted in keyswitching key
@@ -54,7 +54,7 @@ namespace TFHEpp {
         using targetP = lvl2param;
     };
 
-    struct lvl31param{
+    struct lvl31param {
         static constexpr std::uint32_t t = 7;  // number of addition in keyswitching
         static constexpr std::uint32_t basebit =
                 2;  // how many bit should be encrypted in keyswitching key
@@ -63,7 +63,7 @@ namespace TFHEpp {
         using targetP = lvl1param;
     };
 
-    struct lvl2hparam{
+    struct lvl2hparam {
         static constexpr std::uint32_t t = 7;  // number of addition in keyswitching
         static constexpr std::uint32_t basebit =
                 2;  // how many bit should be encrypted in keyswitching key
@@ -72,7 +72,7 @@ namespace TFHEpp {
         using targetP = lvlhalfparam;
     };
 
-    struct lvlh2param{
+    struct lvlh2param {
         using domainP = lvlhalfparam;
         using targetP = lvl2param;
 #ifdef USE_KEY_BUNDLE

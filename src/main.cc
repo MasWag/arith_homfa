@@ -20,6 +20,8 @@
 #include "seal_config.hh"
 #include "sized_cipher_reader.hh"
 #include "sized_cipher_writer.hh"
+#include "sized_tlwe_reader.hh"
+#include "sized_tlwe_writer.hh"
 
 namespace {
   enum class VERBOSITY { VERBOSE, NORMAL, QUIET };
@@ -45,24 +47,19 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool minimized = false, reversed = false, negated = false,
-         make_all_live_states_final = false, is_spec_reversed = false,
-         sanitize_result = false;
+    bool minimized = false, reversed = false, negated = false, make_all_live_states_final = false,
+         is_spec_reversed = false, sanitize_result = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
     seal::SecretKey sealSecretKey;
-    std::optional<std::string> spec, skey, bkey, output_dir, debug_skey,
-        formula, online_method;
+    std::optional<std::string> spec, skey, bkey, output_dir, debug_skey, formula, online_method;
     std::istream *input = &std::cin;
     std::ostream *output = &std::cout;
-    std::optional<size_t> num_vars, queue_size, bootstrapping_freq,
-        max_second_lut_depth, num_ap, output_freq;
+    std::optional<size_t> num_vars, queue_size, bootstrapping_freq, max_second_lut_depth, num_ap, output_freq;
   };
 
   void register_general_options(CLI::App &app, Args &args) {
-    app.add_flag_callback("--verbose",
-                          [&] { args.verbosity = VERBOSITY::VERBOSE; });
-    app.add_flag_callback("--quiet",
-                          [&] { args.verbosity = VERBOSITY::QUIET; });
+    app.add_flag_callback("--verbose", [&] { args.verbosity = VERBOSITY::VERBOSE; });
+    app.add_flag_callback("--quiet", [&] { args.verbosity = VERBOSITY::QUIET; });
   }
 
   void register_SEAL(CLI::App &app, Args &args) {
@@ -72,8 +69,7 @@ namespace {
     std::vector<CLI::App *> withInput;
     CLI::App *genkey = ckks->add_subcommand("genkey", "Generate secret key");
     subcommands.push_back(genkey);
-    CLI::App *genrelinkey =
-        ckks->add_subcommand("genrelinkey", "Generate relin key");
+    CLI::App *genrelinkey = ckks->add_subcommand("genrelinkey", "Generate relin key");
     subcommands.push_back(genrelinkey);
     requiresKey.push_back(genrelinkey);
     CLI::App *enc = ckks->add_subcommand("enc", "Encrypt input file");
@@ -87,53 +83,40 @@ namespace {
 
     // General options for CKKS
     for (auto subcommand: subcommands) {
-      std::function<void(const std::string &)> configCallback =
-          [&args](const std::string &path) {
-            std::ifstream istream(path);
-            cereal::JSONInputArchive archive(istream);
-            args.sealConfig = ArithHomFA::SealConfig::load(archive);
-          };
-      subcommand
-          ->add_option_function("-c,--config", configCallback,
-                                "The configuration file of SEAL")
-          ->required();
+      std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
+        std::ifstream istream(path);
+        cereal::JSONInputArchive archive(istream);
+        args.sealConfig = ArithHomFA::SealConfig::load(archive);
+      };
+      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")->required();
 
-      std::function<void(const std::string &)> output_callback =
-          [&args](const std::string &path) {
-            args.output = new std::ofstream(path);
-          };
-      subcommand->add_option_function("-o,--output", output_callback,
-                                      "The file to write the result");
+      std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
+        args.output = new std::ofstream(path);
+      };
+      subcommand->add_option_function("-o,--output", output_callback, "The file to write the result");
     }
 
     // Options for subcommands with key
     for (auto subcommand: requiresKey) {
-      std::function<void(const std::string &)> keyCallback =
-          [&args](const std::string &path) {
-            std::ifstream istream(path);
-            args.sealSecretKey.load(args.sealConfig->makeContext(), istream);
-          };
-      subcommand
-          ->add_option_function("-K,--secret-key", keyCallback,
-                                "The secret key of SEAL")
-          ->required();
+      std::function<void(const std::string &)> keyCallback = [&args](const std::string &path) {
+        std::ifstream istream(path);
+        args.sealSecretKey.load(args.sealConfig->makeContext(), istream);
+      };
+      subcommand->add_option_function("-K,--secret-key", keyCallback, "The secret key of SEAL")->required();
     }
 
     // Options for subcommands with key
     for (auto subcommand: withInput) {
-      std::function<void(const std::string &)> callback =
-          [&args](const std::string &path) {
-            args.input = new std::ifstream(path);
-          };
-      subcommand->add_option_function("-i,--input", callback,
-                                      "The file to load the input");
+      std::function<void(const std::string &)> callback = [&args](const std::string &path) {
+        args.input = new std::ifstream(path);
+      };
+      subcommand->add_option_function("-i,--input", callback, "The file to load the input");
     }
 
     // genkey
     genkey->parse_complete_callback([&args] { args.type = TYPE::GENKEY_SEAL; });
     // genrelinkey
-    genrelinkey->parse_complete_callback(
-        [&args] { args.type = TYPE::GENRELINKEY_SEAL; });
+    genrelinkey->parse_complete_callback([&args] { args.type = TYPE::GENRELINKEY_SEAL; });
     // enc
     enc->parse_complete_callback([&args] { args.type = TYPE::ENC_CKKS; });
     // dec
@@ -141,15 +124,13 @@ namespace {
   }
 
   void register_TFHEpp(CLI::App &app, Args &args) {
-    CLI::App *tfhe =
-        app.add_subcommand("tfhe", "Subcommands related to TFHEpp");
+    CLI::App *tfhe = app.add_subcommand("tfhe", "Subcommands related to TFHEpp");
     std::vector<CLI::App *> subcommands;
     std::vector<CLI::App *> requiresKey;
     std::vector<CLI::App *> withInput;
     CLI::App *genkey = tfhe->add_subcommand("genkey", "Generate secret key");
     subcommands.push_back(genkey);
-    CLI::App *genbkey =
-        tfhe->add_subcommand("genbkey", "Generate bootstrap key");
+    CLI::App *genbkey = tfhe->add_subcommand("genbkey", "Generate bootstrap key");
     subcommands.push_back(genbkey);
     requiresKey.push_back(genbkey);
     CLI::App *enc = tfhe->add_subcommand("enc", "Encrypt input file");
@@ -163,69 +144,52 @@ namespace {
 
     // General options for TFHE
     for (auto subcommand: subcommands) {
-      std::function<void(const std::string &)> output_callback =
-          [&args](const std::string &path) {
-            args.output = new std::ofstream(path);
-          };
-      subcommand->add_option_function("-o,--output", output_callback,
-                                      "The file to write the result");
+      std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
+        args.output = new std::ofstream(path);
+      };
+      subcommand->add_option_function("-o,--output", output_callback, "The file to write the result");
     }
 
     // Options for subcommands with key
     for (auto subcommand: requiresKey) {
-      subcommand
-          ->add_option("-K,--secret-key", args.skey, "The secret key of TFHEpp")
+      subcommand->add_option("-K,--secret-key", args.skey, "The secret key of TFHEpp")
           ->required()
           ->check(CLI::ExistingFile);
     }
 
     // Options for subcommands with inputs
     for (auto subcommand: withInput) {
-      std::function<void(const std::string &)> callback =
-          [&args](const std::string &path) {
-            args.input = new std::ifstream(path);
-          };
-      subcommand->add_option_function("-i,--input", callback,
-                                      "The file to load the input");
+      std::function<void(const std::string &)> callback = [&args](const std::string &path) {
+        args.input = new std::ifstream(path);
+      };
+      subcommand->add_option_function("-i,--input", callback, "The file to load the input");
     }
 
     // genkey
-    genkey->parse_complete_callback(
-        [&args] { args.type = TYPE::GENKEY_TFHEPP; });
-    // genrelinkey
-    genbkey->parse_complete_callback(
-        [&args] { args.type = TYPE::GENBKEY_TFHEPP; });
+    genkey->parse_complete_callback([&args] { args.type = TYPE::GENKEY_TFHEPP; });
+    // genbkey
+    genbkey->parse_complete_callback([&args] { args.type = TYPE::GENBKEY_TFHEPP; });
     // enc
     enc->parse_complete_callback([&args] { args.type = TYPE::ENC_TFHEPP; });
-    enc->add_option("-a,--num-AP", args.num_ap, "Number of atomic propositions")
-        ->required();
     // dec
     dec->parse_complete_callback([&args] { args.type = TYPE::DEC_TFHEPP; });
   }
 
   void register_ltl2spec(CLI::App &app, Args &args) {
-    CLI::App *ltl2spec = app.add_subcommand(
-        "ltl2spec", "Convert LTL to spec format for ArithHomFA");
-    std::function<void(const std::string &)> output_callback =
-        [&args](const std::string &path) {
-          args.output = new std::ofstream(path);
-        };
-    ltl2spec->add_option("-e,--formula", args.formula, "The LTL formula")
+    CLI::App *ltl2spec = app.add_subcommand("ltl2spec", "Convert LTL to spec format for ArithHomFA");
+    std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
+      args.output = new std::ofstream(path);
+    };
+    ltl2spec->add_option("-e,--formula", args.formula, "The LTL formula")->required();
+    ltl2spec->add_option_function("-o,--output", output_callback, "The file to write the result");
+    ltl2spec->add_option("-n,--num-vars", args.num_vars, "The number of variables in the given LTL formula")
         ->required();
-    ltl2spec->add_option_function("-o,--output", output_callback,
-                                  "The file to write the result");
-    ltl2spec
-        ->add_option("-n,--num-vars", args.num_vars,
-                     "The number of variables in the given LTL formula")
-        ->required();
-    ltl2spec->add_option("--make-all-live-states-final",
-                         args.make_all_live_states_final,
+    ltl2spec->add_option("--make-all-live-states-final", args.make_all_live_states_final,
                          "If make all live states final");
     ltl2spec->parse_complete_callback([&args] { args.type = TYPE::LTL2SPEC; });
   }
 
-  void do_genkey_SEAL(const ArithHomFA::SealConfig &config,
-                      std::ostream &ostream) {
+  void do_genkey_SEAL(const ArithHomFA::SealConfig &config, std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     seal::KeyGenerator keygen(context);
     const seal::SecretKey &secretKey = keygen.secret_key();
@@ -233,8 +197,7 @@ namespace {
     secretKey.save(ostream);
   }
 
-  void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config,
-                           const seal::SecretKey &secretKey,
+  void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey,
                            std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     seal::KeyGenerator keygen(context, secretKey);
@@ -255,8 +218,7 @@ namespace {
     write_to_archive(ostream, bkey);
   }
 
-  void do_enc_SEAL(const ArithHomFA::SealConfig &config,
-                   const seal::SecretKey &secretKey, std::istream &istream,
+  void do_enc_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey, std::istream &istream,
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
@@ -282,8 +244,7 @@ namespace {
     spdlog::info("Given contents are encrypted with the CKKS scheme");
   }
 
-  void do_dec_SEAL(const ArithHomFA::SealConfig &config,
-                   const seal::SecretKey &secretKey, std::istream &istream,
+  void do_dec_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey, std::istream &istream,
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
@@ -307,55 +268,52 @@ namespace {
     spdlog::info("Given ciphertexts are decrypted with the CKKS scheme");
   }
 
-  void do_enc_TFHEpp(const std::string &skey_filename, std::istream &istream,
-                     std::ostream &ostream, const size_t num_ap) {
-    auto skey = read_from_archive<SecretKey>(skey_filename);
+  void do_enc_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
+    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
 
-    TRGSWLvl1FFTSerializer ser{ostream};
-
-    size_t rest = 0;
-    while (istream) {
-      int ch = istream.get();
-      if (ch == EOF) {
+    ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
+    bool content;
+    while (istream.good()) {
+      // get the content from stdin
+      istream >> content;
+      if (!istream.good()) {
         break;
       }
-      uint8_t v = ch;
-      if (rest == 0) {
-        rest = num_ap;
-      }
-      for (size_t i = 0; i < 8 && rest != 0; i++, rest--) {
-        bool b = (v & 1u) != 0;
-        v >>= 1;
-        ser.save(encrypt_bit_to_TRGSWLvl1FFT(b, skey));
-      }
+      spdlog::debug("Content: {}", content);
+      writer.write(
+          TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(content ? 1u << 31 : 0, TFHEpp::lvl1param::α, skey.key.lvl1));
     }
+    spdlog::info("Given contents are encrypted with the TFHE scheme");
   }
 
-  void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream,
-                     std::ostream &ostream) {
-    auto skey = read_from_archive<SecretKey>(skey_filename);
-    auto enc_res = read_from_archive<TLWELvl1>(istream);
-    bool res = decrypt_TLWELvl1_to_bit(enc_res, skey);
-    ostream << (res ? "true" : "false");
+  void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
+    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
+
+    ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> reader{istream};
+    while (istream.good()) {
+      // get the cipher text from stdin
+      TFHEpp::TLWE<TFHEpp::lvl1param> cipher;
+      if (reader.read(cipher)) {
+        const bool res = decrypt_TLWELvl1_to_bit(cipher, skey);
+        ostream << (res ? "true" : "false") << std::endl;
+      } else {
+        break;
+      }
+    }
+    spdlog::info("Given ciphertexts are decrypted with the TFHE scheme");
   }
 
   void dumpBasicInfo(int argc, char **argv) {
-    spdlog::info(
-        R"(============================================================)");
+    spdlog::info(R"(============================================================)");
 
     // Logo: thanks to:
     // https://patorjk.com/software/taag/#p=display&f=Standard&t=ArithHomFA
     spdlog::info(R"(     _         _ _   _     _   _                 _____ _)");
-    spdlog::info(
-        R"(    / \   _ __(_) |_| |__ | | | | ___  _ __ ___ |  ___/ \)");
-    spdlog::info(
-        R"(   / _ \ | '__| | __| '_ \| |_| |/ _ \| '_ ` _ \| |_ / _ \)");
-    spdlog::info(
-        R"(  / ___ \| |  | | |_| | | |  _  | (_) | | | | | |  _/ ___ \)");
-    spdlog::info(
-        R"( /_/   \_\_|  |_|\__|_| |_|_| |_|\___/|_| |_| |_|_|/_/   \_\)");
-    spdlog::info(
-        R"(                                                            )");
+    spdlog::info(R"(    / \   _ __(_) |_| |__ | | | | ___  _ __ ___ |  ___/ \)");
+    spdlog::info(R"(   / _ \ | '__| | __| '_ \| |_| |/ _ \| '_ ` _ \| |_ / _ \)");
+    spdlog::info(R"(  / ___ \| |  | | |_| | | |  _  | (_) | | | | | |  _/ ___ \)");
+    spdlog::info(R"( /_/   \_\_|  |_|\__|_| |_|_| |_|\___/|_| |_| |_|_|/_/   \_\)");
+    spdlog::info(R"(                                                            )");
 
     // Show build config
     spdlog::info("Built with:");
@@ -393,8 +351,7 @@ namespace {
     }
     spdlog::info("\tConcurrency:\t{}", std::thread::hardware_concurrency());
 
-    spdlog::info(
-        R"(============================================================)");
+    spdlog::info(R"(============================================================)");
   }
 
 } // namespace
@@ -436,13 +393,11 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::ENC_CKKS: {
-      do_enc_SEAL(*args.sealConfig, args.sealSecretKey, *args.input,
-                  *args.output);
+      do_enc_SEAL(*args.sealConfig, args.sealSecretKey, *args.input, *args.output);
       break;
     }
     case TYPE::DEC_CKKS: {
-      do_dec_SEAL(*args.sealConfig, args.sealSecretKey, *args.input,
-                  *args.output);
+      do_dec_SEAL(*args.sealConfig, args.sealSecretKey, *args.input, *args.output);
       break;
     }
     case TYPE::GENKEY_TFHEPP: {
@@ -454,7 +409,7 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::ENC_TFHEPP: {
-      do_enc_TFHEpp(*args.skey, *args.input, *args.output, *args.num_ap);
+      do_enc_TFHEpp(*args.skey, *args.input, *args.output);
       break;
     }
     case TYPE::DEC_TFHEPP: {
@@ -462,8 +417,7 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::LTL2SPEC: {
-      Graph gr = Graph::from_ltl_formula(*args.formula, *args.num_vars,
-                                         args.make_all_live_states_final);
+      Graph gr = Graph::from_ltl_formula(*args.formula, *args.num_vars, args.make_all_live_states_final);
       gr.dump(*args.output);
     }
     case TYPE::SPEC2SPEC: {
