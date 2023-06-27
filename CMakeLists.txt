@@ -128,13 +128,20 @@ target_compile_definitions(ahomfa_util PRIVATE ${COMPILE_DEFINITIONS})
 add_library(ahomfa_runner
         src/ahomfa_runner.cc
         thirdparty/homfa/src/graph.cpp
-  )
+        thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
+        thirdparty/homfa/src/offline_dfa.cpp
+        thirdparty/homfa/src/online_dfa.cpp
+        thirdparty/homfa/src/backstream_dfa_runner.cpp
+        thirdparty/homfa/src/timeit.cpp
+        thirdparty/homfa/src/tfhepp_util.cpp
+        )
 
 target_link_libraries(ahomfa_runner
         seal
         hexl
         randen
         tfhe++
+        tbb
         bddx
         pthread
         )

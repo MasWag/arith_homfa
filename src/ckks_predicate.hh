@@ -69,6 +69,10 @@ namespace ArithHomFA {
             return predicateSize;
         }
 
+        static const std::vector<double> getReferences() {
+            return references;
+        }
+
         void setRelinKeys(const seal::RelinKeys &keys) {
             this->relinKeys = keys;
         }
@@ -83,6 +87,8 @@ namespace ArithHomFA {
         const static std::size_t signalSize;
         //! The number of the output predicates
         const static std::size_t predicateSize;
+        //! (approximate) upper bound of the value of each signal
+        const static std::vector<double> references;
 
         //! Function for the actual evaluation
         void evalPredicateInternal(const std::vector<seal::Ciphertext> &, std::vector<seal::Ciphertext> &);

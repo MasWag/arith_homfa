@@ -16,7 +16,9 @@
 #include "tfhepp_util.hpp"
 #include "utility.hpp"
 
+#include "bootstrapping_key.hh"
 #include "ckks_no_embed.hh"
+#include "ckks_to_tfhe.hh"
 #include "seal_config.hh"
 #include "sized_cipher_reader.hh"
 #include "sized_cipher_writer.hh"
@@ -105,7 +107,7 @@ namespace {
       subcommand->add_option_function("-K,--secret-key", keyCallback, "The secret key of SEAL")->required();
     }
 
-    // Options for subcommands with key
+    // Options for subcommands with inputs
     for (auto subcommand: withInput) {
       std::function<void(const std::string &)> callback = [&args](const std::string &path) {
         args.input = new std::ifstream(path);
@@ -128,11 +130,13 @@ namespace {
     std::vector<CLI::App *> subcommands;
     std::vector<CLI::App *> requiresKey;
     std::vector<CLI::App *> withInput;
+    std::vector<CLI::App *> withSeal;
     CLI::App *genkey = tfhe->add_subcommand("genkey", "Generate secret key");
     subcommands.push_back(genkey);
     CLI::App *genbkey = tfhe->add_subcommand("genbkey", "Generate bootstrap key");
     subcommands.push_back(genbkey);
     requiresKey.push_back(genbkey);
+    withSeal.push_back(genbkey);
     CLI::App *enc = tfhe->add_subcommand("enc", "Encrypt input file");
     subcommands.push_back(enc);
     requiresKey.push_back(enc);
@@ -155,6 +159,22 @@ namespace {
       subcommand->add_option("-K,--secret-key", args.skey, "The secret key of TFHEpp")
           ->required()
           ->check(CLI::ExistingFile);
+    }
+
+    // Options for subcommands with SEAL's configuration and secret key
+    for (auto subcommand: withSeal) {
+      std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
+        std::ifstream istream(path);
+        cereal::JSONInputArchive archive(istream);
+        args.sealConfig = ArithHomFA::SealConfig::load(archive);
+      };
+      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")->required();
+
+      std::function<void(const std::string &)> keyCallback = [&args](const std::string &path) {
+        std::ifstream istream(path);
+        args.sealSecretKey.load(args.sealConfig->makeContext(), istream);
+      };
+      subcommand->add_option_function("-S,--seal-secret-key", keyCallback, "The secret key of SEAL")->required();
     }
 
     // Options for subcommands with inputs
@@ -208,13 +228,18 @@ namespace {
   }
 
   void do_genkey_TFHEpp(std::ostream &ostream) {
-    TFHEpp::SecretKey skey;
+    ArithHomFA::SecretKey skey;
     write_to_archive(ostream, skey);
   }
 
-  void do_genbkey_TFHEpp(std::istream &&skey_stream, std::ostream &ostream) {
-    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_stream);
-    BKey bkey{skey};
+  void do_genbkey_TFHEpp(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey,
+                         std::istream &&skey_stream, std::ostream &ostream) {
+    const seal::SEALContext context = config.makeContext();
+    ArithHomFA::CKKSToTFHE converter(context);
+    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_stream);
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(secretKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bkey{skey, lvl3Key};
     write_to_archive(ostream, bkey);
   }
 
@@ -405,7 +430,7 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::GENBKEY_TFHEPP: {
-      do_genbkey_TFHEpp(std::ifstream(*args.skey), *args.output);
+      do_genbkey_TFHEpp(*args.sealConfig, args.sealSecretKey, std::ifstream(*args.skey), *args.output);
       break;
     }
     case TYPE::ENC_TFHEPP: {
