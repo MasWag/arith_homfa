@@ -31,15 +31,12 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto& sealKey = keygen.secret_key();
-    TFHEpp::SecretKey skey;
+    ArithHomFA::SecretKey skey;
     // CKKSToTFHE is necessary to make lvl3Key
     ArithHomFA::CKKSToTFHE converter(context);
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
-    std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
-    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
-        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
-    ArithHomFA::BootstrappingKey bkey(skey, lvl3Key, lvlhalfkey);
+    ArithHomFA::BootstrappingKey bkey(skey, lvl3Key);
 
     // Instantiate encoder and encryptor
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);

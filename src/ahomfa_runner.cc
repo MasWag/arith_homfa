@@ -5,10 +5,9 @@
 
 #include <iostream>
 #include <optional>
-#include <unordered_map>
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <CLI/CLI.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 #include <seal/seal.h>
 #include <tfhe++.hpp>
 
@@ -17,10 +16,11 @@
 #include "tfhepp_util.hpp"
 #include "utility.hpp"
 
-#include "ckks_no_embed.hh"
+#include "block_runner.hh"
 #include "ckks_predicate.hh"
 #include "offline_runner.hh"
 #include "plain_runner.hh"
+#include "reverse_runner.hh"
 #include "seal_config.hh"
 #include "sized_cipher_reader.hh"
 #include "sized_cipher_writer.hh"
@@ -43,14 +43,11 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool minimized = false, reversed = false, negated = false, make_all_live_states_final = false,
-         is_spec_reversed = false, sanitize_result = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
-    std::optional<std::string> spec, skey, bkey, output_dir, debug_skey, formula, online_method;
+    std::optional<std::string> spec, bkey, debug_skey, relKey;
     std::istream *input = &std::cin;
     std::ostream *output = &std::cout;
-    seal::RelinKeys relKey;
-    std::optional<size_t> num_vars, queue_size, bootstrapping_freq, max_second_lut_depth, num_ap, output_freq;
+    std::optional<size_t> bootstrapping_freq, output_freq;
   };
 
   void register_general_options(CLI::App &app, Args &args) {
@@ -59,13 +56,6 @@ namespace {
   }
 
   void add_common_flags(CLI::App &app, Args &args) {
-    std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
-      std::ifstream istream(path);
-      cereal::JSONInputArchive archive(istream);
-      args.sealConfig = ArithHomFA::SealConfig::load(archive);
-    };
-    app.add_option_function("-c,--config", configCallback, "Configuration file of SEAL")->required();
-
     std::function<void(const std::string &)> callback = [&args](const std::string &path) {
       args.input = new std::ifstream(path);
     };
@@ -75,13 +65,21 @@ namespace {
       args.output = new std::ofstream(path);
     };
     app.add_option_function("-o,--output", output_callback, "The file to write the result");
+  }
 
-    std::function<void(const std::string &)> keyCallback = [&args](const std::string &path) {
+  void add_seal_flags(CLI::App &app, Args &args) {
+    std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
       std::ifstream istream(path);
-      args.relKey.load(args.sealConfig->makeContext(), istream);
+      cereal::JSONInputArchive archive(istream);
+      args.sealConfig = ArithHomFA::SealConfig::load(archive);
     };
-    app.add_option_function("-s,--seal-key", keyCallback, "The relinearization key of SEAL");
+    app.add_option_function("-c,--config", configCallback, "Configuration file of SEAL")->required();
+    app.add_option("-s,--seal-key", args.relKey, "The relinearization key of SEAL")
+        ->required()
+        ->check(CLI::ExistingFile);
+  }
 
+  void add_tfhepp_flags(CLI::App &app, Args &args) {
     app.add_option("-b,--bootstrapping-key", args.bkey, "The bootstrapping key of TFHEpp")
         ->required()
         ->check(CLI::ExistingFile);
@@ -94,7 +92,9 @@ namespace {
   void register_pointwise(CLI::App &app, Args &args) {
     CLI::App *pointwise = app.add_subcommand("pointwise", "Evaluate the given signal point-wise (for debugging)");
     add_common_flags(*pointwise, args);
+    add_seal_flags(*pointwise, args);
     pointwise->parse_complete_callback([&args] { args.type = TYPE::POINTWISE; });
+    register_general_options(*pointwise, args);
   }
 
   void register_plain(CLI::App &app, Args &args) {
@@ -102,20 +102,51 @@ namespace {
     add_common_flags(*plain, args);
     add_spec_flag(*plain, args);
     plain->parse_complete_callback([&args] { args.type = TYPE::PLAIN; });
+    register_general_options(*plain, args);
   }
 
   void register_offline(CLI::App &app, Args &args) {
     CLI::App *offline = app.add_subcommand("offline", "Execute a monitor with the offline algorithm");
     add_common_flags(*offline, args);
+    add_seal_flags(*offline, args);
+    add_tfhepp_flags(*offline, args);
     add_spec_flag(*offline, args);
     offline->add_option("--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
     offline->parse_complete_callback([&args] { args.type = TYPE::OFFLINE; });
+    register_general_options(*offline, args);
   }
 
-  void do_pointwise(const ArithHomFA::SealConfig &config, const seal::RelinKeys &relinKeys, std::istream &istream,
+  void register_reverse(CLI::App &app, Args &args) {
+    CLI::App *reverse = app.add_subcommand("reverse", "Execute a monitor with the reverse algorithm");
+    add_common_flags(*reverse, args);
+    add_seal_flags(*reverse, args);
+    add_tfhepp_flags(*reverse, args);
+    add_spec_flag(*reverse, args);
+    reverse->add_option("--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
+    reverse->parse_complete_callback([&args] { args.type = TYPE::REVERSE; });
+    register_general_options(*reverse, args);
+  }
+
+  void register_block(CLI::App &app, Args &args) {
+    CLI::App *block = app.add_subcommand("block", "Execute a monitor with the block algorithm");
+    add_common_flags(*block, args);
+    add_seal_flags(*block, args);
+    add_tfhepp_flags(*block, args);
+    add_spec_flag(*block, args);
+    block->add_option("--block-size", args.output_freq)->required()->check(CLI::PositiveNumber);
+    block->parse_complete_callback([&args] { args.type = TYPE::BLOCK; });
+    register_general_options(*block, args);
+  }
+
+  void do_pointwise(const ArithHomFA::SealConfig &config, const std::string &relinKeysPath, std::istream &istream,
                     std::ostream &ostream) {
     const auto context = config.makeContext();
     ArithHomFA::CKKSPredicate predicate{context, config.scale};
+    seal::RelinKeys relinKeys;
+    {
+      std::ifstream relinKeysStream(relinKeysPath);
+      relinKeys.load(context, relinKeysStream);
+    };
     predicate.setRelinKeys(relinKeys);
     ArithHomFA::SizedCipherReader reader{istream};
     ArithHomFA::SizedCipherWriter writer{ostream};
@@ -162,13 +193,21 @@ namespace {
   }
 
   void do_offline(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
-                  const std::string &bkey_filename, const seal::RelinKeys &relinKeys, std::istream &istream,
+                  const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
                   std::ostream &ostream, int boot_interval) {
     const seal::SEALContext context = config.makeContext();
-    const double scale = config.scale;
-    ArithHomFA::CKKSPredicate predicate{context, config.scale};
-    predicate.setRelinKeys(relinKeys);
+    spdlog::debug("Parameters:");
+    spdlog::debug("\tscale: {}", config.scale);
+    spdlog::debug("\tspec_filename: {}", spec_filename);
+    spdlog::debug("\tbkey_filename: {}", bkey_filename);
+    spdlog::debug("\trelinKeysPath: {}", relinKeysPath);
+    spdlog::debug("\tboot_interval: {}", boot_interval);
     auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
+    seal::RelinKeys relinKeys;
+    {
+      std::ifstream relinKeysStream(relinKeysPath);
+      relinKeys.load(context, relinKeysStream);
+    }
 
     ArithHomFA::SizedCipherReader reader(istream);
     ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer(ostream);
@@ -184,21 +223,93 @@ namespace {
       }
     }
 
-    assert(ciphers.size() % predicate.getSignalSize() == 0);
-    ArithHomFA::OfflineRunner runner(context, scale, spec_filename, ciphers.size() / predicate.getSignalSize(),
-                                     boot_interval, bkey, predicate.getReferences());
+    assert(ciphers.size() % ArithHomFA::CKKSPredicate::getSignalSize() == 0);
+    ArithHomFA::OfflineRunner runner(context, config.scale, spec_filename,
+                                     ciphers.size() / ArithHomFA::CKKSPredicate::getSignalSize(), boot_interval, bkey,
+                                     ArithHomFA::CKKSPredicate::getReferences());
+    runner.setRelinKeys(relinKeys);
 
     std::vector<seal::Ciphertext> valuations;
     valuations.reserve(ArithHomFA::CKKSPredicate::getSignalSize());
     for (const auto &cipher: boost::adaptors::reverse(ciphers)) {
       valuations.push_back(cipher);
-      if (valuations.size() == predicate.getSignalSize()) {
+      if (valuations.size() == ArithHomFA::CKKSPredicate::getSignalSize()) {
         writer.write(runner.feed(valuations));
         valuations.clear();
       }
     }
 
     runner.printTime();
+  }
+
+  void run_online(const seal::SEALContext &context, ArithHomFA::AbstractRunner *runner, std::istream &istream,
+                  std::ostream &ostream) {
+    ArithHomFA::SizedCipherReader reader(istream);
+    ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer(ostream);
+
+    std::vector<seal::Ciphertext> valuations;
+    valuations.resize(ArithHomFA::CKKSPredicate::getSignalSize());
+    spdlog::debug("Start monitoring with signal size: {}", ArithHomFA::CKKSPredicate::getSignalSize());
+
+    while (istream.good()) {
+      // get the content
+      for (auto &valuation: valuations) {
+        if (!reader.read(context, valuation)) {
+          runner->printTime();
+          return;
+        }
+      }
+      // Evaluate
+      writer.write(runner->feed(valuations));
+    }
+
+    runner->printTime();
+  }
+
+  void do_reverse(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
+                  const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
+                  std::ostream &ostream, int boot_interval) {
+    const seal::SEALContext context = config.makeContext();
+    spdlog::debug("Parameters:");
+    spdlog::debug("\tscale: {}", config.scale);
+    spdlog::debug("\tspec_filename: {}", spec_filename);
+    spdlog::debug("\tbkey_filename: {}", bkey_filename);
+    spdlog::debug("\trelinKeysPath: {}", relinKeysPath);
+    spdlog::debug("\tboot_interval: {}", boot_interval);
+    auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
+    seal::RelinKeys relinKeys;
+    {
+      std::ifstream relinKeysStream(relinKeysPath);
+      relinKeys.load(context, relinKeysStream);
+    }
+
+    ArithHomFA::ReverseRunner runner(context, config.scale, spec_filename, boot_interval, bkey,
+                                     ArithHomFA::CKKSPredicate::getReferences());
+    runner.setRelinKeys(relinKeys);
+    run_online(context, &runner, istream, ostream);
+  }
+
+  void do_block(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
+                const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
+                std::ostream &ostream, int blockSize) {
+    const seal::SEALContext context = config.makeContext();
+    spdlog::debug("Parameters:");
+    spdlog::debug("\tscale: {}", config.scale);
+    spdlog::debug("\tspec_filename: {}", spec_filename);
+    spdlog::debug("\tbkey_filename: {}", bkey_filename);
+    spdlog::debug("\trelinKeysPath: {}", relinKeysPath);
+    spdlog::debug("\tblockSize: {}", blockSize);
+    auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
+    seal::RelinKeys relinKeys;
+    {
+      std::ifstream relinKeysStream(relinKeysPath);
+      relinKeys.load(context, relinKeysStream);
+    }
+
+    ArithHomFA::BlockRunner runner(context, config.scale, spec_filename, blockSize, bkey,
+                                   ArithHomFA::CKKSPredicate::getReferences());
+    runner.setRelinKeys(relinKeys);
+    run_online(context, &runner, istream, ostream);
   }
 
   void dumpBasicInfo(int argc, char **argv) {
@@ -262,6 +373,8 @@ int main(int argc, char **argv) {
   register_pointwise(app, args);
   register_plain(app, args);
   register_offline(app, args);
+  register_reverse(app, args);
+  register_block(app, args);
 
   CLI11_PARSE(app, argc, argv);
 
@@ -283,7 +396,7 @@ int main(int argc, char **argv) {
   dumpBasicInfo(argc, argv);
   switch (args.type) {
     case TYPE::POINTWISE: {
-      do_pointwise(*args.sealConfig, args.relKey, *args.input, *args.output);
+      do_pointwise(*args.sealConfig, *args.relKey, *args.input, *args.output);
       break;
     }
     case TYPE::PLAIN: {
@@ -291,8 +404,17 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::OFFLINE: {
-      do_offline(*args.sealConfig, *args.spec, *args.bkey, args.relKey, *args.input, *args.output,
+      do_offline(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output,
                  *args.bootstrapping_freq);
+      break;
+    }
+    case TYPE::REVERSE: {
+      do_reverse(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output,
+                 *args.bootstrapping_freq);
+      break;
+    }
+    case TYPE::BLOCK: {
+      do_block(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.output_freq);
       break;
     }
     case TYPE::UNSPECIFIED: {

@@ -75,6 +75,10 @@ namespace ArithHomFA {
       return runner.result();
     }
 
+    void setRelinKeys(const seal::RelinKeys &keys) {
+      this->predicate.setRelinKeys(keys);
+    }
+
   private:
     OnlineDFARunner2 runner;
     CKKSPredicate predicate;

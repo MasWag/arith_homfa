@@ -49,8 +49,8 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool minimized = false, reversed = false, negated = false, make_all_live_states_final = false,
-         is_spec_reversed = false, sanitize_result = false;
+    bool minimized = false, reversed = false, negated = false, make_all_live_states_final = false
+    , sanitize_result = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
     seal::SecretKey sealSecretKey;
     std::optional<std::string> spec, skey, bkey, output_dir, debug_skey, formula, online_method;

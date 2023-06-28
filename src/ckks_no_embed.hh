@@ -14,7 +14,7 @@ namespace ArithHomFA {
     class CKKSNoEmbedEncoder {
     private:
         seal::CKKSEncoder encoder;
-        seal::SEALContext context;
+        const seal::SEALContext &context;
     public:
         explicit CKKSNoEmbedEncoder(const seal::SEALContext &context) : encoder(context), context(context) {}
 
