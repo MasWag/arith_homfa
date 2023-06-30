@@ -108,7 +108,7 @@ Generate the relinearization key for the CKKS scheme:
 Generate the bootstrapping key for the TFHE scheme:
 
 ```sh
-./build/ahomfa_util tfhe genbkey -K /tmp/tfhe.key -o /tmp/tfhe.bkey
+./build/ahomfa_util tfhe genbkey -K /tmp/tfhe.key -o /tmp/tfhe.bkey -c ./example/config.json -S /tmp/ckks.key
 ```
 
 All keys are saved to temporary files for later use.

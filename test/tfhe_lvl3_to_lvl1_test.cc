@@ -47,7 +47,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         std::default_random_engine engine(seed_gen());
         std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
                 0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
-        TFHEpp::TLWE<TFHEpp::lvl3param> input;
         std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
         for (typename TFHEpp::lvl3param::T &i: plains) {
             i = messagegen(engine);
@@ -94,7 +93,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
         std::default_random_engine engine(seed_gen());
         std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
                 0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
-        TFHEpp::TLWE<TFHEpp::lvl3param> input;
         std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
         for (typename TFHEpp::lvl3param::T &i: plains) {
             i = messagegen(engine);
@@ -130,7 +128,6 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
     std::default_random_engine engine(seed_gen());
     std::uniform_int_distribution<typename TFHEpp::lvl3param::T> messagegen(
             0, 2 * TFHEpp::lvl3param::plain_modulus - 1);
-    TFHEpp::TLWE<TFHEpp::lvl3param> input;
     std::array<typename TFHEpp::lvl3param::T, numtest> plains{};
     for (typename TFHEpp::lvl3param::T &i: plains) {
       i = messagegen(engine);

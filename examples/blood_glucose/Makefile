@@ -1,5 +1,5 @@
-CXXFLAGS += -std=c++2a -I /usr/local/include/SEAL-4.1 -I ../../thirdparty/homfa/thirdparty/TFHEpp/thirdparties/cereal/include 
-LDLIBS += -lahomfa_runner -fopenmp -lseal $(shell pkg-config libspot --libs) -ltfhe++ -ltbb -lspqlios -lranden
+CXXFLAGS += -std=c++20 -I /usr/local/include/SEAL-4.1 -I ../../thirdparty/homfa/thirdparty/TFHEpp/thirdparties/cereal/include 
+LDLIBS += -lahomfa_runner -fopenmp $(shell pkg-config --libs seal) $(shell pkg-config libspot --libs) -ltfhe++ -ltbb -lspqlios -lranden
 
 CXX_DEBUG_FLAGS = -g -O0
 CXX_RELEASE_FLAGS = -s -O3 -flto

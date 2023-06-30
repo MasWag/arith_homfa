@@ -13,8 +13,7 @@
 
 namespace ArithHomFA {
 
-  class SecretKey : public TFHEpp::SecretKey {
-  public:
+  struct SecretKey : public TFHEpp::SecretKey {
     using mid2lowP = TFHEpp::lvl10param;
     TFHEpp::Key<typename mid2lowP::targetP> lvlhalfkey;
     std::uniform_int_distribution<int32_t> lvlhalfgen{0, 1};
@@ -32,7 +31,7 @@ namespace ArithHomFA {
     }
 
     template <class Archive> void serialize(Archive &ar) {
-      ar(key.lvl0, key.lvl1, key.lvl2, lvlhalfkey, params);
+      ar(cereal::base_class<TFHEpp::SecretKey>(this), lvlhalfkey);
     }
   };
 

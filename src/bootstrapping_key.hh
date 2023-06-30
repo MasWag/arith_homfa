@@ -42,7 +42,7 @@ namespace ArithHomFA {
     }
 
     template <class Archive> void serialize(Archive &ar) {
-      ar(ekey, tlwel1_trlwel1_ikskey, kskh2m, kskm2l, bkfft);
+      ar(cereal::base_class<BKey>(this), kskh2m, kskm2l, bkfft);
     }
   };
 

@@ -49,19 +49,17 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool minimized = false, reversed = false, negated = false, make_all_live_states_final = false
-    , sanitize_result = false;
+    bool make_all_live_states_final = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
-    seal::SecretKey sealSecretKey;
-    std::optional<std::string> spec, skey, bkey, output_dir, debug_skey, formula, online_method;
+    std::optional<std::string> spec, skey, sealSecretKey, bkey, output_dir, debug_skey, formula, online_method;
     std::istream *input = &std::cin;
     std::ostream *output = &std::cout;
     std::optional<size_t> num_vars, queue_size, bootstrapping_freq, max_second_lut_depth, num_ap, output_freq;
   };
 
   void register_general_options(CLI::App &app, Args &args) {
-    app.add_flag_callback("--verbose", [&] { args.verbosity = VERBOSITY::VERBOSE; });
-    app.add_flag_callback("--quiet", [&] { args.verbosity = VERBOSITY::QUIET; });
+      app.add_flag_callback("-v,--verbose", [&] { args.verbosity = VERBOSITY::VERBOSE; });
+      app.add_flag_callback("-q,--quiet", [&] { args.verbosity = VERBOSITY::QUIET; });
   }
 
   void register_SEAL(CLI::App &app, Args &args) {
@@ -90,7 +88,9 @@ namespace {
         cereal::JSONInputArchive archive(istream);
         args.sealConfig = ArithHomFA::SealConfig::load(archive);
       };
-      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")->required();
+      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")
+          ->required()
+          ->check(CLI::ExistingFile);
 
       std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
         args.output = new std::ofstream(path);
@@ -100,11 +100,9 @@ namespace {
 
     // Options for subcommands with key
     for (auto subcommand: requiresKey) {
-      std::function<void(const std::string &)> keyCallback = [&args](const std::string &path) {
-        std::ifstream istream(path);
-        args.sealSecretKey.load(args.sealConfig->makeContext(), istream);
-      };
-      subcommand->add_option_function("-K,--secret-key", keyCallback, "The secret key of SEAL")->required();
+      subcommand->add_option("-K,--secret-key", args.sealSecretKey, "The secret key of SEAL")
+          ->required()
+          ->check(CLI::ExistingFile);
     }
 
     // Options for subcommands with inputs
@@ -168,13 +166,13 @@ namespace {
         cereal::JSONInputArchive archive(istream);
         args.sealConfig = ArithHomFA::SealConfig::load(archive);
       };
-      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")->required();
+      subcommand->add_option_function("-c,--config", configCallback, "The configuration file of SEAL")
+          ->required()
+          ->check(CLI::ExistingFile);
 
-      std::function<void(const std::string &)> keyCallback = [&args](const std::string &path) {
-        std::ifstream istream(path);
-        args.sealSecretKey.load(args.sealConfig->makeContext(), istream);
-      };
-      subcommand->add_option_function("-S,--seal-secret-key", keyCallback, "The secret key of SEAL")->required();
+      subcommand->add_option("-S,--seal-secret-key", args.sealSecretKey, "The secret key of SEAL")
+          ->required()
+          ->check(CLI::ExistingFile);
     }
 
     // Options for subcommands with inputs
@@ -217,9 +215,12 @@ namespace {
     secretKey.save(ostream);
   }
 
-  void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey,
+  void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
                            std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
+    seal::SecretKey secretKey;
+    std::ifstream secretKeyStream(secretKeyPath);
+    secretKey.load(context, secretKeyStream);
     seal::KeyGenerator keygen(context, secretKey);
 
     seal::RelinKeys relin_keys;
@@ -232,21 +233,27 @@ namespace {
     write_to_archive(ostream, skey);
   }
 
-  void do_genbkey_TFHEpp(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey,
+  void do_genbkey_TFHEpp(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
                          std::istream &&skey_stream, std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     ArithHomFA::CKKSToTFHE converter(context);
     auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_stream);
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    seal::SecretKey secretKey;
+    std::ifstream secretKeyStream(secretKeyPath);
+    secretKey.load(context, secretKeyStream);
     converter.toLv3Key(secretKey, lvl3Key);
     ArithHomFA::BootstrappingKey bkey{skey, lvl3Key};
     write_to_archive(ostream, bkey);
   }
 
-  void do_enc_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey, std::istream &istream,
+  void do_enc_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath, std::istream &istream,
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
+    seal::SecretKey secretKey;
+    std::ifstream secretKeyStream(secretKeyPath);
+    secretKey.load(context, secretKeyStream);
     seal::Encryptor encryptor(context, secretKey);
 
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);
@@ -269,10 +276,13 @@ namespace {
     spdlog::info("Given contents are encrypted with the CKKS scheme");
   }
 
-  void do_dec_SEAL(const ArithHomFA::SealConfig &config, const seal::SecretKey &secretKey, std::istream &istream,
+  void do_dec_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath, std::istream &istream,
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
+    seal::SecretKey secretKey;
+    std::ifstream secretKeyStream(secretKeyPath);
+    secretKey.load(context, secretKeyStream);
     seal::Decryptor decryptor(context, secretKey);
 
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);
@@ -414,15 +424,15 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::GENRELINKEY_SEAL: {
-      do_genrelinkey_SEAL(*args.sealConfig, args.sealSecretKey, *args.output);
+      do_genrelinkey_SEAL(*args.sealConfig, *args.sealSecretKey, *args.output);
       break;
     }
     case TYPE::ENC_CKKS: {
-      do_enc_SEAL(*args.sealConfig, args.sealSecretKey, *args.input, *args.output);
+      do_enc_SEAL(*args.sealConfig, *args.sealSecretKey, *args.input, *args.output);
       break;
     }
     case TYPE::DEC_CKKS: {
-      do_dec_SEAL(*args.sealConfig, args.sealSecretKey, *args.input, *args.output);
+      do_dec_SEAL(*args.sealConfig, *args.sealSecretKey, *args.input, *args.output);
       break;
     }
     case TYPE::GENKEY_TFHEPP: {
@@ -430,7 +440,7 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::GENBKEY_TFHEPP: {
-      do_genbkey_TFHEpp(*args.sealConfig, args.sealSecretKey, std::ifstream(*args.skey), *args.output);
+      do_genbkey_TFHEpp(*args.sealConfig, *args.sealSecretKey, std::ifstream(*args.skey), *args.output);
       break;
     }
     case TYPE::ENC_TFHEPP: {

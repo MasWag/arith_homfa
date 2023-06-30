@@ -10,6 +10,7 @@
 #include "tfhe++.hpp"
 #include <seal/seal.h>
 
+#include "ckks_no_embed.hh"
 #include "rescaling.hh"
 
 // Tentative

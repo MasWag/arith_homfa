@@ -61,17 +61,13 @@ if(COMPILER_SUPPORTS_MARCH_NATIVE)
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
-#set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
 find_package(SEAL 4.1.1 EXACT REQUIRED)
 
 # Import GSL
 # find_package(Microsoft.GSL CONFIG REQUIRED)
-
-# Import Eigen3
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
 
 # Import spot
 find_package(PkgConfig)
@@ -136,15 +132,6 @@ add_library(ahomfa_runner
         thirdparty/homfa/src/tfhepp_util.cpp
         )
 
-target_link_libraries(ahomfa_runner
-        seal
-        hexl
-        randen
-        tfhe++
-        tbb
-        bddx
-        pthread
-        )
 target_compile_definitions(ahomfa_runner PRIVATE ${COMPILE_DEFINITIONS})
 
 ## Config for Test
