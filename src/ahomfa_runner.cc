@@ -78,7 +78,6 @@ namespace {
         ->required()
         ->check(CLI::ExistingFile);
     app.add_option("--debug-seal-key", args.debug_skey, "The secret key of SEAL (for debugging)")
-        ->required()
         ->check(CLI::ExistingFile);
   }
 
