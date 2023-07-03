@@ -301,6 +301,7 @@ namespace {
 
     ArithHomFA::ReverseRunner runner(context, config.scale, spec_filename, boot_interval, bkey,
                                      ArithHomFA::CKKSPredicate::getReferences());
+    spdlog::debug("Constructed the reverse runner");
     runner.setRelinKeys(relinKeys);
     run_online(context, &runner, istream, ostream, debug_skey);
   }
@@ -325,6 +326,7 @@ namespace {
 
     ArithHomFA::BlockRunner runner(context, config.scale, spec_filename, blockSize, bkey,
                                    ArithHomFA::CKKSPredicate::getReferences());
+    spdlog::debug("Constructed the block runner");
     runner.setRelinKeys(relinKeys);
     run_online(context, &runner, istream, ostream, debug_skey);
   }
