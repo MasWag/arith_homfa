@@ -43,6 +43,7 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
+    bool reversed;
     std::optional<ArithHomFA::SealConfig> sealConfig;
     std::optional<std::string> spec, bkey, debug_skey, relKey;
     std::istream *input = &std::cin;
@@ -125,6 +126,7 @@ namespace {
     add_tfhepp_flags(*reverse, args);
     add_spec_flag(*reverse, args);
     reverse->add_option("-l,--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
+    reverse->add_option("--reversed", args.reversed, "The given specification is already reversed");
     reverse->parse_complete_callback([&args] { args.type = TYPE::REVERSE; });
     register_general_options(*reverse, args);
   }
@@ -283,7 +285,8 @@ namespace {
 
   void do_reverse(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
                   const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
-                  std::ostream &ostream, int boot_interval, const std::optional<std::string> &debug_skey) {
+                  std::ostream &ostream, int boot_interval, bool reversed,
+                  const std::optional<std::string> &debug_skey) {
     const seal::SEALContext context = config.makeContext();
     spdlog::debug("Parameters:");
     spdlog::debug("\tscale: {}", config.scale);
@@ -300,7 +303,7 @@ namespace {
     }
 
     ArithHomFA::ReverseRunner runner(context, config.scale, spec_filename, boot_interval, bkey,
-                                     ArithHomFA::CKKSPredicate::getReferences());
+                                     ArithHomFA::CKKSPredicate::getReferences(), reversed);
     spdlog::debug("Constructed the reverse runner");
     runner.setRelinKeys(relinKeys);
     run_online(context, &runner, istream, ostream, debug_skey);
@@ -429,7 +432,7 @@ int main(int argc, char **argv) {
     }
     case TYPE::REVERSE: {
       do_reverse(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output,
-                 *args.bootstrapping_freq, args.debug_skey);
+                 *args.bootstrapping_freq, args.reversed, args.debug_skey);
       break;
     }
     case TYPE::BLOCK: {

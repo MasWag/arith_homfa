@@ -27,13 +27,14 @@ namespace ArithHomFA {
   class ReverseRunner : public AbstractRunner {
   public:
     ReverseRunner(const seal::SEALContext &context, double scale, const std::string &spec_filename,
-                  size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references)
-        : ReverseRunner(context, scale, Graph::from_file(spec_filename), boot_interval, bkey, references) {
+                  size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references,
+                  bool reversed = false)
+        : ReverseRunner(context, scale, Graph::from_file(spec_filename), boot_interval, bkey, references, reversed) {
     }
 
     ReverseRunner(const seal::SEALContext &context, double scale, const Graph &graph, size_t boot_interval,
-                  const BootstrappingKey &bkey, const std::vector<double> &references)
-        : runner(graph, boot_interval, false, bkey.ekey, false), predicate(context, scale), bkey(bkey),
+                  const BootstrappingKey &bkey, const std::vector<double> &references, bool reversed = false)
+        : runner(graph, boot_interval, reversed, bkey.ekey, false), predicate(context, scale), bkey(bkey),
           converter(context), references(references) {
       converter.initializeConverter(this->bkey);
     }
