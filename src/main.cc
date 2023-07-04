@@ -216,11 +216,11 @@ namespace {
     std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
       args.output = new std::ofstream(path);
     };
-    ltl2spec->add_option("--reverse", args.reversed, "Reverse the given specification");
-    ltl2spec->add_option("--negate", args.negated, "Negate the given specification");
-    ltl2spec->add_option("--minimize", args.minimized, "Minimize the given specification");
+    ltl2spec->add_flag("--reverse", args.reversed, "Reverse the given specification");
+    ltl2spec->add_flag("--negate", args.negated, "Negate the given specification");
+    ltl2spec->add_flag("--minimize", args.minimized, "Minimize the given specification");
     ltl2spec->add_option_function("-o,--output", output_callback, "The file to write the result");
-    ltl2spec->parse_complete_callback([&args] { args.type = TYPE::LTL2SPEC; });
+    ltl2spec->parse_complete_callback([&args] { args.type = TYPE::SPEC2SPEC; });
   }
 
   void do_genkey_SEAL(const ArithHomFA::SealConfig &config, std::ostream &ostream) {
@@ -470,22 +470,34 @@ int main(int argc, char **argv) {
     }
     case TYPE::LTL2SPEC: {
       Graph gr = Graph::from_ltl_formula(*args.formula, *args.num_vars, args.make_all_live_states_final);
+      spdlog::debug("Spec is constructed");
       gr.dump(*args.output);
+      spdlog::debug("Spec is dumped");
+      break;
     }
     case TYPE::SPEC2SPEC: {
       Graph gr = Graph::from_istream(*args.input);
-      if (args.negated)
+      spdlog::debug("Spec is loaded");
+      if (args.negated) {
+        spdlog::debug("Negate the spec");
         gr = gr.negated();
-      if (args.reversed)
+      }
+      if (args.reversed) {
+        spdlog::debug("Reverse the spec");
         gr = gr.reversed();
-      if (args.minimized)
+      }
+      if (args.minimized) {
+        spdlog::debug("Minimize the spec");
         gr = gr.minimized();
+      }
       gr.dump(*args.output);
+      spdlog::debug("Spec is loaded");
       break;
     }
     case TYPE::UNSPECIFIED: {
       spdlog::info("No mode is specified");
       spdlog::info(app.help());
+      break;
     }
   }
   // Close fstream

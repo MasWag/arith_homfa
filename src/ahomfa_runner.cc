@@ -104,6 +104,13 @@ namespace {
     CLI::App *plain = app.add_subcommand("plain", "Execute a monitor with plaintext (for debugging)");
     add_common_flags(*plain, args);
     add_spec_flag(*plain, args);
+    // SEAL's configuration is required even for plain
+    std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
+      std::ifstream istream(path);
+      cereal::JSONInputArchive archive(istream);
+      args.sealConfig = ArithHomFA::SealConfig::load(archive);
+    };
+    plain->add_option_function("-c,--config", configCallback, "Configuration file of SEAL")->required();
     plain->parse_complete_callback([&args] { args.type = TYPE::PLAIN; });
     register_general_options(*plain, args);
   }
@@ -126,7 +133,7 @@ namespace {
     add_tfhepp_flags(*reverse, args);
     add_spec_flag(*reverse, args);
     reverse->add_option("-l,--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
-    reverse->add_option("--reversed", args.reversed, "The given specification is already reversed");
+    reverse->add_flag("--reversed", args.reversed, "The given specification is already reversed");
     reverse->parse_complete_callback([&args] { args.type = TYPE::REVERSE; });
     register_general_options(*reverse, args);
   }
