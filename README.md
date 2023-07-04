@@ -79,9 +79,9 @@ Then, on the server-side, one builds a monitor using the predicate in C++ and `l
 In this step, we transform the LTL formula into a DFA specification using the  `ltl2spec` subcommand of `ahomfa_util`. First, ensure that your LTL formula is properly formatted and saved (as shown in the blood glucose example). Then, run the following command:
 
 ```sh
-./build/ahomfa_util ltl2spec -e $(cat ./examples/blood_glucose/gp0.ltl) > ./examples/blood_glucose/gp0.spec
+./build/ahomfa_util ltl2spec -e $(cat ./examples/blood_glucose/gp0.ltl) --num-vars 1 > ./examples/blood_glucose/gp0.spec
 ```
-This command will read the LTL formula from the provided file (`gp0.ltl`), convert it into a DFA specification, and save the output into `gp0.spec`.
+This command will read the LTL formula from the provided file (`gp0.ltl`) with one predicate, convert it into a DFA specification, and save the output into `gp0.spec`.
 
 #### Step 4: Key Generation
 

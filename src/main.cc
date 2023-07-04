@@ -49,7 +49,7 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool make_all_live_states_final = false;
+    bool make_all_live_states_final = false, minimized = false, reversed = false, negated = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
     std::optional<std::string> spec, skey, sealSecretKey, bkey, output_dir, debug_skey, formula, online_method;
     std::istream *input = &std::cin;
@@ -58,8 +58,8 @@ namespace {
   };
 
   void register_general_options(CLI::App &app, Args &args) {
-      app.add_flag_callback("-v,--verbose", [&] { args.verbosity = VERBOSITY::VERBOSE; });
-      app.add_flag_callback("-q,--quiet", [&] { args.verbosity = VERBOSITY::QUIET; });
+    app.add_flag_callback("-v,--verbose", [&] { args.verbosity = VERBOSITY::VERBOSE; });
+    app.add_flag_callback("-q,--quiet", [&] { args.verbosity = VERBOSITY::QUIET; });
   }
 
   void register_SEAL(CLI::App &app, Args &args) {
@@ -204,6 +204,22 @@ namespace {
         ->required();
     ltl2spec->add_option("--make-all-live-states-final", args.make_all_live_states_final,
                          "If make all live states final");
+    ltl2spec->parse_complete_callback([&args] { args.type = TYPE::LTL2SPEC; });
+  }
+
+  void register_spec2spec(CLI::App &app, Args &args) {
+    CLI::App *ltl2spec = app.add_subcommand("spec2spec", "Modify a specification for ArithHomFA");
+    std::function<void(const std::string &)> input_callback = [&args](const std::string &path) {
+      args.input = new std::ifstream(path);
+    };
+    ltl2spec->add_option_function("-i,--input", input_callback, "The file to load the input");
+    std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {
+      args.output = new std::ofstream(path);
+    };
+    ltl2spec->add_option("--reverse", args.reversed, "Reverse the given specification");
+    ltl2spec->add_option("--negate", args.negated, "Negate the given specification");
+    ltl2spec->add_option("--minimize", args.minimized, "Minimize the given specification");
+    ltl2spec->add_option_function("-o,--output", output_callback, "The file to write the result");
     ltl2spec->parse_complete_callback([&args] { args.type = TYPE::LTL2SPEC; });
   }
 
@@ -456,7 +472,14 @@ int main(int argc, char **argv) {
       gr.dump(*args.output);
     }
     case TYPE::SPEC2SPEC: {
-      // do_spec2spec(args.spec, args.minimized, args.reversed, args.negated);
+      Graph gr = Graph::from_istream(*args.input);
+      if (args.negated)
+        gr = gr.negated();
+      if (args.reversed)
+        gr = gr.reversed();
+      if (args.minimized)
+        gr = gr.minimized();
+      gr.dump(*args.output);
       break;
     }
     case TYPE::UNSPECIFIED: {
