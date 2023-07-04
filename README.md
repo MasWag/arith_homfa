@@ -83,6 +83,14 @@ In this step, we transform the LTL formula into a DFA specification using the  `
 ```
 This command will read the LTL formula from the provided file (`gp0.ltl`) with one predicate, convert it into a DFA specification, and save the output into `gp0.spec`.
 
+If you are planning to use the reversed algorithm, it's also recommended to generate the reversed specification. The `spec2spec` subcommand provides an option to generate reversed specifications. In this case, `--reverse` option is used. The command would be:
+
+```sh
+./build/ahomfa_util spec2spec --reverse -i ./examples/blood_glucose/gp0.spec -o ./examples/blood_glucose/gp0.reversed.spec
+```
+
+This command reads the DFA specification from the gp0.spec file, reverses it, and saves the result in the gp0.reversed.spec file. This reversed specification should be used for running the monitor in reverse mode in Step 7.
+
 #### Step 4: Key Generation
 
 In the fourth step, the client generates four keys using the `ahomfa_util` command. The commands to generate these keys are as follows.
@@ -128,7 +136,7 @@ This command reads input data from `input.txt`, encrypts it using the CKKS schem
 In this step, the server-side executes the monitor with the information obtained from previous steps. To do this, run:
 
 ```sh
-./examples/blood_glucose/blood_glucose_one reverse -c ./example/config.json -f ./examples/blood_glucose/gp0.spec -r /tmp/ckks.relinkey -b /tmp/tfhe.bkey < /tmp/data.ckks > /tmp/result.tfhe
+./examples/blood_glucose/blood_glucose_one reverse --reversed -c ./example/config.json -f ./examples/blood_glucose/gp0.reversed.spec -r /tmp/ckks.relinkey -b /tmp/tfhe.bkey < /tmp/data.ckks > /tmp/result.tfhe
 ```
 
 This command runs the monitoring process, which reads the encrypted data, relinearization key, bootstrapping key, and specification file, and produces a stream of TLWE cipher texts encrypted by the TFHE scheme.
