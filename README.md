@@ -143,11 +143,6 @@ Finally, the client decrypts the result using the `ahomfa_util tfhe dec` command
 
 This command will decrypt the results produced in the monitoring step using the TFHE private key. The decrypted output is then printed to the console.
 
-Usage of `ahomfa_util`
-----------------------
-
-
-
 See also
 --------
 

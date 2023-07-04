@@ -57,6 +57,12 @@ Options related to the TFHE scheme.
 
 Convert an LTL formula to the specification format suitable for ArithHomFA.
 
+### spec2spec
+
+**Usage**: `./ahomfa_util spec2spec [OPTIONS]`
+
+Modify a specification for ArithHomFA.
+
 ## Options and Subcommands Details
 
 ### CKKS Subcommands Options
@@ -145,6 +151,17 @@ Convert an LTL formula to the specification format suitable for ArithHomFA.
 - **-n**, **--num-vars** (REQUIRED): The number of variables in the given LTL formula
 - **--make-all-live-states-final**: If make all live states final
 
+### spec2spec Options
+
+**Usage**: `./ahomfa_util spec2spec [OPTIONS]`
+
+- **-h**, **--help**: Print a help message and exit
+- **-i**, **--input**: The file to load the input
+- **--reverse** BOOLEAN: Reverse the given specification
+- **--negate** BOOLEAN: Negate the given specification
+- **--minimize** BOOLEAN: Minimize the given specification
+- **-o**, **--output**: The file to write the result
+
 ## Exit Status
 
 0
@@ -164,5 +181,11 @@ The command to decrypt the result of the monitor execution is as follows.
 `./build/ahomfa_util tfhe dec -K /tmp/tfhe.key -i /tmp/result.tfhe` 
 
 This command reads the TFHE secret key from **/tmp/tfhe.key**, the input to decrypt from **/tmp/result.tfhe**, and outputs the result to stdout. 
+
+Here is an example of using the spec2spec command:
+
+`./build/ahomfa_util spec2spec --reverse true --input ./example/specification.spec --output /tmp/specification_reversed.spec`
+
+This command reads the specification from **./example/specification.spec**, reverses the specification, and writes the result to **/tmp/specification_reversed.spec**.
 
 By default, ahomfa_util reads input from **stdin** and writes output to **stdout** if no input or output file is specified.

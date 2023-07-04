@@ -415,6 +415,7 @@ int main(int argc, char **argv) {
   register_SEAL(app, args);
   register_TFHEpp(app, args);
   register_ltl2spec(app, args);
+  register_spec2spec(app, args);
 
   CLI11_PARSE(app, argc, argv);
 
