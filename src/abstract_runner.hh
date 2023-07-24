@@ -31,5 +31,8 @@ namespace ArithHomFA {
 
   protected:
     TicTocForRunner timer;
+    static void CircuitBootstrappingFFT(auto &trgsw, auto &tlwe, auto &ekey) {
+        TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe, ekey);
+    }
   };
 } // namespace ArithHomFA

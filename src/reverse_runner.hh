@@ -54,17 +54,10 @@ namespace ArithHomFA {
       tlwes.resize(ckksCiphers.size());
       trgsws.resize(ckksCiphers.size());
       timer.ckks_to_tfhe.tic();
-      std::for_each(std::execution::par,
-                    boost::make_zip_iterator(boost::make_tuple(ckksCiphers.begin(), tlwes.begin(), trgsws.begin())),
-                    boost::make_zip_iterator(boost::make_tuple(ckksCiphers.end(), tlwes.end(), trgsws.end())),
-                    [&](const auto &t) {
-                      const seal::Ciphertext &ckksCipher = boost::get<0>(t);
-                      TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe = boost::get<1>(t);
-                      TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw = boost::get<2>(t);
-                      converter.toLv1TLWE(ckksCipher, tlwe);
-                      TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(
-                          trgsw, tlwe, *bkey.ekey);
-                    });
+      for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+        converter.toLv1TLWE(ckksCiphers.at(i), tlwes.at(i));
+        CircuitBootstrappingFFT(trgsws.at(trgsws.size() - 1 - i), tlwes.at(i), *bkey.ekey);
+      }
       timer.ckks_to_tfhe.toc();
 
       for (const auto &trgsw: trgsws) {

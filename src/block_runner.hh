@@ -72,8 +72,7 @@ namespace ArithHomFA {
         TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe = tlwes.at(i);
         TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw = trgsws.at(i);
         converter.toLv1TLWE(ckksCipher, tlwe);
-        TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
-                                                                                                    *bkey.ekey);
+        CircuitBootstrappingFFT(trgsw, tlwe, *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
       queued_inputs_.clear();
