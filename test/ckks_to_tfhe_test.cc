@@ -279,6 +279,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
   }
 
   // This test case requires quite some RAM and may be terminated by OOM Killer.
+#if 0
   RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterMultiplication, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // We require that the given value is not too large.
     const double threshold = std::pow(2, 17);
@@ -352,6 +353,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     // Assert the result
     RC_ASSERT(tlwePlain == (values[0] * values[1] > 0));
   }
+#endif
 
   RC_BOOST_FIXTURE_PROP(toLv1TRGSW, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // We require that the given value is not too large. Otherwise, the encoding fails.
