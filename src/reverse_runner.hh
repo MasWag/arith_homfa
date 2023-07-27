@@ -55,7 +55,7 @@ namespace ArithHomFA {
       trgsws.resize(ckksCiphers.size());
       timer.ckks_to_tfhe.tic();
       for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
-        converter.toLv1TLWE(ckksCiphers.at(i), tlwes.at(i));
+        converter.toLv1TLWE(ckksCiphers.at(i), tlwes.at(i), this->references.at(i));
         CircuitBootstrappingFFT(trgsws.at(trgsws.size() - 1 - i), tlwes.at(i), *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
