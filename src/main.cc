@@ -49,7 +49,7 @@ namespace {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
 
-    bool make_all_live_states_final = false, minimized = false, reversed = false, negated = false;
+    bool make_all_live_states_final = false, minimized = false, reversed = false, negated = false, vertical = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
     std::optional<std::string> spec, skey, sealSecretKey, bkey, output_dir, debug_skey, formula, online_method;
     std::istream *input = &std::cin;
@@ -143,6 +143,7 @@ namespace {
     subcommands.push_back(dec);
     requiresKey.push_back(dec);
     withInput.push_back(dec);
+    dec->add_flag("--vertical", args.vertical, "Use -1/4, 1/4 as message space");
 
     // General options for TFHE
     for (auto subcommand: subcommands) {
@@ -337,7 +338,8 @@ namespace {
     spdlog::info("Given contents are encrypted with the TFHE scheme");
   }
 
-  void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
+  void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream,
+                     const bool vertical) {
     auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
 
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> reader{istream};
@@ -345,7 +347,8 @@ namespace {
       // get the cipher text from stdin
       TFHEpp::TLWE<TFHEpp::lvl1param> cipher;
       if (reader.read(cipher)) {
-        const bool res = decrypt_TLWELvl1_to_bit(cipher, skey);
+        const bool res = vertical ? TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(cipher, skey.key.lvl1) :
+                                    decrypt_TLWELvl1_to_bit(cipher, skey);
         ostream << (res ? "true" : "false") << std::endl;
       } else {
         break;
@@ -465,7 +468,7 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::DEC_TFHEPP: {
-      do_dec_TFHEpp(*args.skey, *args.input, *args.output);
+      do_dec_TFHEpp(*args.skey, *args.input, *args.output, args.vertical);
       break;
     }
     case TYPE::LTL2SPEC: {
