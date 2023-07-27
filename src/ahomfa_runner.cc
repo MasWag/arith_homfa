@@ -33,6 +33,7 @@ namespace {
     UNSPECIFIED,
 
     POINTWISE,
+    POINTWISE_TFHE,
     PLAIN,
     REVERSE,
     BLOCK,
@@ -97,6 +98,15 @@ namespace {
     add_common_flags(*pointwise, args);
     add_seal_flags(*pointwise, args);
     pointwise->parse_complete_callback([&args] { args.type = TYPE::POINTWISE; });
+    register_general_options(*pointwise, args);
+  }
+
+  void register_pointwise_tfhe(CLI::App &app, Args &args) {
+    CLI::App *pointwise = app.add_subcommand("pointwise-tfhe", "Evaluate the given signal point-wise and make it TLWElv1 (for debugging)");
+    add_common_flags(*pointwise, args);
+    add_seal_flags(*pointwise, args);
+    add_tfhepp_flags(*pointwise, args);
+    pointwise->parse_complete_callback([&args] { args.type = TYPE::POINTWISE_TFHE; });
     register_general_options(*pointwise, args);
   }
 
@@ -176,6 +186,46 @@ namespace {
       // dump the cipher text
       for (const auto &result: results) {
         writer.write(result);
+      }
+    }
+  }
+
+  void do_pointwise_tfhe(const ArithHomFA::SealConfig &config, const std::string &bkey_filename,
+                         const std::string &relinKeysPath, std::istream &istream, std::ostream &ostream) {
+    const auto context = config.makeContext();
+    ArithHomFA::CKKSPredicate predicate{context, config.scale};
+    auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
+    seal::RelinKeys relinKeys;
+    {
+        std::ifstream relinKeysStream(relinKeysPath);
+        relinKeys.load(context, relinKeysStream);
+    };
+    predicate.setRelinKeys(relinKeys);
+    ArithHomFA::SizedCipherReader reader{istream};
+    ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
+    std::vector<seal::Ciphertext> valuations, results;
+    std::vector<TFHEpp::TLWE<TFHEpp::lvl1param>> resultsTLWE;
+    valuations.resize(ArithHomFA::CKKSPredicate::getSignalSize());
+    results.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
+    resultsTLWE.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
+    ArithHomFA::CKKSToTFHE converter{context};
+    converter.initializeConverter(bkey);
+    while (istream.good()) {
+      // get the content
+      for (auto &valuation: valuations) {
+        if (!reader.read(context, valuation)) {
+          return;
+        }
+      }
+      // Evaluate
+      predicate.eval(valuations, results);
+      for (int i = 0; i < results.size(); ++i) {
+        converter.toLv1TLWE(results.at(i), resultsTLWE.at(i), ArithHomFA::CKKSPredicate::getReferences().at(i));
+      }
+
+      // dump the cipher text
+      for (const auto &result: resultsTLWE) {
+          writer.write(result);
       }
     }
   }
@@ -400,6 +450,7 @@ int main(int argc, char **argv) {
                "Homomorphic Encryption"};
   register_general_options(app, args);
   register_pointwise(app, args);
+  register_pointwise_tfhe(app, args);
   register_plain(app, args);
   register_offline(app, args);
   register_reverse(app, args);
@@ -426,6 +477,10 @@ int main(int argc, char **argv) {
   switch (args.type) {
     case TYPE::POINTWISE: {
       do_pointwise(*args.sealConfig, *args.relKey, *args.input, *args.output);
+      break;
+    }
+    case TYPE::POINTWISE_TFHE: {
+      do_pointwise_tfhe(*args.sealConfig, *args.bkey, *args.relKey, *args.input, *args.output);
       break;
     }
     case TYPE::PLAIN: {
