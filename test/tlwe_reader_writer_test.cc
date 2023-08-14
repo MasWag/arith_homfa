@@ -20,9 +20,9 @@ BOOST_AUTO_TEST_SUITE(TLWEReaderWriterTest)
     }
 
     TFHEpp::TLWE<TFHEpp::lvl1param> result;
-    for (int i = 0; i < given.size(); ++i) {
+    for (const auto &tlwe: given) {
       reader.read(result);
-      RC_ASSERT(std::equal(given.at(i).begin(), given.at(i).end(), result.begin()));
+      RC_ASSERT(std::equal(tlwe.begin(), tlwe.end(), result.begin()));
     }
   }
 

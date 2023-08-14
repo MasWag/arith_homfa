@@ -18,6 +18,10 @@ namespace ArithHomFA {
     public:
         explicit SizedCipherReader(std::istream &stream) : istream(stream) {}
 
+        [[nodiscard]] bool good() const {
+            return this->istream.good();
+        }
+
         bool read(const seal::SEALContext &context, seal::Ciphertext &cipher) {
             if (!istream.good()) {
                 return false;

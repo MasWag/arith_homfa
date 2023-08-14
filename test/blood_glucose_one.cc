@@ -22,4 +22,6 @@ namespace ArithHomFA {
   // Define the signal and predicate sizes
   const std::size_t CKKSPredicate::signalSize = 1;
   const std::size_t CKKSPredicate::predicateSize = 1;
+  // The approximate maximum value of the difference between the signal and the threshold
+  const std::vector<double> CKKSPredicate::references = {230};
 }

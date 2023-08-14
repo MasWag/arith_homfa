@@ -16,6 +16,7 @@
 #include "tfhepp_util.hpp"
 #include "utility.hpp"
 
+#include "ahomfa_runner.hh"
 #include "block_runner.hh"
 #include "ckks_predicate.hh"
 #include "offline_runner.hh"
@@ -102,7 +103,8 @@ namespace {
   }
 
   void register_pointwise_tfhe(CLI::App &app, Args &args) {
-    CLI::App *pointwise = app.add_subcommand("pointwise-tfhe", "Evaluate the given signal point-wise and make it TLWElv1 (for debugging)");
+    CLI::App *pointwise = app.add_subcommand(
+        "pointwise-tfhe", "Evaluate the given signal point-wise and make it TLWElv1 (for debugging)");
     add_common_flags(*pointwise, args);
     add_seal_flags(*pointwise, args);
     add_tfhepp_flags(*pointwise, args);
@@ -197,17 +199,15 @@ namespace {
     auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
     seal::RelinKeys relinKeys;
     {
-        std::ifstream relinKeysStream(relinKeysPath);
-        relinKeys.load(context, relinKeysStream);
+      std::ifstream relinKeysStream(relinKeysPath);
+      relinKeys.load(context, relinKeysStream);
     };
     predicate.setRelinKeys(relinKeys);
     ArithHomFA::SizedCipherReader reader{istream};
     ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
     std::vector<seal::Ciphertext> valuations, results;
-    std::vector<TFHEpp::TLWE<TFHEpp::lvl1param>> resultsTLWE;
     valuations.resize(ArithHomFA::CKKSPredicate::getSignalSize());
     results.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
-    resultsTLWE.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
     ArithHomFA::CKKSToTFHE converter{context};
     converter.initializeConverter(bkey);
     while (istream.good()) {
@@ -217,15 +217,12 @@ namespace {
           return;
         }
       }
-      // Evaluate
+      // Evaluate and dump the cipher text
       predicate.eval(valuations, results);
       for (int i = 0; i < results.size(); ++i) {
-        converter.toLv1TLWE(results.at(i), resultsTLWE.at(i), ArithHomFA::CKKSPredicate::getReferences().at(i));
-      }
-
-      // dump the cipher text
-      for (const auto &result: resultsTLWE) {
-          writer.write(result);
+        TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+        converter.toLv1TLWE(results.at(i), tlwe, ArithHomFA::CKKSPredicate::getReferences().at(i));
+        writer.write(tlwe);
       }
     }
   }
@@ -476,11 +473,13 @@ int main(int argc, char **argv) {
   dumpBasicInfo(argc, argv);
   switch (args.type) {
     case TYPE::POINTWISE: {
-      do_pointwise(*args.sealConfig, *args.relKey, *args.input, *args.output);
+      ArithHomFA::PointwiseRunner runner(*args.sealConfig, *args.relKey, *args.input, *args.output);
+      runner.runPointwise();
       break;
     }
     case TYPE::POINTWISE_TFHE: {
-      do_pointwise_tfhe(*args.sealConfig, *args.bkey, *args.relKey, *args.input, *args.output);
+      ArithHomFA::PointwiseRunner runner(*args.sealConfig, *args.bkey, *args.relKey, *args.input, *args.output);
+      runner.runPointwiseTFHE();
       break;
     }
     case TYPE::PLAIN: {

@@ -160,6 +160,7 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/reverse_runner_test.cc
         test/block_runner_test.cc
         test/tlwe_reader_writer_test.cc
+        test/pointwise_runner_test.cc
         )
 
 target_include_directories(unit_test PUBLIC

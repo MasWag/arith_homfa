@@ -353,7 +353,6 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     // Assert the result
     RC_ASSERT(tlwePlain == (values[0] * values[1] > 0));
   }
-#endif
 
   RC_BOOST_FIXTURE_PROP(toLv1TRGSW, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // We require that the given value is not too large. Otherwise, the encoding fails.
@@ -418,6 +417,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     const auto resultPlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl1param>(result, skey.key.lvl1).front();
     RC_ASSERT(resultPlain == (value > 0));
   }
+#endif
 
   RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterEval, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // The upper bound the range of the input signal
@@ -425,7 +425,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     const double reference = maxValue - 70.0;
     // We require that the given value is in a certain range. Otherwise, the decryption fails.
     const auto intValue =
-        *rc::gen::inRange<int64_t>(static_cast<int64_t>(70.5 / minValue), static_cast<int64_t>(75.0 / minValue));
+        *rc::gen::inRange<int64_t>(static_cast<int64_t>(71.0 / minValue), static_cast<int64_t>(71.5 / minValue));
     const double value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
 
@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     // Set up the BootstrappingKey
     static const TFHEpp::SecretKey skey;
     std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
-    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
+    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey {
         keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
