@@ -8,6 +8,7 @@
 
 #include "tfhe++.hpp"
 
+#include "archive.hpp"
 #include "my_params.hh"
 
 namespace ArithHomFA {
