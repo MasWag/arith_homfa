@@ -4,6 +4,7 @@
 #include <rapidcheck/boost_test.h>
 
 #include "../src/ckks_no_embed.hh"
+#include "../src/ckks_predicate.hh"
 #include "../src/ckks_to_tfhe.hh"
 
 BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
@@ -252,7 +253,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     }
     auto &converter = converters.at(useLargerParam);
 
-    // Setup the BootstrappingKey
+    // Set up the BootstrappingKey
     static const TFHEpp::SecretKey skey;
     std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
     static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
@@ -265,7 +266,6 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       converters.front().initializeConverter(bootKeys.front());
       converters.back().initializeConverter(bootKeys.back());
     }
-    ArithHomFA::Lvl3ToLvl1 ThreeToOne(bootKeys.at(useLargerParam));
 
     // Convert the ciphertext for TFHEpp (lvl1)
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
@@ -417,6 +417,73 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     // Assert the result
     const auto resultPlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl1param>(result, skey.key.lvl1).front();
     RC_ASSERT(resultPlain == (value > 0));
+  }
+
+  RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterEval, CKKSToTFHEFixture, (const bool &useLargerParam)) {
+    // The upper bound the range of the input signal
+    const double maxValue = 300.0;
+    const double reference = maxValue - 70.0;
+    // We require that the given value is in a certain range. Otherwise, the decryption fails.
+    const auto intValue =
+        *rc::gen::inRange<int64_t>(static_cast<int64_t>(70.5 / minValue), static_cast<int64_t>(75.0 / minValue));
+    const double value = static_cast<double>(intValue) * minValue;
+    RC_PRE(value != 0);
+
+    // Generate Key
+    static std::array<seal::KeyGenerator, 2> keygens{contexts.front(), contexts.back()};
+    const auto &secretKey = keygens.at(useLargerParam).secret_key();
+
+    // Encrypt the given value
+    seal::SEALContext context = contexts.at(useLargerParam);
+    ArithHomFA::CKKSNoEmbedEncoder encoder(context);
+    seal::Encryptor encryptor(context, secretKey);
+    encoder.encode(value, scale, plain);
+    seal::Ciphertext cipher;
+    encryptor.encrypt_symmetric(plain, cipher);
+
+    // Convert the key for TFHEpp
+    static std::array<ArithHomFA::CKKSToTFHE, 2> converters{ArithHomFA::CKKSToTFHE(contexts.front()),
+                                                            ArithHomFA::CKKSToTFHE(contexts.back())};
+    static std::vector<TFHEpp::Key<TFHEpp::lvl3param>> lvl3Keys;
+    if (lvl3Keys.empty()) {
+      lvl3Keys.resize(2);
+      for (int i = 0; i < 2; ++i) {
+        converters.at(i).toLv3Key(keygens.at(i).secret_key(), lvl3Keys.at(i));
+      }
+    }
+    auto &converter = converters.at(useLargerParam);
+
+    // Set up the BootstrappingKey
+    static const TFHEpp::SecretKey skey;
+    std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
+    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
+        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+    static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
+    if (bootKeys.empty()) {
+      // Construct bootKeys
+      bootKeys.emplace_back(skey, lvl3Keys.front(), lvlhalfkey);
+      bootKeys.emplace_back(skey, lvl3Keys.back(), lvlhalfkey);
+      converters.front().initializeConverter(bootKeys.front());
+      converters.back().initializeConverter(bootKeys.back());
+    }
+
+    // Evaluate the predicate
+    std::vector<seal::Ciphertext> valuation, result;
+    ArithHomFA::CKKSPredicate predicate{context, scale};
+    valuation.resize(1);
+    valuation.front() = cipher;
+    result.resize(1);
+    predicate.eval(valuation, result);
+
+    // Convert the result to TFHEpp (lvl1)
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+    converter.toLv1TLWE(result.front(), tlwe, reference);
+
+    // Decrypt the TLWE with TFHEpp
+    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+
+    // Assert the result
+    RC_ASSERT(tlwePlain == (value > 70));
   }
 
 BOOST_AUTO_TEST_SUITE_END()
