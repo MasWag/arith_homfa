@@ -18,7 +18,7 @@ namespace ArithHomFA {
    * @brief Read a ciphertext with its size from istream
    */
   template <class Param> class SizedTLWEReader {
-    std::vector<typename Param::T> midArray;
+    std::vector<char> midArray;
     std::istream &istream;
 
   public:
@@ -35,12 +35,12 @@ namespace ArithHomFA {
         return false;
       }
       midArray.resize(length);
-      istream.read(reinterpret_cast<char *>(midArray.data()), length);
+      istream.read(midArray.data(), length);
       if (!istream.good()) {
         return false;
       }
       std::stringstream midStream;
-      midStream.write(reinterpret_cast<char *>(midArray.data()), midArray.size() * sizeof(typename Param::T));
+      midStream.write(midArray.data(), length);
       read_from_archive(cipher, midStream);
 
       return true;

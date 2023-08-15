@@ -99,11 +99,11 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> outputReader(outputStream);
 
     // Randomly generate the original values and the ciphertexts
-    std::array<double, 10> values;
+    std::array<double, 10> values{};
     for (auto &value: values) {
       // We require that the given value is in a certain range. Otherwise, the decryption fails.
       const auto intValue =
-          *rc::gen::inRange<int64_t>(static_cast<int64_t>(74.5 / minValue), static_cast<int64_t>(75.0 / minValue));
+          *rc::gen::inRange<int64_t>(static_cast<int64_t>(74.0 / minValue), static_cast<int64_t>(74.5 / minValue));
       value = static_cast<double>(intValue) * minValue;
       RC_PRE(value != 0);
       encoder.encode(value, scale, plain);
@@ -179,11 +179,11 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> outputReader(outputRStream);
 
     // Randomly generate the original values and the ciphertexts
-    std::array<double, 10> values;
+    std::array<double, 10> values{};
     for (auto &value: values) {
       // We require that the given value is in a certain range. Otherwise, the decryption fails.
       const auto intValue =
-          *rc::gen::inRange<int64_t>(static_cast<int64_t>(74.5 / minValue), static_cast<int64_t>(75.0 / minValue));
+          *rc::gen::inRange<int64_t>(static_cast<int64_t>(74.0 / minValue), static_cast<int64_t>(74.5 / minValue));
       value = static_cast<double>(intValue) * minValue;
       RC_PRE(value != 0);
       encoder.encode(value, scale, plain);

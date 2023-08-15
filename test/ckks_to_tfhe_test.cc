@@ -425,7 +425,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     const double reference = maxValue - 70.0;
     // We require that the given value is in a certain range. Otherwise, the decryption fails.
     const auto intValue =
-        *rc::gen::inRange<int64_t>(static_cast<int64_t>(71.0 / minValue), static_cast<int64_t>(71.5 / minValue));
+        *rc::gen::inRange<int64_t>(static_cast<int64_t>(71.5 / minValue), static_cast<int64_t>(72.0 / minValue));
     const double value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
 
