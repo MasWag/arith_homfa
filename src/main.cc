@@ -321,7 +321,7 @@ namespace {
   }
 
   void do_enc_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
-    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
+    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_filename);
 
     ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
     bool content;
@@ -340,7 +340,7 @@ namespace {
 
   void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream,
                      const bool vertical) {
-    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
+    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_filename);
 
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> reader{istream};
     while (istream.good()) {
