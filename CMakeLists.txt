@@ -38,14 +38,14 @@ set(CMAKE_EXE_LINKER_FLAGS
 set(GIT_REVISION "unknown")
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
-  if(GIT_FOUND)
+  if(Git_FOUND)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-      OUTPUT_VARIABLE "HOMFA_GIT_REVISION"
+      OUTPUT_VARIABLE "GIT_REVISION"
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message(STATUS "Git revision: ${HOMFA_GIT_REVISION}")
+    message(STATUS "Git revision: ${GIT_REVISION}")
   endif()
 endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
@@ -60,7 +60,7 @@ if(COMPILER_SUPPORTS_MARCH_NATIVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
@@ -76,7 +76,7 @@ pkg_check_modules(BDDX REQUIRED libbddx)
 
 # Import Boost
 find_package(Boost REQUIRED COMPONENTS
-        program_options unit_test_framework iostreams graph)
+        unit_test_framework iostreams graph)
 
 include_directories(
         src/
@@ -98,33 +98,27 @@ include_directories(
 link_directories(
         /usr/local/lib/)
 
-link_libraries(
-        seal
-        hexl
-        )
-
 add_executable(ahomfa_util
         src/main.cc
-        src/tfhe_lvl3_inst.cc
         thirdparty/homfa/src/tfhepp_util.cpp
         thirdparty/homfa/src/graph.cpp
         )
 
 target_link_libraries(ahomfa_util
-        seal
+        SEAL::seal
         hexl
+        tbb
         randen
-        tfhe++
-        spot
-        bddx
         pthread
+        tfhe++
+        ${SPOT_LIBRARIES}
+        ${BDDX_LIBRARIES}
         )
 target_compile_definitions(ahomfa_util PRIVATE ${COMPILE_DEFINITIONS})
 
 add_library(ahomfa_runner
         src/ahomfa_runner.cc
         thirdparty/homfa/src/graph.cpp
-        thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
         thirdparty/homfa/src/offline_dfa.cpp
         thirdparty/homfa/src/online_dfa.cpp
         thirdparty/homfa/src/backstream_dfa_runner.cpp
@@ -140,7 +134,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidcheck/")
 
 add_executable(unit_test EXCLUDE_FROM_ALL
         test/unit_test.cc
-        src/tfhe_lvl3_inst.cc
         test/ckks_to_tfhe_test.cc
         test/ckks_no_embed_test.cc
         test/seal_config_test.cc
@@ -150,7 +143,6 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/plain_runner_test.cc
         test/tfhe_lvl3_to_lvl1_test.cc
         thirdparty/homfa/src/graph.cpp
-        thirdparty/homfa/thirdparty/TFHEpp/src/gatebootstrapping.cpp
         test/offline_runner_test.cc
         thirdparty/homfa/src/offline_dfa.cpp
         thirdparty/homfa/src/online_dfa.cpp
@@ -161,6 +153,9 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/block_runner_test.cc
         test/tlwe_reader_writer_test.cc
         test/pointwise_runner_test.cc
+        test/ckks_reader_writer_test.cc
+        test/secret_key_test.cc
+        test/bootstrapping_key_test.cc
         )
 
 target_include_directories(unit_test PUBLIC
@@ -172,8 +167,6 @@ target_include_directories(unit_test PUBLIC
 
 target_link_libraries(unit_test
         # profiler
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
-        ${Boost_GRAPH_LIBRARY}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
         SEAL::seal
         hexl
@@ -185,3 +178,4 @@ target_link_libraries(unit_test
         ${SPOT_LIBRARIES}
         ${BDDX_LIBRARIES}
         )
+target_compile_definitions(unit_test PRIVATE ${COMPILE_DEFINITIONS})
