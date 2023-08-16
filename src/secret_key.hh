@@ -15,8 +15,8 @@ namespace ArithHomFA {
 
   struct SecretKey : public TFHEpp::SecretKey {
     using mid2lowP = TFHEpp::lvl10param;
+    std::uniform_int_distribution<int32_t> lvlhalfgen;
     TFHEpp::Key<typename mid2lowP::targetP> lvlhalfkey;
-    std::uniform_int_distribution<int32_t> lvlhalfgen{0, 1};
 
     template <class Param> static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> &generator) {
       TFHEpp::Key<Param> key;
@@ -27,7 +27,7 @@ namespace ArithHomFA {
       return key;
     }
 
-    SecretKey() : TFHEpp::SecretKey(), lvlhalfkey(keyGen<typename mid2lowP::targetP>(lvlhalfgen)) {
+    SecretKey() : TFHEpp::SecretKey(), lvlhalfgen(0, 1), lvlhalfkey(keyGen<typename mid2lowP::targetP>(lvlhalfgen)) {
     }
 
     template <class Archive> void serialize(Archive &ar) {
