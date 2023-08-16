@@ -40,15 +40,6 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
   };
 
-  template <class Param> static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> & generator) {
-    TFHEpp::Key<Param> key;
-    for (typename Param::T &i: key) {
-      i = generator(TFHEpp::generator);
-    }
-
-    return key;
-  }
-
   RC_BOOST_FIXTURE_PROP(pointwiseTFHE, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // Generate Key
     static std::array<seal::KeyGenerator, 2> keygens{contexts.front(), contexts.back()};
@@ -73,15 +64,12 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
 
     // Set up the BootstrappingKey
-    static const TFHEpp::SecretKey skey;
-    std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
-    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
-        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+    static const ArithHomFA::SecretKey skey;
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
-      bootKeys.emplace_back(skey, lvl3Keys.front(), lvlhalfkey);
-      bootKeys.emplace_back(skey, lvl3Keys.back(), lvlhalfkey);
+      bootKeys.emplace_back(skey, lvl3Keys.front());
+      bootKeys.emplace_back(skey, lvl3Keys.back());
       converters.front().initializeConverter(bootKeys.front());
       converters.back().initializeConverter(bootKeys.back());
     }
@@ -148,15 +136,12 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
 
     // Set up the BootstrappingKey
-    static const TFHEpp::SecretKey skey;
-    std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
-    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
-        keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
+    static const ArithHomFA::SecretKey skey;
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
-      bootKeys.emplace_back(skey, lvl3Keys.front(), lvlhalfkey);
-      bootKeys.emplace_back(skey, lvl3Keys.back(), lvlhalfkey);
+      bootKeys.emplace_back(skey, lvl3Keys.front());
+      bootKeys.emplace_back(skey, lvl3Keys.back());
       converters.front().initializeConverter(bootKeys.front());
       converters.back().initializeConverter(bootKeys.back());
     }
@@ -204,6 +189,80 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
     std::remove(inputFilename);
     std::remove(outputFilename);
+  }
+
+  BOOST_FIXTURE_TEST_CASE(BG1FromPlain, CKKSToTFHEFixture) {
+    const bool useLargerParam = false;
+    std::ifstream istream("../test/adult#001_night.bg.txt");
+    BOOST_TEST(istream.good());
+
+    // Generate Key
+    static std::array<seal::KeyGenerator, 2> keygens{contexts.front(), contexts.back()};
+    const auto &secretKey = keygens.at(useLargerParam).secret_key();
+    seal::RelinKeys relinKeys;
+    keygens.at(useLargerParam).create_relin_keys(relinKeys);
+
+    // Encrypt the given value
+    seal::SEALContext context = contexts.at(useLargerParam);
+    ArithHomFA::CKKSNoEmbedEncoder encoder(context);
+    seal::Encryptor encryptor(context, secretKey);
+
+    // Convert the key for TFHEpp
+    static std::array<ArithHomFA::CKKSToTFHE, 2> converters{ArithHomFA::CKKSToTFHE(contexts.front()),
+                                                            ArithHomFA::CKKSToTFHE(contexts.back())};
+    static std::vector<TFHEpp::Key<TFHEpp::lvl3param>> lvl3Keys;
+    if (lvl3Keys.empty()) {
+      lvl3Keys.resize(2);
+      for (int i = 0; i < 2; ++i) {
+        converters.at(i).toLv3Key(keygens.at(i).secret_key(), lvl3Keys.at(i));
+      }
+    }
+
+    // Set up the BootstrappingKey
+    static const ArithHomFA::SecretKey skey;
+    static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
+    if (bootKeys.empty()) {
+      // Construct bootKeys
+      bootKeys.emplace_back(skey, lvl3Keys.front());
+      bootKeys.emplace_back(skey, lvl3Keys.back());
+      converters.front().initializeConverter(bootKeys.front());
+      converters.back().initializeConverter(bootKeys.back());
+    }
+    const auto &bkey = bootKeys.at(useLargerParam);
+
+    // Evaluate the predicate
+    std::vector<seal::Ciphertext> valuation, result;
+    ArithHomFA::CKKSPredicate predicate{context, scale};
+
+    // Define the stream
+    std::stringstream inputStream, outputStream;
+    ArithHomFA::SizedCipherReader inputReader(inputStream);
+    ArithHomFA::SizedCipherWriter inputWriter(inputStream);
+    ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> outputWriter(outputStream);
+    ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> outputReader(outputStream);
+
+    // Randomly generate the original values and the ciphertexts
+    std::vector<double> values;
+    while (istream.good()) {
+      double value;
+      istream >> value;
+      encoder.encode(value, scale, plain);
+      values.push_back(value);
+      seal::Ciphertext cipher;
+      encryptor.encrypt_symmetric(plain, cipher);
+      inputWriter.write(cipher);
+    }
+
+    // Execute the pointwise predicate evaluation
+    ArithHomFA::PointwiseRunner::runPointwiseTFHE(context, predicate, bkey, relinKeys, inputReader, outputWriter);
+
+    // Assert the result
+    for (auto &value: values) {
+      TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+      outputReader.read(tlwe);
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      BOOST_TEST(tlwePlain == (value > 70));
+    }
   }
 
 BOOST_AUTO_TEST_SUITE_END()
