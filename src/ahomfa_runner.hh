@@ -7,6 +7,7 @@
 
 #include <istream>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 #include <seal/seal.h>
@@ -16,6 +17,7 @@
 #include "bootstrapping_key.hh"
 #include "ckks_predicate.hh"
 #include "ckks_to_tfhe.hh"
+#include "key_loader.hh"
 #include "seal_config.hh"
 #include "sized_cipher_reader.hh"
 #include "sized_cipher_writer.hh"
@@ -27,7 +29,8 @@ namespace ArithHomFA {
     PointwiseRunner(const ArithHomFA::SealConfig &config, const std::string &relinKeysPath, std::istream &istream,
                     std::ostream &ostream)
         : context(config.makeContext()), predicate(context, config.scale),
-          relinKeys(loadRelinKeys(context, relinKeysPath)), reader(istream), ckksWriter(ostream), tlweWriter(ostream) {
+          relinKeys(KeyLoader::loadRelinKeys(context, relinKeysPath)), reader(istream), ckksWriter(ostream),
+          tlweWriter(ostream) {
       predicate.setRelinKeys(this->relinKeys);
     }
 
@@ -35,18 +38,9 @@ namespace ArithHomFA {
                     const std::string &relinKeysPath, std::istream &istream, std::ostream &ostream)
         : context(config.makeContext()), predicate(context, config.scale),
           bkey(read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename)),
-          relinKeys(loadRelinKeys(context, relinKeysPath)), reader(istream), ckksWriter(ostream), tlweWriter(ostream) {
+          relinKeys(KeyLoader::loadRelinKeys(context, relinKeysPath)), reader(istream), ckksWriter(ostream),
+          tlweWriter(ostream) {
       predicate.setRelinKeys(this->relinKeys);
-    }
-
-    static seal::RelinKeys loadRelinKeys(const seal::SEALContext &context, const std::string &relinKeysPath) {
-      seal::RelinKeys relinKeys;
-      {
-        std::ifstream relinKeysStream(relinKeysPath);
-        relinKeys.load(context, relinKeysStream);
-      }
-
-      return relinKeys;
     }
 
     static void runPointwise(const seal::SEALContext &context, ArithHomFA::CKKSPredicate &predicate,

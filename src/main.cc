@@ -16,6 +16,7 @@
 #include "tfhepp_util.hpp"
 #include "utility.hpp"
 
+#include "key_loader.hh"
 #include "bootstrapping_key.hh"
 #include "ckks_no_embed.hh"
 #include "ckks_to_tfhe.hh"
@@ -235,9 +236,7 @@ namespace {
   void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
                            std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
-    seal::SecretKey secretKey;
-    std::ifstream secretKeyStream(secretKeyPath);
-    secretKey.load(context, secretKeyStream);
+    const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
     seal::KeyGenerator keygen(context, secretKey);
 
     seal::RelinKeys relin_keys;
@@ -246,19 +245,19 @@ namespace {
   }
 
   void do_genkey_TFHEpp(std::ostream &ostream) {
+    spdlog::info("Generate secret key of TFHEpp");
     ArithHomFA::SecretKey skey;
     write_to_archive(ostream, skey);
   }
 
   void do_genbkey_TFHEpp(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
                          std::istream &&skey_stream, std::ostream &ostream) {
+    spdlog::info("Generate bootstrapping key of TFHEpp");
     const seal::SEALContext context = config.makeContext();
     ArithHomFA::CKKSToTFHE converter(context);
     auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_stream);
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
-    seal::SecretKey secretKey;
-    std::ifstream secretKeyStream(secretKeyPath);
-    secretKey.load(context, secretKeyStream);
+    const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
     converter.toLv3Key(secretKey, lvl3Key);
     ArithHomFA::BootstrappingKey bkey{skey, lvl3Key};
     write_to_archive(ostream, bkey);
@@ -268,9 +267,7 @@ namespace {
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
-    seal::SecretKey secretKey;
-    std::ifstream secretKeyStream(secretKeyPath);
-    secretKey.load(context, secretKeyStream);
+    const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
     seal::Encryptor encryptor(context, secretKey);
 
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);
@@ -296,10 +293,7 @@ namespace {
   void do_dec_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath, std::istream &istream,
                    std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
-    const double scale = config.scale;
-    seal::SecretKey secretKey;
-    std::ifstream secretKeyStream(secretKeyPath);
-    secretKey.load(context, secretKeyStream);
+    const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
     seal::Decryptor decryptor(context, secretKey);
 
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);
@@ -412,8 +406,7 @@ namespace {
 
 int main(int argc, char **argv) {
   Args args;
-  CLI::App app{"Arith HomFA -- Oblivious Online STL Monitor via Fully "
-               "Homomorphic Encryption"};
+  CLI::App app{"Arith HomFA -- Oblivious Online STL Monitor via Fully Homomorphic Encryption"};
   register_general_options(app, args);
   register_SEAL(app, args);
   register_TFHEpp(app, args);
@@ -438,6 +431,19 @@ int main(int argc, char **argv) {
   }
 
   dumpBasicInfo(argc, argv);
+#if defined(USE_80BIT_SECURITY)
+    spdlog::debug("Use 80bit security parameter");
+#elif defined(USE_CGGI19)
+    spdlog::debug("Use CGGI19 security parameter");
+#elif defined(USE_CONCRETE)
+    spdlog::debug("Use concrete security parameter");
+#elif defined(USE_TFHE_RS)
+    spdlog::debug("Use TFHE-RS's security parameter");
+#elif defined(USE_TERNARY)
+    spdlog::debug("Use ternary security parameter");
+#else
+    spdlog::debug("Use 128bit security parameter");
+#endif
   switch (args.type) {
     case TYPE::GENKEY_SEAL: {
       do_genkey_SEAL(*args.sealConfig, *args.output);
@@ -505,7 +511,11 @@ int main(int argc, char **argv) {
   }
   // Close fstream
   if (typeid(*args.output) == typeid(std::ofstream)) {
+    spdlog::debug("Output stream is closed");
     dynamic_cast<std::ofstream *>(args.output)->close();
+    if (!args.output) {
+      std::perror("ArithHomFA");
+    }
   }
 
   return 0;
