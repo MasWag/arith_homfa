@@ -98,6 +98,12 @@ include_directories(
 link_directories(
         /usr/local/lib/)
 
+link_libraries(
+        seal
+        hexl
+        )
+
+
 add_executable(ahomfa_util
         src/main.cc
         thirdparty/homfa/src/tfhepp_util.cpp
