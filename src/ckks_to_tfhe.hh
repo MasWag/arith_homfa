@@ -59,6 +59,7 @@ namespace ArithHomFA {
       }
 
       // Assert that the secret key is ternary.
+#ifndef NDEBUG
       for (std::size_t i = 0; i < secretKey.data().dyn_array().size(); ++i) {
         const auto &coef = secretKey.data().dyn_array().at(i);
         assert(coef == 0 || coef == 1 ||
@@ -66,6 +67,7 @@ namespace ArithHomFA {
                    parms.coeff_modulus().at(i / poly_modulus_degree).value() -
                        1);
       }
+#endif
 
       // Convert and assign key. We take the first part because the secret keys
       // are the same
@@ -128,7 +130,9 @@ namespace ArithHomFA {
       // Rescale the coefficients to 2^64
       Rescaling rescale(context_data);
       for (std::size_t i = 0; i <= TFHEpp::lvl3param::k; ++i) {
+#ifndef NDEBUG
         const auto decryption_modulus = context_data.total_coeff_modulus();
+#endif
         const std::size_t decryption_modulus_size =
             context_data.parms().coeff_modulus().size();
         SEAL_ITERATE(
