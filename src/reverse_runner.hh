@@ -60,7 +60,14 @@ namespace ArithHomFA {
       }
       timer.ckks_to_tfhe.toc();
 
-      for (const auto &trgsw: trgsws) {
+      return this->feedRaw(trgsws);
+    }
+
+    /*!
+     * @brief Directly feeds a valuation to the DFA with valuations, mainly for debugging
+     */
+    TFHEpp::TLWE<TFHEpp::lvl1param> feedRaw(const std::vector<TFHEpp::TRGSWFFT<TFHEpp::lvl1param>> &ciphers) {
+      for (const auto &trgsw: ciphers) {
         timer.dfa.tic();
         runner.eval_one(trgsw);
         timer.dfa.toc();

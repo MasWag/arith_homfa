@@ -96,6 +96,84 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     runner.printTime();
   }
 
+  BOOST_FIXTURE_TEST_CASE(EvalGFLongFalseDirectCB, CKKSConfigFixture, *boost::unit_test::disabled()) {
+    Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
+
+    // Make keys
+    seal::KeyGenerator keygen(context);
+    const auto &sealKey = keygen.secret_key();
+    ArithHomFA::SecretKey skey;
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(sealKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
+
+    // Instantiate encryptor
+    seal::Encryptor encryptor(context, sealKey);
+
+    // Prepare for the runner
+    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+
+    // Make the input
+    seal::Plaintext plain;
+    encoder.encode(5, scale, plain);
+    seal::Ciphertext cipher;
+    encryptor.encrypt_symmetric(plain, cipher);
+    ArithHomFA::CKKSToTFHE converter{context};
+    converter.initializeConverter(bKey);
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+    converter.toLv1TLWE(cipher, tlwe, 150);
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
+    TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
+                                                                                                *bKey.ekey);
+
+    bool wasFalse = false;
+    for (int i = 0; i < 10000; ++i) {
+      const auto result = decrypt_TLWELvl1_to_bit(runner.feedRaw({trgsw}), skey);
+      wasFalse = wasFalse || !result;
+      if (i % 1000 == 0) {
+        std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
+      }
+      BOOST_TEST(!(wasFalse && result));
+    }
+
+    runner.printTime();
+  }
+
+  BOOST_FIXTURE_TEST_CASE(EvalGFLongFalseDirectCBNoCKKS, CKKSConfigFixture, *boost::unit_test::disabled()) {
+    Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
+
+    // Make keys
+    seal::KeyGenerator keygen(context);
+    const auto &sealKey = keygen.secret_key();
+    ArithHomFA::SecretKey skey;
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(sealKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
+
+    // Prepare for the runner
+    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+
+    // Make the input
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
+        TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(1u << 30, // 1/4
+                                                  TFHEpp::lvl1param::α, skey.key.lvl1);
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
+    TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
+                                                                                                *bKey.ekey);
+
+    bool wasFalse = false;
+    for (int i = 0; i < 10000; ++i) {
+      const auto result = decrypt_TLWELvl1_to_bit(runner.feedRaw({trgsw}), skey);
+      wasFalse = wasFalse || !result;
+      if (i % 1000 == 0) {
+        std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
+      }
+      BOOST_TEST(!(wasFalse && result));
+    }
+
+    runner.printTime();
+  }
+
   BOOST_FIXTURE_TEST_CASE(EvalGFLongTrue, CKKSConfigFixture, *boost::unit_test::disabled()) {
     Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
 
@@ -114,12 +192,124 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     bool wasFalse = false;
+    seal::Plaintext plain;
+    encoder.encode(65, scale, plain);
+    seal::Ciphertext cipher;
+    encryptor.encrypt_symmetric(plain, cipher);
     for (int i = 0; i < 10000; ++i) {
-      seal::Plaintext plain;
-      encoder.encode(65, scale, plain);
-      seal::Ciphertext cipher;
-      encryptor.encrypt_symmetric(plain, cipher);
       const auto result = decrypt_TLWELvl1_to_bit(runner.feed({cipher}), skey);
+      wasFalse = wasFalse || !result;
+      if (i % 1000 == 0) {
+        std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
+      }
+      BOOST_TEST(!(wasFalse && result));
+    }
+
+    runner.printTime();
+  }
+
+  BOOST_FIXTURE_TEST_CASE(EvalGFLongTrueDirectCB, CKKSConfigFixture, *boost::unit_test::disabled()) {
+    Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
+
+    // Make keys
+    seal::KeyGenerator keygen(context);
+    const auto &sealKey = keygen.secret_key();
+    ArithHomFA::SecretKey skey;
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(sealKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
+
+    // Instantiate encryptor
+    seal::Encryptor encryptor(context, sealKey);
+
+    // Prepare for the runner
+    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+
+    // Make the input
+    seal::Plaintext plain;
+    encoder.encode(-5, scale, plain);
+    seal::Ciphertext cipher;
+    encryptor.encrypt_symmetric(plain, cipher);
+    ArithHomFA::CKKSToTFHE converter{context};
+    converter.initializeConverter(bKey);
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+    converter.toLv1TLWE(cipher, tlwe, 150);
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
+    TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
+                                                                                                *bKey.ekey);
+
+    bool wasFalse = false;
+    for (int i = 0; i < 10000; ++i) {
+      const auto result = decrypt_TLWELvl1_to_bit(runner.feedRaw({trgsw}), skey);
+      wasFalse = wasFalse || !result;
+      if (i % 1000 == 0) {
+        std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
+      }
+      BOOST_TEST(!(wasFalse && result));
+    }
+
+    runner.printTime();
+  }
+
+  BOOST_FIXTURE_TEST_CASE(EvalGFLongTrueDirectCBNoCKKS, CKKSConfigFixture, *boost::unit_test::disabled()) {
+    Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
+
+    // Make keys
+    seal::KeyGenerator keygen(context);
+    const auto &sealKey = keygen.secret_key();
+    ArithHomFA::SecretKey skey;
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(sealKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
+
+    // Prepare for the runner
+    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+
+    // Make the input
+    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
+        TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(-(1u << 30), // -1/4
+                                                  TFHEpp::lvl1param::α, skey.key.lvl1);
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
+    TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
+                                                                                                *bKey.ekey);
+
+    bool wasFalse = false;
+    for (int i = 0; i < 10000; ++i) {
+      const auto result = decrypt_TLWELvl1_to_bit(runner.feedRaw({trgsw}), skey);
+      wasFalse = wasFalse || !result;
+      if (i % 1000 == 0) {
+        std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
+      }
+      BOOST_TEST(!(wasFalse && result));
+    }
+
+    runner.printTime();
+  }
+
+  BOOST_FIXTURE_TEST_CASE(EvalGFLongTrueDirectEnc, CKKSConfigFixture, *boost::unit_test::disabled()) {
+    Graph graph = Graph::from_ltl_formula("G(p0 -> F[0,25] !p0)", 1, true);
+
+    // Make keys
+    seal::KeyGenerator keygen(context);
+    const auto &sealKey = keygen.secret_key();
+    ArithHomFA::SecretKey skey;
+    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+    converter.toLv3Key(sealKey, lvl3Key);
+    ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
+
+    // Instantiate encryptor
+    seal::Encryptor encryptor(context, sealKey);
+
+    // Prepare for the runner
+    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+
+    // Make the input
+    TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw =
+        TFHEpp::trgswfftSymEncrypt<TFHEpp::lvl1param>({true}, TFHEpp::lvl1param::α, skey.key.lvl1);
+
+    bool wasFalse = false;
+    for (int i = 0; i < 10000; ++i) {
+      const auto result = decrypt_TLWELvl1_to_bit(runner.feedRaw({trgsw}), skey);
       wasFalse = wasFalse || !result;
       if (i % 1000 == 0) {
         std::cout << i << " " << (wasFalse ? "wasFalse" : "not wasFalse") << std::endl;
