@@ -43,6 +43,7 @@ namespace ArithHomFA {
      * @brief Feeds a valuation to the DFA with valuations
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feed(const std::vector<seal::Ciphertext> &valuations) override {
+      timer.total.tic();
       assert(valuations.size() == predicate.getSignalSize());
       // Evaluate the predicates
       ckksCiphers.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
@@ -59,6 +60,7 @@ namespace ArithHomFA {
         CircuitBootstrappingFFT(trgsws.at(trgsws.size() - 1 - i), tlwes.at(i), *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
+      timer.total.toc();
 
       return this->feedRaw(trgsws);
     }
@@ -67,13 +69,19 @@ namespace ArithHomFA {
      * @brief Directly feeds a valuation to the DFA with valuations, mainly for debugging
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feedRaw(const std::vector<TFHEpp::TRGSWFFT<TFHEpp::lvl1param>> &ciphers) {
+      timer.total.tic();
       for (const auto &trgsw: ciphers) {
         timer.dfa.tic();
         runner.eval_one(trgsw);
         timer.dfa.toc();
       }
 
-      return runner.result();
+      timer.dfa.tic();
+      auto result = runner.result();
+      timer.dfa.toc();
+      timer.total.toc();
+
+      return result;
     }
 
     void setRelinKeys(const seal::RelinKeys &keys) {

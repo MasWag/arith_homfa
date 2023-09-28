@@ -38,6 +38,7 @@ namespace ArithHomFA {
     TicToc predicate;
     TicToc ckks_to_tfhe;
     TicToc dfa;
+    TicToc total;
     void print() const {
       spdlog::info("Execution time for Predicate evaluation: {} [us]",
                    std::chrono::duration_cast<std::chrono::microseconds>(predicate.getTotal()).count());
@@ -45,6 +46,8 @@ namespace ArithHomFA {
                    std::chrono::duration_cast<std::chrono::microseconds>(ckks_to_tfhe.getTotal()).count());
       spdlog::info("Execution time for DFA evaluation: {} [us]",
                    std::chrono::duration_cast<std::chrono::microseconds>(dfa.getTotal()).count());
+      spdlog::info("Total execution time for monitoring: {} [us]",
+                   std::chrono::duration_cast<std::chrono::microseconds>(total.getTotal()).count());
     }
   };
 } // namespace ArithHomFA

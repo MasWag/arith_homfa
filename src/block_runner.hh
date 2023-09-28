@@ -48,6 +48,7 @@ namespace ArithHomFA {
      * example, if blockSize == 4, the output changes only after feeding i-th input, where i == 4 * N.
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feed(const std::vector<seal::Ciphertext> &valuations) override {
+      timer.total.tic();
       assert(valuations.size() == predicate.getSignalSize());
       // Evaluate the predicates
       std::vector<seal::Ciphertext> ckksCiphers(ArithHomFA::CKKSPredicate::getPredicateSize());
@@ -83,7 +84,11 @@ namespace ArithHomFA {
         timer.dfa.toc();
       }
 
+      timer.dfa.tic();
       latestResult = runner.result();
+      timer.dfa.toc();
+      timer.total.toc();
+
       return latestResult;
     }
 
