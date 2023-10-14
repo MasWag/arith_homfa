@@ -86,6 +86,10 @@ namespace {
     for (auto subcommand: subcommands) {
       std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
         std::ifstream istream(path);
+        if (!istream) {
+          spdlog::error("Failed to open the SEAL's configuration file", strerror(errno));
+          exit(1);
+        }
         cereal::JSONInputArchive archive(istream);
         args.sealConfig = ArithHomFA::SealConfig::load(archive);
       };
@@ -110,6 +114,10 @@ namespace {
     for (auto subcommand: withInput) {
       std::function<void(const std::string &)> callback = [&args](const std::string &path) {
         args.input = new std::ifstream(path);
+        if (args.input->fail()) {
+          spdlog::error("Failed to open the input file", strerror(errno));
+          exit(1);
+        }
       };
       subcommand->add_option_function("-i,--input", callback, "The file to load the input");
     }
@@ -165,6 +173,10 @@ namespace {
     for (auto subcommand: withSeal) {
       std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
         std::ifstream istream(path);
+        if (!istream) {
+          spdlog::error("Failed to open the SEAL's configuration file", strerror(errno));
+          exit(1);
+        }
         cereal::JSONInputArchive archive(istream);
         args.sealConfig = ArithHomFA::SealConfig::load(archive);
       };
@@ -181,6 +193,10 @@ namespace {
     for (auto subcommand: withInput) {
       std::function<void(const std::string &)> callback = [&args](const std::string &path) {
         args.input = new std::ifstream(path);
+        if (args.input->fail()) {
+          spdlog::error("Failed to open the input file", strerror(errno));
+          exit(1);
+        }
       };
       subcommand->add_option_function("-i,--input", callback, "The file to load the input");
     }
@@ -213,6 +229,10 @@ namespace {
     CLI::App *ltl2spec = app.add_subcommand("spec2spec", "Modify a specification for ArithHomFA");
     std::function<void(const std::string &)> input_callback = [&args](const std::string &path) {
       args.input = new std::ifstream(path);
+      if (args.input->fail()) {
+        spdlog::error("Failed to open the input file", strerror(errno));
+        exit(1);
+      }
     };
     ltl2spec->add_option_function("-i,--input", input_callback, "The file to load the input");
     std::function<void(const std::string &)> output_callback = [&args](const std::string &path) {

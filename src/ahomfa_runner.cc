@@ -61,6 +61,10 @@ namespace {
   void add_common_flags(CLI::App &app, Args &args) {
     std::function<void(const std::string &)> callback = [&args](const std::string &path) {
       args.input = new std::ifstream(path);
+      if (args.input->fail()) {
+        spdlog::error("Failed to open the input file", strerror(errno));
+        exit(1);
+      }
     };
     app.add_option_function("-i,--input", callback, "The file to load the input");
 
@@ -73,6 +77,10 @@ namespace {
   void add_seal_flags(CLI::App &app, Args &args) {
     std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
       std::ifstream istream(path);
+      if (!istream) {
+        spdlog::error("Failed to open the SEAL's configuration file", strerror(errno));
+        exit(1);
+      }
       cereal::JSONInputArchive archive(istream);
       args.sealConfig = ArithHomFA::SealConfig::load(archive);
     };
@@ -119,6 +127,10 @@ namespace {
     // SEAL's configuration is required even for plain
     std::function<void(const std::string &)> configCallback = [&args](const std::string &path) {
       std::ifstream istream(path);
+      if (!istream) {
+        spdlog::error("Failed to open the SEAL's configuration file", strerror(errno));
+        exit(1);
+      }
       cereal::JSONInputArchive archive(istream);
       args.sealConfig = ArithHomFA::SealConfig::load(archive);
     };
@@ -168,6 +180,10 @@ namespace {
     seal::RelinKeys relinKeys;
     {
       std::ifstream relinKeysStream(relinKeysPath);
+      if (!relinKeysStream) {
+        spdlog::error("Failed to open relinearization key", strerror(errno));
+        exit(1);
+      }
       relinKeys.load(context, relinKeysStream);
     };
     predicate.setRelinKeys(relinKeys);
@@ -200,6 +216,10 @@ namespace {
     seal::RelinKeys relinKeys;
     {
       std::ifstream relinKeysStream(relinKeysPath);
+      if (!relinKeysStream) {
+        spdlog::error("Failed to open the relinearization key", strerror(errno));
+        exit(1);
+      }
       relinKeys.load(context, relinKeysStream);
     };
     predicate.setRelinKeys(relinKeys);
@@ -265,6 +285,10 @@ namespace {
     seal::RelinKeys relinKeys;
     {
       std::ifstream relinKeysStream(relinKeysPath);
+      if (!relinKeysStream) {
+        spdlog::error("Failed to open the relinearization key", strerror(errno));
+        exit(1);
+      }
       relinKeys.load(context, relinKeysStream);
     }
 
@@ -306,6 +330,10 @@ namespace {
     seal::SecretKey secretKey;
     if (debug_skey) {
       std::ifstream secretKeyStream{*debug_skey};
+      if (!secretKeyStream) {
+        spdlog::error("Failed to open the secret key", strerror(errno));
+        exit(1);
+      }
       secretKey.load(context, secretKeyStream);
     }
     ArithHomFA::CKKSNoEmbedEncoder encoder(context);
@@ -353,6 +381,10 @@ namespace {
     seal::RelinKeys relinKeys;
     {
       std::ifstream relinKeysStream(relinKeysPath);
+      if (!relinKeysStream) {
+        spdlog::error("Failed to open the relinearization key", strerror(errno));
+        exit(1);
+      }
       relinKeys.load(context, relinKeysStream);
     }
 
@@ -378,6 +410,10 @@ namespace {
     seal::RelinKeys relinKeys;
     {
       std::ifstream relinKeysStream(relinKeysPath);
+      if (!relinKeysStream) {
+        spdlog::error("Failed to open the relinearization key", strerror(errno));
+        exit(1);
+      }
       relinKeys.load(context, relinKeysStream);
     }
 
