@@ -55,9 +55,14 @@ namespace ArithHomFA {
       tlwes.resize(ckksCiphers.size());
       trgsws.resize(ckksCiphers.size());
       timer.ckks_to_tfhe.tic();
+      // Note: this parallelization can decelerate if the queue is small
+#pragma omp parallel for default(none) shared(ckksCiphers, tlwes, trgsws, converter, bkey)
       for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
-        converter.toLv1TLWE(ckksCiphers.at(i), tlwes.at(i), this->references.at(i));
-        CircuitBootstrappingFFT(trgsws.at(trgsws.size() - 1 - i), tlwes.at(i), *bkey.ekey);
+        const seal::Ciphertext &ckksCipher = ckksCiphers.at(i);
+        TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe = tlwes.at(trgsws.size() - 1 - i);
+        TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw = trgsws.at(i);
+        converter.toLv1TLWE(ckksCipher, tlwe, this->references.at(i));
+        CircuitBootstrappingFFT(trgsw, tlwe, *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
       timer.total.toc();
