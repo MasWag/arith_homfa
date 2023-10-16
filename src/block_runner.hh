@@ -70,13 +70,11 @@ namespace ArithHomFA {
       omp_set_nested(1);
       timer.ckks_to_tfhe.tic();
       // Note: this parallelization can decelerate if the queue is small
-#pragma omp parallel for default(none) shared(queued_inputs_, tlwes, trgsws, converter, bkey)
+#pragma omp parallel for default(none) shared(queued_inputs_, trgsws, converter, bkey)
       for (std::size_t i = 0; i < queued_inputs_.size(); ++i) {
-        const seal::Ciphertext &ckksCipher = queued_inputs_.at(i);
-        TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe = tlwes.at(i);
-        TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw = trgsws.at(i);
-        converter.toLv1TLWE(ckksCipher, tlwe, this->references.at(i % ArithHomFA::CKKSPredicate::getPredicateSize()));
-        CircuitBootstrappingFFT(trgsw, tlwe, *bkey.ekey);
+        TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+        converter.toLv1TLWE(queued_inputs_.at(i), tlwe, this->references.at(i % ArithHomFA::CKKSPredicate::getPredicateSize()));
+        CircuitBootstrappingFFT(trgsws.at(i), tlwe, *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
       omp_set_nested(0);
