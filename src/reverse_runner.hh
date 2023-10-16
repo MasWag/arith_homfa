@@ -7,6 +7,7 @@
 
 #include <execution>
 #include <ranges>
+#include <omp.h>
 
 #include <boost/iterator/zip_iterator.hpp>
 
@@ -54,6 +55,8 @@ namespace ArithHomFA {
       // Construct TRGSW
       tlwes.resize(ckksCiphers.size());
       trgsws.resize(ckksCiphers.size());
+      // Enable nested parallelization
+      omp_set_nested(1);
       timer.ckks_to_tfhe.tic();
       // Note: this parallelization can decelerate if the queue is small
 #pragma omp parallel for default(none) shared(ckksCiphers, tlwes, trgsws, converter, bkey)
@@ -65,6 +68,7 @@ namespace ArithHomFA {
         CircuitBootstrappingFFT(trgsw, tlwe, *bkey.ekey);
       }
       timer.ckks_to_tfhe.toc();
+      omp_set_nested(0);
       timer.total.toc();
 
       return this->feedRaw(trgsws);
