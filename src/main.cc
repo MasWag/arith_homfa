@@ -33,6 +33,7 @@ namespace {
     UNSPECIFIED,
 
     GENKEY_SEAL,
+    GEN_PUBLIC_KEY_SEAL,
     GENKEY_TFHEPP,
     GENRELINKEY_SEAL,
     GENBKEY_TFHEPP,
@@ -52,7 +53,7 @@ namespace {
 
     bool make_all_live_states_final = false, minimized = false, reversed = false, negated = false, vertical = false;
     std::optional<ArithHomFA::SealConfig> sealConfig;
-    std::optional<std::string> spec, skey, sealSecretKey, bkey, output_dir, debug_skey, formula, online_method;
+    std::optional<std::string> spec, skey, sealSecretKey, sealPublicKey, bkey, output_dir, debug_skey, formula, online_method;
     std::istream *input = &std::cin;
     std::ostream *output = &std::cout;
     std::optional<size_t> num_vars, queue_size, bootstrapping_freq, max_second_lut_depth, num_ap, output_freq;
@@ -67,15 +68,19 @@ namespace {
     CLI::App *ckks = app.add_subcommand("ckks", "Subcommands related to SEAL");
     std::vector<CLI::App *> subcommands;
     std::vector<CLI::App *> requiresKey;
+    std::vector<CLI::App *> requiresPrivateOrPublicKey;
     std::vector<CLI::App *> withInput;
     CLI::App *genkey = ckks->add_subcommand("genkey", "Generate secret key");
     subcommands.push_back(genkey);
+    CLI::App *genpkey = ckks->add_subcommand("genpkey", "Generate public key");
+    subcommands.push_back(genpkey);
+    requiresKey.push_back(genpkey);
     CLI::App *genrelinkey = ckks->add_subcommand("genrelinkey", "Generate relin key");
     subcommands.push_back(genrelinkey);
     requiresKey.push_back(genrelinkey);
     CLI::App *enc = ckks->add_subcommand("enc", "Encrypt input file");
     subcommands.push_back(enc);
-    requiresKey.push_back(enc);
+    requiresPrivateOrPublicKey.push_back(enc);
     withInput.push_back(enc);
     CLI::App *dec = ckks->add_subcommand("dec", "Decrypt input file");
     subcommands.push_back(dec);
@@ -110,6 +115,17 @@ namespace {
           ->check(CLI::ExistingFile);
     }
 
+    // Options for subcommands with either public or secret key
+    for (auto subcommand: requiresPrivateOrPublicKey) {
+      auto group = subcommand->add_option_group("requiresPrivateOrPublicKey");
+      group->add_option("-K,--secret-key", args.sealSecretKey, "The secret key of SEAL")
+          ->check(CLI::ExistingFile);
+      group->add_option("-k,--public-key", args.sealPublicKey, "The public key of SEAL")
+          ->check(CLI::ExistingFile);
+
+      group->require_option(1);
+    }
+
     // Options for subcommands with inputs
     for (auto subcommand: withInput) {
       std::function<void(const std::string &)> callback = [&args](const std::string &path) {
@@ -124,6 +140,8 @@ namespace {
 
     // genkey
     genkey->parse_complete_callback([&args] { args.type = TYPE::GENKEY_SEAL; });
+    // genpkey
+    genpkey->parse_complete_callback([&args] { args.type = TYPE::GEN_PUBLIC_KEY_SEAL; });
     // genrelinkey
     genrelinkey->parse_complete_callback([&args] { args.type = TYPE::GENRELINKEY_SEAL; });
     // enc
@@ -253,6 +271,17 @@ namespace {
     secretKey.save(ostream);
   }
 
+  void do_gen_public_key_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
+                              std::ostream &ostream) {
+    const seal::SEALContext context = config.makeContext();
+    const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
+    seal::KeyGenerator keygen(context, secretKey);
+
+    seal::PublicKey publicKey;
+    keygen.create_public_key(publicKey);
+    publicKey.save(ostream);
+  }
+
   void do_genrelinkey_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
                            std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
@@ -283,8 +312,8 @@ namespace {
     write_to_archive(ostream, bkey);
   }
 
-  void do_enc_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath, std::istream &istream,
-                   std::ostream &ostream) {
+  void do_enc_SEAL_with_secret_key(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath,
+                                   std::istream &istream, std::ostream &ostream) {
     const seal::SEALContext context = config.makeContext();
     const double scale = config.scale;
     const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
@@ -308,6 +337,45 @@ namespace {
       writer.write(cipher);
     }
     spdlog::info("Given contents are encrypted with the CKKS scheme");
+  }
+
+  void do_enc_SEAL_with_public_key(const ArithHomFA::SealConfig &config, const std::string &publicKeyPath,
+                                   std::istream &istream, std::ostream &ostream) {
+    const seal::SEALContext context = config.makeContext();
+    const double scale = config.scale;
+    const seal::PublicKey publicKey = ArithHomFA::KeyLoader::loadPublicKey(context, publicKeyPath);
+    seal::Encryptor encryptor(context, publicKey);
+
+    ArithHomFA::CKKSNoEmbedEncoder encoder(context);
+
+    double content;
+    ArithHomFA::SizedCipherWriter writer(ostream);
+    while (istream.good()) {
+      // get the content from stdin
+      istream >> content;
+      if (!istream.good()) {
+        break;
+      }
+      seal::Plaintext plain;
+      seal::Ciphertext cipher;
+      encoder.encode(content, scale, plain);
+      encryptor.encrypt(plain, cipher);
+      // dump the cipher text to stdout
+      writer.write(cipher);
+    }
+    spdlog::info("Given contents are encrypted with the CKKS scheme");
+  }
+
+
+  void do_enc_SEAL(const ArithHomFA::SealConfig &config, const std::optional<std::string> &secretKeyPath,
+                   const std::optional<std::string> &publicKeyPath, std::istream &istream, std::ostream &ostream) {
+    if (secretKeyPath) {
+      do_enc_SEAL_with_secret_key(config, *secretKeyPath, istream, ostream);
+    } else if (publicKeyPath) {
+      do_enc_SEAL_with_public_key(config, *publicKeyPath, istream, ostream);
+    } else {
+      throw std::runtime_error("No key is given");
+    }
   }
 
   void do_dec_SEAL(const ArithHomFA::SealConfig &config, const std::string &secretKeyPath, std::istream &istream,
@@ -469,12 +537,16 @@ int main(int argc, char **argv) {
       do_genkey_SEAL(*args.sealConfig, *args.output);
       break;
     }
+    case TYPE::GEN_PUBLIC_KEY_SEAL: {
+      do_gen_public_key_SEAL(*args.sealConfig, *args.sealSecretKey, *args.output);
+      break;
+    }
     case TYPE::GENRELINKEY_SEAL: {
       do_genrelinkey_SEAL(*args.sealConfig, *args.sealSecretKey, *args.output);
       break;
     }
     case TYPE::ENC_CKKS: {
-      do_enc_SEAL(*args.sealConfig, *args.sealSecretKey, *args.input, *args.output);
+      do_enc_SEAL(*args.sealConfig, args.sealSecretKey, args.sealPublicKey, *args.input, *args.output);
       break;
     }
     case TYPE::DEC_CKKS: {

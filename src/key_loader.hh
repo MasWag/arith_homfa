@@ -28,6 +28,20 @@ namespace ArithHomFA {
       return secretKey;
     }
 
+    static seal::PublicKey loadPublicKey(const seal::SEALContext &context, const std::string &publicKeyPath) {
+      seal::PublicKey publicKey;
+      {
+        std::ifstream publicKeyStream(publicKeyPath);
+        if (publicKeyStream) {
+          publicKey.load(context, publicKeyStream);
+        } else {
+          throw std::runtime_error("Failed to open SEAL's public key file at: " + publicKeyPath);
+        }
+      }
+
+      return publicKey;
+    }
+
     static seal::RelinKeys loadRelinKeys(const seal::SEALContext &context, const std::string &relinKeysPath) {
       seal::RelinKeys relinKeys;
       {
