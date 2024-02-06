@@ -37,7 +37,7 @@ namespace ArithHomFA {
         : runner(graph, std::numeric_limits<std::size_t>::max(), *bkey.ekey, false), predicate(context, scale),
           bkey(bkey), converter(context), references(references), blockSize(blockSize) {
       converter.initializeConverter(this->bkey);
-      queued_inputs_.reserve(predicate.getSignalSize() * blockSize);
+      queued_inputs_.reserve(predicate.getPredicateSize() * blockSize);
       // The trivial TLWE representing true
       latestResult[TFHEpp::lvl1param::n] = (1u << 31); // 1/2
     }
@@ -59,7 +59,7 @@ namespace ArithHomFA {
       std::move(ckksCiphers.begin(), ckksCiphers.end(), std::back_inserter(queued_inputs_));
 
       // We do not construct TRGSW until the queue is filled
-      if (queued_inputs_.size() < predicate.getSignalSize() * blockSize) {
+      if (queued_inputs_.size() < predicate.getPredicateSize() * blockSize) {
         return latestResult;
       }
 
