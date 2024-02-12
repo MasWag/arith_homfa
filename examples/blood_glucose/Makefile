@@ -19,9 +19,13 @@ release: AHOMFA_BUILD_PATH = ../../cmake-build-release
 release: all
 
 .PHONY: all
-all: $(AHOMFA_BUILD_PATH)/libahomfa_runner.a $(AHOMFA_BUILD_PATH)/thirdparty/homfa/thirdparty/TFHEpp/src/libtfhe++.a $(AHOMFA_BUILD_PATH)/thirdparty/homfa/thirdparty/TFHEpp/thirdparties/spqlios/libspqlios.a blood_glucose_one
+all: $(AHOMFA_BUILD_PATH)/libahomfa_runner.a $(AHOMFA_BUILD_PATH)/thirdparty/homfa/thirdparty/TFHEpp/src/libtfhe++.a $(AHOMFA_BUILD_PATH)/thirdparty/homfa/thirdparty/TFHEpp/thirdparties/spqlios/libspqlios.a blood_glucose_one blood_glucose_seven blood_glucose_one_dummy
 
 blood_glucose_one: blood_glucose_one.cc
+
+blood_glucose_seven: blood_glucose_seven.cc
+
+blood_glucose_one_dummy: blood_glucose_one_dummy.cc
 
 $(AHOMFA_BUILD_PATH)/libahomfa_runner.a:
 	cmake --build $(AHOMFA_BUILD_PATH) --target libahomfa_runner.a
@@ -37,4 +41,4 @@ $(AHOMFA_BUILD_PATH)/thirdparty/homfa/thirdparty/TFHEpp/thirdparties/randen/libr
 
 .PHONY: clean
 clean:
-	$(RM) blood_glucose_one
+	$(RM) blood_glucose_one blood_glucose_seven blood_glucose_one_dummy
