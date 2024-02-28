@@ -64,7 +64,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
-find_package(SEAL 4.1.1 EXACT REQUIRED)
+find_package(SEAL 4.1.1 EXACT QUIET)
+if(NOT SEAL_FOUND)
+        add_subdirectory(thirdparty/SEAL)
+        # Import Intel HEXL
+        add_subdirectory(thirdparty/homfa/thirdparty/TFHEpp/thirdparties/hexl)
+else()
+        if(SEAL_STATIC_FOUND)
+        set(SEAL_LIB SEAL::seal)
+        elseif(SEAL_SHARED_FOUND)
+        set(SEAL_LIB SEAL::seal_shared)
+        endif()
+endif()
+
+# Import TBB
+find_package(TBB REQUIRED)
 
 # Import GSL
 # find_package(Microsoft.GSL CONFIG REQUIRED)
@@ -99,8 +113,8 @@ link_directories(
         /usr/local/lib/)
 
 link_libraries(
-        seal
-        hexl
+        ${SEAL_LIB}
+        TBB::tbb
         )
 
 
@@ -111,9 +125,8 @@ add_executable(ahomfa_util
         )
 
 target_link_libraries(ahomfa_util
-        SEAL::seal
-        hexl
-        tbb
+        ${SEAL_LIB}
+        TBB::tbb
         randen
         pthread
         tfhe++
@@ -174,9 +187,8 @@ target_include_directories(unit_test PUBLIC
 target_link_libraries(unit_test
         # profiler
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-        SEAL::seal
-        hexl
-        tbb
+        ${SEAL_LIB}
+        TBB::tbb
         randen
         rapidcheck
         pthread
