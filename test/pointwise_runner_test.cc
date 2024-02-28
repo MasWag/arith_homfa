@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <filesystem>
 #include <valarray>
 
 #include <boost/test/unit_test.hpp>
@@ -193,7 +194,8 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
 
   BOOST_FIXTURE_TEST_CASE(BG1FromPlain, CKKSToTFHEFixture) {
     const bool useLargerParam = false;
-    std::ifstream istream("../test/adult#001_night.bg.txt");
+    std::filesystem::path inputPath = std::filesystem::path{__FILE__}.parent_path().append("adult#001_night.bg.txt");
+    std::ifstream istream(inputPath.c_str());
     BOOST_TEST(istream.good());
 
     // Generate Key
