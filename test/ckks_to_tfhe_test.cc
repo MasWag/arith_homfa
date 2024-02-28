@@ -38,10 +38,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     const double scale = std::pow(2.0, 40);
     double minValue = 0.001;
     std::vector<seal::EncryptionParameters> parms;
-    const std::size_t log2_poly_modulus_degree = TFHEpp::lvl3param::nbit;
-    const std::size_t poly_modulus_degree = 1 << log2_poly_modulus_degree;
-    std::vector<seal::Modulus> smallModulus;
-    std::vector<seal::Modulus> largeModulus;
+    static const std::size_t log2_poly_modulus_degree = TFHEpp::lvl3param::nbit;
+    static const std::size_t poly_modulus_degree = 1 << log2_poly_modulus_degree;
     seal::Plaintext plain;
     std::vector<seal::SEALContext> contexts;
 
@@ -50,12 +48,16 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       parms.emplace_back(seal::scheme_type::ckks);
       parms.front().set_poly_modulus_degree(poly_modulus_degree);
       parms.back().set_poly_modulus_degree(poly_modulus_degree);
-      smallModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 60});
-      largeModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60});
+      static std::vector<seal::Modulus> smallModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 60});
+      static std::vector<seal::Modulus> largeModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60});
       parms.front().set_coeff_modulus(smallModulus);
       parms.back().set_coeff_modulus(largeModulus);
-      contexts.emplace_back(parms.front());
-      contexts.emplace_back(parms.back());
+      static std::vector<seal::SEALContext> contexts_;
+      if (contexts_.empty()) {
+        contexts_.emplace_back(parms.front());
+        contexts_.emplace_back(parms.back());
+      }
+      contexts = contexts_;
     }
   };
 
