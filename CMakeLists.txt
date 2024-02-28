@@ -17,6 +17,7 @@ set(Backward_DIR "${HOMFA_DIR}/thirdparty/backward-cpp")
 find_package(Backward)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+add_definitions(-DPROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 # C++ version (SEAL requires 17)
 set(CMAKE_CXX_STANDARD 20) # C++ standard C++20

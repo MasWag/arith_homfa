@@ -194,9 +194,9 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
 
   BOOST_FIXTURE_TEST_CASE(BG1FromPlain, CKKSToTFHEFixture) {
     const bool useLargerParam = false;
-    std::filesystem::path inputPath = std::filesystem::path{__FILE__}.parent_path().append("adult#001_night.bg.txt");
+    std::filesystem::path inputPath = std::filesystem::path{PROJECT_ROOT_DIR}.append("test").append("adult#001_night.bg.txt");
     std::ifstream istream(inputPath.c_str());
-    BOOST_TEST(istream.good());
+    BOOST_REQUIRE(istream.good());
 
     // Generate Key
     static std::array<seal::KeyGenerator, 2> keygens{contexts.front(), contexts.back()};
