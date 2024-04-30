@@ -7,6 +7,7 @@
 
 #include <optional>
 
+#include <spdlog/spdlog.h>
 #include "tfhe++.hpp"
 #include <seal/seal.h>
 
@@ -104,6 +105,9 @@ namespace ArithHomFA {
       const auto poly_modulus_degree = cipher.poly_modulus_degree();
       assert(poly_modulus_degree == TFHEpp::lvl3param::n);
       const auto &context_data = *context.get_context_data(cipher.parms_id());
+      if (context.last_parms_id() != cipher.parms_id()) {
+        spdlog::warn("CKKS ciphertext is not the last level. Switching such a ciphertext may cause an accuracy issue.");
+      }
 
       // amplify the ciphertext
       this->amplify(cipher, reference);
