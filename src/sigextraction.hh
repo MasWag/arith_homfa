@@ -64,11 +64,12 @@ namespace TFHEpp{
         constexpr typename  high2midP::domainP::T offset = offsetgen<typename high2midP::domainP, basebit, numdigit>();
 
         // cres will be used as a reusable buffer
+        constexpr uint32_t plain_modulusbit = basebit * numdigit;
 #pragma omp parallel for default(none) shared(cin, cres, kskh2m)
         for(int digit = 1; digit <= numdigit; digit++) {
             TFHEpp::TLWE<typename high2midP::domainP> switchedtlwe;
             for (int i = 0; i <= high2midP::domainP::k * high2midP::domainP::n; i++)
-                switchedtlwe[i] = cin[i] << (high2midP::domainP::plain_modulusbit + 1 - basebit * digit);
+              switchedtlwe[i] = cin[i] << (plain_modulusbit - basebit * digit);
             // switchedtlwe[high2midP::domainP::k*high2midP::domainP::n] += offset<<(high2midP::domainP::plain_modulusbit+1 - basebit*digit);
             IdentityKeySwitch<high2midP>(cres[digit - 1], switchedtlwe, kskh2m);
         }
@@ -80,7 +81,6 @@ namespace TFHEpp{
             IdentityKeySwitch<mid2lowP>(tlwelvlhalf,cres[digit-1],kskm2l);
             tlwelvlhalf[mid2lowP::targetP::k*mid2lowP::targetP::n] += 1ULL<<(std::numeric_limits<typename mid2lowP::targetP::T>::digits-basebit-1);
             if(digit!=numdigit) GateBootstrappingTLWE2TLWEFFT<brP>(subtlwe,tlwelvlhalf,bkfft,subtractpolygen<typename high2midP::targetP, basebit>());
-            // else GateBootstrappingTLWE2TLWEFFT<brP>(cres,tlwelvlhalf,bkfft,μpolygen<typename high2midP::targetP, high2midP::targetP::μ>());
         }
     }
 }
