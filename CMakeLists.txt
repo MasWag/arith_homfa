@@ -1,19 +1,16 @@
+cmake_minimum_required(VERSION 3.16)
+
 cmake_policy(SET CMP0048 NEW)
 if(POLICY CMP0069)
   cmake_policy(SET CMP0069 OLD)
 endif()
 project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 
-cmake_minimum_required(VERSION 3.16)
-
 ## Configure PATH
-set(HOMFA_DIR "./thirdparty/homfa")
 set(CMAKE_MODULE_PATH
-        ${CMAKE_SOURCE_DIR}
-        "${HOMFA_DIR}/thirdparty/sanitizers-cmake/cmake"
-        ${CMAKE_MODULE_PATH}
-        )
-set(Backward_DIR "${HOMFA_DIR}/thirdparty/backward-cpp")
+        ${CMAKE_SOURCE_DIR} "thirdparty/sanitizers-cmake/cmake"
+        ${CMAKE_MODULE_PATH})
+set(Backward_DIR "thirdparty/backward-cpp")
 find_package(Backward)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -23,7 +20,6 @@ add_definitions(-DPROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 set(CMAKE_CXX_STANDARD 20) # C++ standard C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-#set(COMPILE_DEFINITIONS )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -51,8 +47,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
 
-# add_subdirectory(thirdparty/homfa)
-add_subdirectory(${HOMFA_DIR}/thirdparty/TFHEpp)
+add_subdirectory(thirdparty/TFHEpp)
 
 # Hack to disable -march=native if it is not supported
 include(CheckCXXCompilerFlag)
@@ -69,7 +64,7 @@ find_package(SEAL 4.1.1 EXACT QUIET)
 if(NOT SEAL_FOUND)
         add_subdirectory(thirdparty/SEAL)
         # Import Intel HEXL
-        add_subdirectory(thirdparty/homfa/thirdparty/TFHEpp/thirdparties/hexl)
+        add_subdirectory(thirdparty/TFHEpp/thirdparties/hexl)
 else()
         if(SEAL_STATIC_FOUND)
         set(SEAL_LIB SEAL::seal)
@@ -100,15 +95,14 @@ include_directories(
         ${PROJECT_BINARY_DIR}
         #${Boost_INCLUDE_DIRS}
         ${SEAL_INCLUDE_DIRS}
-        ${HOMFA_DIR}/src
-        ${HOMFA_DIR}/thirdparty/backward-cpp
-        ${HOMFA_DIR}/thirdparty/CLI11/include
-        ${HOMFA_DIR}/thirdparty/ThreadPool
-        ${HOMFA_DIR}/thirdparty/spdlog/include
-        ${HOMFA_DIR}/thirdparty/TFHEpp/include
-        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/spqlios
-        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/randen
-        ${HOMFA_DIR}/thirdparty/TFHEpp/thirdparties/cereal/include)
+        thirdparty/backward-cpp
+        thirdparty/CLI11/include
+        thirdparty/ThreadPool
+        thirdparty/spdlog/include
+        thirdparty/TFHEpp/include
+        thirdparty/TFHEpp/thirdparties/spqlios
+        thirdparty/TFHEpp/thirdparties/randen
+        thirdparty/TFHEpp/thirdparties/cereal/include)
 
 link_directories(
         /usr/local/lib/)
@@ -121,8 +115,8 @@ link_libraries(
 
 add_executable(ahomfa_util
         src/main.cc
-        thirdparty/homfa/src/tfhepp_util.cpp
-        thirdparty/homfa/src/graph.cpp
+        src/tfhepp_util.cpp
+        src/graph.cpp
         )
 
 target_link_libraries(ahomfa_util
@@ -138,12 +132,12 @@ target_compile_definitions(ahomfa_util PRIVATE ${COMPILE_DEFINITIONS})
 
 add_library(ahomfa_runner
         src/ahomfa_runner.cc
-        thirdparty/homfa/src/graph.cpp
-        thirdparty/homfa/src/offline_dfa.cpp
-        thirdparty/homfa/src/online_dfa.cpp
-        thirdparty/homfa/src/backstream_dfa_runner.cpp
-        thirdparty/homfa/src/timeit.cpp
-        thirdparty/homfa/src/tfhepp_util.cpp
+        src/graph.cpp
+        src/offline_dfa.cpp
+        src/online_dfa.cpp
+        src/backstream_dfa_runner.cpp
+        src/timeit.cpp
+        src/tfhepp_util.cpp
         )
 
 target_compile_definitions(ahomfa_runner PRIVATE ${COMPILE_DEFINITIONS})
@@ -162,13 +156,13 @@ add_executable(unit_test EXCLUDE_FROM_ALL
         test/tfhepp_keygen_test.cc
         test/plain_runner_test.cc
         test/tfhe_lvl3_to_lvl1_test.cc
-        thirdparty/homfa/src/graph.cpp
+        src/graph.cpp
         test/offline_runner_test.cc
-        thirdparty/homfa/src/offline_dfa.cpp
-        thirdparty/homfa/src/online_dfa.cpp
-        thirdparty/homfa/src/backstream_dfa_runner.cpp
-        thirdparty/homfa/src/timeit.cpp
-        thirdparty/homfa/src/tfhepp_util.cpp
+        src/offline_dfa.cpp
+        src/online_dfa.cpp
+        src/backstream_dfa_runner.cpp
+        src/timeit.cpp
+        src/tfhepp_util.cpp
         test/reverse_runner_test.cc
         test/block_runner_test.cc
         test/tlwe_reader_writer_test.cc

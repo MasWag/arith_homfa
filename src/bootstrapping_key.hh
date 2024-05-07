@@ -8,16 +8,13 @@
 
 #include "tfhepp_util.hpp"
 
-#include "my_params.hh"
-#include "secret_key.hh"
-
 namespace ArithHomFA {
 
   class BootstrappingKey : public BKey {
   public:
     using high2midP = TFHEpp::lvl31param;
-    using mid2lowP = TFHEpp::lvl10param;
-    using brP = TFHEpp::lvl01param;
+    using mid2lowP = TFHEpp::lvl1hparam;
+    using brP = TFHEpp::lvlh1param;
     std::shared_ptr<TFHEpp::KeySwitchingKey<high2midP>> kskh2m;
     std::shared_ptr<TFHEpp::KeySwitchingKey<mid2lowP>> kskm2l;
     std::shared_ptr<TFHEpp::BootstrappingKeyFFT<brP>> bkfft;
@@ -25,8 +22,8 @@ namespace ArithHomFA {
     BootstrappingKey() : BKey() {
     }
 
-    BootstrappingKey(const ArithHomFA::SecretKey &skey, const TFHEpp::Key<TFHEpp::lvl3param> &lvl3key)
-        : BootstrappingKey(skey, lvl3key, skey.lvlhalfkey) {
+    BootstrappingKey(const TFHEpp::SecretKey &skey, const TFHEpp::Key<TFHEpp::lvl3param> &lvl3key)
+        : BootstrappingKey(skey, lvl3key, skey.key.lvlhalf) {
     }
 
     BootstrappingKey(const TFHEpp::SecretKey &skey, const TFHEpp::Key<TFHEpp::lvl3param> &lvl3key,

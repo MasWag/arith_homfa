@@ -49,7 +49,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       parms.front().set_poly_modulus_degree(poly_modulus_degree);
       parms.back().set_poly_modulus_degree(poly_modulus_degree);
       static std::vector<seal::Modulus> smallModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 60});
-      static std::vector<seal::Modulus> largeModulus = seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60});
+      static std::vector<seal::Modulus> largeModulus =
+          seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60});
       parms.front().set_coeff_modulus(smallModulus);
       parms.back().set_coeff_modulus(largeModulus);
       static std::vector<seal::SEALContext> contexts_;
@@ -172,7 +173,14 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
 
     // Convert the ciphertext for TFHEpp
     TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
+    const seal::Evaluator evaluator(context);
+    auto context_data = context.get_context_data(cipher.parms_id());
+    while (context_data->next_context_data()){
+      evaluator.mod_switch_to_next_inplace(cipher);
+      context_data = context_data->next_context_data();
+    }
     converter.toLv3TRLWE(cipher, trlwe, INT32_MAX * minValue);
+    // converter.toLv3TRLWE(cipher, trlwe);
 
     // Decrypt the TRLWE with TFHEpp
     const auto trlwePlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl3param>(trlwe, lvl3Key);
@@ -181,38 +189,63 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     RC_ASSERT(trlwePlain.front() == (value > 0));
   }
 
-  RC_BOOST_FIXTURE_PROP(toLv3TLWE, CKKSToTFHEFixture, (const int32_t &intValue, const bool &useLargerParam)) {
+  RC_BOOST_FIXTURE_PROP(toLv3TLWE, CKKSToTFHEFixture, (const bool &useLargerParam)) {
+    constexpr uint numtest = 10;
     // We implicitly require that the given value is not too large. Otherwise, the encoding fails.
-    const double &value = static_cast<double>(intValue) * minValue;
-    RC_PRE(value != 0);
+    for (int i = 0; i < numtest; i++) {
+      // We require that the given value is in a certain range. Otherwise, the decryption fails.
+      const auto intValue =
+          *rc::gen::inRange<int64_t>(static_cast<int64_t>(-10.0 / minValue), static_cast<int64_t>(10.0 / minValue));
+      const double &value = static_cast<double>(intValue) * minValue;
+      RC_PRE(value != 0);
 
-    seal::SEALContext context = parms.at(useLargerParam);
+      seal::SEALContext context = parms.at(useLargerParam);
 
-    // Generate Key
-    seal::KeyGenerator keygen(context);
-    const auto &secretKey = keygen.secret_key();
+      // Generate Key
+      seal::KeyGenerator keygen(context);
+      const auto &secretKey = keygen.secret_key();
 
-    // Encrypt the given value
-    ArithHomFA::CKKSNoEmbedEncoder encoder(context);
-    seal::Encryptor encryptor(context, secretKey);
-    encoder.encode(value, scale, plain);
-    seal::Ciphertext cipher;
-    encryptor.encrypt_symmetric(plain, cipher);
+      // Encrypt the given value
+      ArithHomFA::CKKSNoEmbedEncoder encoder(context);
+      seal::Encryptor encryptor(context, secretKey);
+      encoder.encode(value, scale, plain);
+      seal::Ciphertext cipher;
+      encryptor.encrypt_symmetric(plain, cipher);
 
-    // Convert the key for TFHEpp
-    ArithHomFA::CKKSToTFHE converter(context);
-    TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
-    converter.toLv3Key(secretKey, lvl3Key);
+      // Convert the key for TFHEpp
+      ArithHomFA::CKKSToTFHE converter(context);
+      TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
+      converter.toLv3Key(secretKey, lvl3Key);
 
-    // Convert the ciphertext for TFHEpp
-    TFHEpp::TLWE<TFHEpp::lvl3param> tlwe;
-    converter.toLv3TLWE(cipher, tlwe, INT32_MAX * minValue);
+      // Convert the ciphertext for TFHEpp
+      TFHEpp::TLWE<TFHEpp::lvl3param> tlwe;
 
-    // Decrypt the TLWE with TFHEpp
-    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(tlwe, lvl3Key);
+      const seal::Evaluator evaluator(context);
+      auto context_data = context.get_context_data(cipher.parms_id());
 
-    // Assert the result
-    RC_ASSERT(tlwePlain == (value > 0));
+      // Manually switch to the last level with mod_switch
+      while (context_data->next_context_data()){
+        evaluator.mod_switch_to_next_inplace(cipher);
+        context_data = context_data->next_context_data();
+      }
+      converter.toLv3TLWE(cipher, tlwe);
+
+      // Decrypt the TLWE with TFHEpp
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(tlwe, lvl3Key);
+      const int64_t tlwePhase = TFHEpp::tlweSymPhase<TFHEpp::lvl3param>(tlwe, lvl3Key);
+
+      // Assert the result
+      BOOST_TEST_CONTEXT("i: " << i << ", value:" << value << ", valuint:" << static_cast<int64_t>(value * scale)
+                               << ", lvl3phase:" << tlwePhase
+                               << ", modulus:" << context_data->parms().coeff_modulus()[0].value()) {
+        BOOST_CHECK_EQUAL(
+            std::abs(static_cast<int64_t>(
+                         static_cast<__int128_t>(tlwePhase) * context_data->parms().coeff_modulus()[0].value() >> 64) -
+                     std::round(value * scale)) < 16,
+            true);
+        BOOST_CHECK_EQUAL(tlwePlain, (value > 0));
+      }
+    }
   }
 
   template <class Param> static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> & generator) {
@@ -269,15 +302,38 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       converters.back().initializeConverter(bootKeys.back());
     }
 
-    // Convert the ciphertext for TFHEpp (lvl1)
-    TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
-    converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
+    constexpr uint numtest = 1;
+    for (int i = 0; i < numtest; i++) {
+      // const auto intValue = *rc::gen::inRange<int64_t>(-threshold, threshold);
+      const auto intValue =
+          *rc::gen::inRange<int64_t>(static_cast<int64_t>(-10.0 / minValue), static_cast<int64_t>(10.0 / minValue));
+      const double &value = static_cast<double>(intValue) * minValue;
+      RC_PRE(value != 0);
 
-    // Decrypt the TLWE with TFHEpp
-    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      encoder.encode(value, scale, plain);
+      seal::Ciphertext cipher;
+      encryptor.encrypt_symmetric(plain, cipher);
 
-    // Assert the result
-    RC_ASSERT(tlwePlain == (value > 0));
+      // Convert the ciphertext for TFHEpp (lvl1)
+      TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+
+      const seal::Evaluator evaluator(context);
+      auto context_data = context.get_context_data(cipher.parms_id());
+
+      // Manually switch to the last level with mod_switch
+      while (context_data->next_context_data()){
+        evaluator.mod_switch_to_next_inplace(cipher);
+        context_data = context_data->next_context_data();
+      }
+      // converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
+      converter.toLv1TLWE(cipher, tlwe, INT32_MAX * minValue);
+
+      // Decrypt the TLWE with TFHEpp
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+
+      // Assert the result
+      RC_ASSERT(tlwePlain == (value > 0));
+    }
   }
 
   // This test case requires quite some RAM and may be terminated by OOM Killer.
@@ -404,7 +460,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
 
     // Convert the ciphertext for TFHEpp (lvl1)
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
-    converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
+    // converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
+    converter.toLv1TLWE(cipher, tlwe, INT32_MAX * minValue);
     TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
     TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(
         trgsw, tlwe, *bootKeys.at(useLargerParam).ekey);
@@ -424,10 +481,11 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
   RC_BOOST_FIXTURE_PROP(toLv1TLWEAfterEval, CKKSToTFHEFixture, (const bool &useLargerParam)) {
     // The upper bound the range of the input signal
     const double maxValue = 300.0;
-    const double reference = maxValue - 70.0;
+    // const double reference = maxValue - 70.0;
+    const double reference = 256.0;
     // We require that the given value is in a certain range. Otherwise, the decryption fails.
     const auto intValue =
-        *rc::gen::inRange<int64_t>(static_cast<int64_t>(71.5 / minValue), static_cast<int64_t>(72.0 / minValue));
+        *rc::gen::inRange<int64_t>(static_cast<int64_t>(68.0 / minValue), static_cast<int64_t>(72.0 / minValue));
     const double value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
 
@@ -458,7 +516,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     // Set up the BootstrappingKey
     static const TFHEpp::SecretKey skey;
     std::uniform_int_distribution<int32_t> lvlhalfgen(0, 1);
-    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey {
+    static const TFHEpp::Key<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP> lvlhalfkey{
         keyGen<typename ArithHomFA::BootstrappingKey::mid2lowP::targetP>(lvlhalfgen)};
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
@@ -488,4 +546,4 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     RC_ASSERT(tlwePlain == (value > 70));
   }
 
-BOOST_AUTO_TEST_SUITE_END()
+  BOOST_AUTO_TEST_SUITE_END()

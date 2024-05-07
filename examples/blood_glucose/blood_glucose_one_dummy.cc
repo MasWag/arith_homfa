@@ -3,6 +3,8 @@
  * @date 2023/05/02
  */
 
+#include "spdlog/spdlog.h"
+
 #include "../../src/ckks_predicate.hh"
 
 namespace ArithHomFA {
@@ -14,9 +16,13 @@ namespace ArithHomFA {
      */
     void CKKSPredicate::evalPredicateInternal(const std::vector<seal::Ciphertext> &valuation,
                                               std::vector<seal::Ciphertext> &result) {
+        // spdlog: https://github.com/gabime/spdlog is configured so that a user can output some message
+        // spdlog::info("Hello");
         seal::Plaintext plain;
         this->encoder.encode(70, this->scale, plain);
         this->evaluator.sub_plain(valuation.front(), plain, result.front());
+        // We assume that the ciphertexts are move to the last level by mod_switch or rescale.
+        this->evaluator.mod_switch_to_inplace(result.front(), context.last_parms_id());
     }
     void CKKSPredicate::evalPredicateInternal(const std::vector<double> &valuation,
                                               std::vector<double> &result) {

@@ -8,14 +8,13 @@
 
 #include "bootstrapping_key.hh"
 #include "ckks_to_tfhe.hh"
-#include "secret_key.hh"
 
 BOOST_AUTO_TEST_SUITE(BootstrappingKeyTest)
 
   // This does not require much RAM but takes quite some time, e.g., 1 hour.
   BOOST_AUTO_TEST_CASE(writeAndRead) {
     // Generate the secret key of TFHEpp
-    ArithHomFA::SecretKey sKey;
+    TFHEpp::SecretKey sKey;
 
     // Generate the secret key of SEAL
     seal::EncryptionParameters params{seal::scheme_type::ckks};
@@ -33,7 +32,7 @@ BOOST_AUTO_TEST_SUITE(BootstrappingKeyTest)
     converter.toLv3Key(secretKey, lvl3Key);
 
     // Generate the bootstrapping key
-    ArithHomFA::BootstrappingKey bKey{sKey, lvl3Key, sKey.lvlhalfkey};
+    ArithHomFA::BootstrappingKey bKey{sKey, lvl3Key, sKey.key.lvlhalf};
 
     std::stringstream stream;
     write_to_archive(stream, bKey);

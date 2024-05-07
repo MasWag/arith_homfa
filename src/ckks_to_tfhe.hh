@@ -12,11 +12,9 @@
 #include <seal/seal.h>
 
 #include "ckks_no_embed.hh"
+#include "lvl3_to_lvl1.hh"
 #include "rescaling.hh"
 
-// Tentative
-#include "lvl3_to_lvl1.hh"
-#include "my_params.hh"
 
 namespace ArithHomFA {
   /*!
@@ -93,24 +91,19 @@ namespace ArithHomFA {
      *
      * @param [in] cipher The CKKS ciphertext to convert
      * @param [out] trlwe The resulting TRLWE ciphertext
-     * @param [in] reference the reference value to decide the amount of
-     * amplification
      *
      * @pre The degree of the given ciphertexts are the same
      */
     void toLv3TRLWE(seal::Ciphertext cipher,
-                    TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe,
-                    const double reference = 1024) const {
+                    TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe) const {
       // Assert the precondition
       const auto poly_modulus_degree = cipher.poly_modulus_degree();
       assert(poly_modulus_degree == TFHEpp::lvl3param::n);
-      const auto &context_data = *context.get_context_data(cipher.parms_id());
       if (context.last_parms_id() != cipher.parms_id()) {
         spdlog::warn("CKKS ciphertext is not the last level. Switching such a ciphertext may cause an accuracy issue.");
       }
 
-      // amplify the ciphertext
-      this->amplify(cipher, reference);
+      const auto &context_data = *context.get_context_data(cipher.parms_id());
 
       assert(cipher.is_ntt_form());
       seal::util::PolyIter cipherIter = seal::util::iter(cipher);
@@ -158,6 +151,25 @@ namespace ArithHomFA {
     }
 
     /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TRLWE of TFHEpp
+     *
+     * The resulting TRLWE is true if cipher is positive
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] trlwe The resulting TRLWE ciphertext
+     * @param [in] reference the reference value to decide the amount of
+     * amplification
+     *
+     * @pre The degree of the given ciphertexts are the same
+     */
+    void toLv3TRLWE(seal::Ciphertext cipher, TFHEpp::TRLWE<TFHEpp::lvl3param> &trlwe,
+                    const double reference) const {
+        // amplify the ciphertext
+        this->amplify(cipher, reference);
+        toLv3TRLWE(cipher, trlwe);
+    }
+
+    /*!
      * @brief Convert a CKKS ciphertext of SEAL to a TLWE of TFHEpp
      *
      * The resulting TLWE is true if cipher is positive
@@ -169,12 +181,29 @@ namespace ArithHomFA {
      *
      * @pre The degree of the given ciphertexts are the same
      */
-    void toLv3TLWE(const seal::Ciphertext &cipher,
-                   TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe,
-                   double reference = 1024) const {
+    void toLv3TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe,
+                   double reference) const {
       // Convert CKKS ciphertext to TRLWE lvl3 first
       TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
       toLv3TRLWE(cipher, trlwe, reference);
+      TFHEpp::SampleExtractIndex<TFHEpp::lvl3param>(tlwe, trlwe, 0);
+    }
+
+    /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TLWE of TFHEpp
+     *
+     * The resulting TLWE is true if cipher is positive
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] tlwe The resulting TLWE ciphertext
+     * amplification
+     *
+     * @pre The degree of the given ciphertexts are the same
+     */
+    void toLv3TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl3param> &tlwe) const {
+      // Convert CKKS ciphertext to TRLWE lvl3 first
+      TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
+      toLv3TRLWE(cipher, trlwe);
       TFHEpp::SampleExtractIndex<TFHEpp::lvl3param>(tlwe, trlwe, 0);
     }
 
@@ -192,16 +221,60 @@ namespace ArithHomFA {
      *
      * @pre converter is initialized
      */
-    void toLv1TLWE(const seal::Ciphertext &cipher,
-                   TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe,
-                   double reference = 1024) const {
+    void toLv1TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe,
+                   double reference) const {
       assert(converter);
       // Convert CKKS ciphertext to TRLWE lvl3 first
       TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
       toLv3TLWE(cipher, lvl3TLWE, reference);
 
       // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+      // converter->toLv1TLWE(lvl3TLWE, tlwe);
       converter->toLv1TLWEWithBootstrapping(lvl3TLWE, tlwe);
+    }
+
+    /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TLWE of TFHEpp at lvl1
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] tlwe The resulting TLWE ciphertext at lvl1
+     *
+     * @pre converter is initialized
+     */
+    void toLv1TLWE(const seal::Ciphertext &cipher, TFHEpp::TLWE<TFHEpp::lvl1param> &tlwe) const {
+      assert(converter);
+      // Convert CKKS ciphertext to TRLWE lvl3 first
+      TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
+      toLv3TLWE(cipher, lvl3TLWE);
+
+      // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+      // converter->toLv1TLWE(lvl3TLWE, tlwe);
+      converter->toLv1TLWEWithBootstrapping(lvl3TLWE, tlwe);
+    }
+
+    /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TRGSW of TFHEpp at lvl1
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] trgsw The resulting TRGSW ciphertext at lvl1
+     * @param [in] reference the reference value to decide the amount of
+     * amplification
+     *
+     * @pre converter is initialized
+     */
+    void toLv1TRGSWFFT(const seal::Ciphertext &cipher, TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw,
+                       double reference = 1024) const {
+      assert(converter);
+      // Convert CKKS ciphertext to TRLWE lvl3 first
+      TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
+      toLv3TLWE(cipher, lvl3TLWE, reference);
+      TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+
+      // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+      converter->toLv1TLWEWithBootstrapping(lvl3TLWE, tlwe);
+
+      // Finally apply circuit bootstrapping to make TRGSW
+      CircuitBootstrappingFFTLvl11(trgsw, tlwe, *(converter->getBKey().ekey));
     }
 
     /*!
@@ -218,15 +291,13 @@ namespace ArithHomFA {
      * @pre reference must be positive
      * @invariant The signature of the cipher does not change
      */
-    void amplify(seal::Ciphertext &cipher,
-                 double reference = std::pow(2, 32) * 0.001) const {
+    void amplify(seal::Ciphertext &cipher, double reference = std::pow(2, 32) * 0.001) const {
+      auto const &context_data = context.get_context_data(cipher.parms_id());
+
       assert(reference > 0);
 
       const double amplifiedRatio = 0.9;
-      const auto &context_data = context.get_context_data(cipher.parms_id());
-      const double scaledModulus =
-          std::pow(2.0, context_data->total_coeff_modulus_bit_count()) *
-          amplifiedRatio;
+      const double scaledModulus = std::pow(2.0, context_data->total_coeff_modulus_bit_count()) * amplifiedRatio;
       const double factor = scaledModulus / (2.0 * reference * cipher.scale());
 
       seal::Plaintext plain;
@@ -236,6 +307,11 @@ namespace ArithHomFA {
       }
 
       evaluator.multiply_plain_inplace(cipher, plain);
+
+      // while (context_data->next_context_data()){
+      //   evaluator.mod_switch_to_next_inplace(cipher);
+      //   context_data = context_data->next_context_data();
+      // }
     }
 
   private:

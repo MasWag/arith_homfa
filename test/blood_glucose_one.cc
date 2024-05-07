@@ -12,6 +12,7 @@ namespace ArithHomFA {
     seal::Plaintext plain;
     this->encoder.encode(70, this->scale, plain);
     this->evaluator.sub_plain(valuation.front(), plain, result.front());
+    this->evaluator.mod_switch_to_inplace(result.front(), context.last_parms_id());
   }
 
   void CKKSPredicate::evalPredicateInternal(const std::vector<double> &valuation,

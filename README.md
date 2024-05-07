@@ -1,9 +1,11 @@
 Arithmetic HomFA (ArithHomFA)
 =============================
 
-Arithmetic HomFA (ArithHomFA) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables an STL monitoring without disclosing the log to the monitor. ArithHomFA consists of a command line tool `ahomfa_util` to handle input and output files and a library `libahomfa_runner.a` for monitoring.
+Arithmetic HomFA (ArithHomFA) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables STL monitoring without disclosing the log to the monitor. Note that we employ discrete-time semantics of STL, which is essentially LTL with arithmetic predicates.
 
-Technically, Arithmetic HomFA combines two FHE schemes (CKKS and TFHE) to enjoy both of their advantages, i.e., linear arithmetic operations and logical operations.
+Technically, ArithHomFA combines two FHE schemes (CKKS and TFHE) to enjoy their advantages, i.e., linear arithmetic operations and logical operations.
+
+ArithHomFA consists of a command line tool `ahomfa_util` and a library `libahomfa_runner.a` for monitoring. `ahomfa_util` is a command line utility for the necessary FHE operations, such as key generation, encryption, and decryption. `ahomfa_util` also provides functionality for the transformation of an STL formula into a DFA specification. `libahomfa_runner.a` is a library to conduct the actual monitoring process. A user implements a class defining the predicate used in monitoring in C++, and by linking it with `libahomfa_runner.a`, the user can build a program for oblivious online monitoring.
 
 Requirements
 ------------
@@ -67,9 +69,9 @@ First, a user has to decide the CKKS parameter and the monitored specification.
 
 In ArithHomFA, the CKKS parameter is given by a JSON file. An example is in `./examples/config.json`.
 
-The monitored specification consists of the LTL formula and the predicate. An LTL formula is given by an format accepted by [Spot](https://spot.lre.epita.fr/) with atomic propositions p0, p1, ..., where pi is the i-th predicate. A concrete example is show in `examples/blood_glucose/gp0.ltl`.
+The monitored specification consists of the LTL formula and the predicate. An LTL formula is given by an format accepted by [Spot](https://spot.lre.epita.fr/) with atomic propositions p0, p1, ..., where pi is the i-th predicate. A concrete example is shown in `examples/blood_glucose/gp0.ltl`.
 
-The predicate is given by an implementation of a C++ class `ArithHomFA::CKKSPredicate` in `./src/ckks_predicate.hh`. Here, we also have to specify an approximate upper bound of the difference between the given value and the threshold. A concrete example is show in `examples/blood_glucose/blood_glucose_one.cc`.
+The predicate is given by an implementation of a C++ class `ArithHomFA::CKKSPredicate` in `./src/ckks_predicate.hh`. Here, we also have to specify an approximate upper bound of the difference between the given value and the threshold. A concrete example is shown in `examples/blood_glucose/blood_glucose_one.cc`.
 
 #### Step 2: Monitor Building
 
@@ -152,8 +154,17 @@ Finally, the client decrypts the result using the `ahomfa_util tfhe dec` command
 
 This command will decrypt the results produced in the monitoring step using the TFHE private key. The decrypted output is then printed to the console.
 
+On the Predicate Definition in C++
+----------------------------------
+
+In ArithHomFA, a user has to provide an implementation of `ArithHomFA::CKKSPredicate` class in C++. This class specifies the arithmetic operations conducted in the monitor. This corresponds to the arithmetic expressions in the monitored STL formula. A concrete example is in `examples/blood_glucose/blood_glucose_one.cc`. Here are some notes on its implementation. See [the example of Microsoft SEAL](https://github.com/microsoft/SEAL/blob/main/native/examples/5_ckks_basics.cpp) for the usage example of SEAL itself.
+
+- Since we heavily use standard outputs, it is not allowed to print messages, for example, using `std::cout`. Instead, a user can use `spdlog` to print messages.
+- Users must correctly implement arithmetic operations with Microsoft SEAL. For example, the user must correctly handle the scale of CKKS ciphertexts.
+- We assume that the resulting CKKS ciphertext is in its last level. A user has to do it by `mod_switch` or `rescale` (depending on the internal status of the ciphertext).
+
 See also
 --------
 
 - [HomFA](https://github.com/virtualsecureplatform/homfa): The original implementation for *oblivious* execution of DFAs.
-- [TFHEpp](https://github.com/virtualsecureplatform/TFHEpp/tree/master/include): The TFHE library we are using.
+- [TFHEpp](https://github.com/virtualsecureplatform/TFHEpp): The TFHE library we are using.

@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
 
     // Set up the BootstrappingKey
-    static const ArithHomFA::SecretKey skey;
+    static const TFHEpp::SecretKey skey;
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
 
     // Set up the BootstrappingKey
-    static const ArithHomFA::SecretKey skey;
+    static const TFHEpp::SecretKey skey;
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     }
 
     // Set up the BootstrappingKey
-    static const ArithHomFA::SecretKey skey;
+    static const TFHEpp::SecretKey skey;
     static std::vector<ArithHomFA::BootstrappingKey> bootKeys;
     if (bootKeys.empty()) {
       // Construct bootKeys

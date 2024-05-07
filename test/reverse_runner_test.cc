@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     // CKKSToTFHE is necessary to make lvl3Key
     ArithHomFA::CKKSToTFHE converter(context);
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -292,7 +292,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make keys
     seal::KeyGenerator keygen(context);
     const auto &sealKey = keygen.secret_key();
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     converter.toLv3Key(sealKey, lvl3Key);
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
       std::ifstream sealKeyStream("../examples/ckks.key");
       sealKey.load(context, sealKeyStream);
     }
-    const auto skey = read_from_archive<ArithHomFA::SecretKey>("../examples/tfhe.key");
+    const auto skey = read_from_archive<TFHEpp::SecretKey>("../examples/tfhe.key");
     const auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>("../examples/tfhe.bkey");
 
     // Instantiate encryptor

@@ -4,7 +4,6 @@
 #include "archive.hpp"
 #include "bootstrapping_key.hh"
 #include "ckks_to_tfhe.hh"
-#include "my_params.hh"
 #include "seal_config.hh"
 #include "tfhe++.hpp"
 
@@ -12,15 +11,15 @@ BOOST_AUTO_TEST_SUITE(TFHEppKeygenTest)
 
   BOOST_AUTO_TEST_CASE(genkey) {
     std::stringstream stream;
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     write_to_archive(stream, skey);
-    auto loaded = read_from_archive<ArithHomFA::SecretKey>(stream);
+    auto loaded = read_from_archive<TFHEpp::SecretKey>(stream);
     BOOST_TEST((skey.params == loaded.params));
   }
 
   BOOST_AUTO_TEST_CASE(genbkey) {
     std::stringstream stream;
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     const auto scale = std::pow(2, 40);
     const ArithHomFA::SealConfig config = {
         8192,                         // poly_modulus_degree

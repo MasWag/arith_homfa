@@ -1,6 +1,24 @@
-[submodule "thirdparty/homfa"]
-	path = thirdparty/homfa
-	url = https://github.com/virtualsecureplatform/homfa.git
 [submodule "thirdparty/rapidcheck"]
 	path = thirdparty/rapidcheck
 	url = https://github.com/emil-e/rapidcheck.git
+[submodule "thirdparty/TFHEpp"]
+	path = thirdparty/TFHEpp
+	url = https://github.com/virtualsecureplatform/TFHEpp.git
+[submodule "thirdparty/backward-cpp"]
+	path = thirdparty/backward-cpp
+	url = https://github.com/bombela/backward-cpp.git
+[submodule "thirdparty/sanitizers-cmake"]
+	path = thirdparty/sanitizers-cmake
+	url = https://github.com/arsenm/sanitizers-cmake.git
+[submodule "thirdparty/ThreadPool"]
+	path = thirdparty/ThreadPool
+	url = https://github.com/progschj/ThreadPool.git
+[submodule "thirdparty/spdlog"]
+	path = thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "thirdparty/CLI11"]
+	path = thirdparty/CLI11
+	url = https://github.com/CLIUtils/CLI11.git
+[submodule "scripts/lattice-estimator"]
+	path = scripts/lattice-estimator
+	url = https://github.com/malb/lattice-estimator.git

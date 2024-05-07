@@ -10,6 +10,7 @@
 #include <CLI/CLI.hpp>
 #include <seal/seal.h>
 #include <tfhe++.hpp>
+#include <cereal/cereal.hpp>
 
 #include "archive.hpp"
 #include "graph.hpp"
@@ -295,7 +296,7 @@ namespace {
 
   void do_genkey_TFHEpp(std::ostream &ostream) {
     spdlog::info("Generate secret key of TFHEpp");
-    ArithHomFA::SecretKey skey;
+    TFHEpp::SecretKey skey;
     write_to_archive(ostream, skey);
   }
 
@@ -304,7 +305,7 @@ namespace {
     spdlog::info("Generate bootstrapping key of TFHEpp");
     const seal::SEALContext context = config.makeContext();
     ArithHomFA::CKKSToTFHE converter(context);
-    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_stream);
+    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_stream);
     TFHEpp::Key<TFHEpp::lvl3param> lvl3Key;
     const seal::SecretKey secretKey = ArithHomFA::KeyLoader::loadSecretKey(context, secretKeyPath);
     converter.toLv3Key(secretKey, lvl3Key);
@@ -403,7 +404,7 @@ namespace {
   }
 
   void do_enc_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
-    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_filename);
+    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
 
     ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
     bool content;
@@ -422,7 +423,7 @@ namespace {
 
   void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream,
                      const bool vertical) {
-    auto skey = read_from_archive<ArithHomFA::SecretKey>(skey_filename);
+    auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
 
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> reader{istream};
     while (istream.good()) {
