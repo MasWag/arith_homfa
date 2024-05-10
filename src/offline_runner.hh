@@ -23,7 +23,8 @@ namespace ArithHomFA {
   /*!
    * @brief Class for offline monitoring
    */
-  class OfflineRunner : public AbstractRunner {
+  template<RunnerMode mode>
+  class OfflineRunner : public AbstractRunner<mode> {
   public:
     OfflineRunner(const seal::SEALContext &context, double scale, const std::string &spec_filename, size_t input_size,
                   size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references)
@@ -49,24 +50,33 @@ namespace ArithHomFA {
       assert(valuations.size() == predicate.getSignalSize());
       // Evaluate the predicates
       ckksCiphers.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
-      timer.predicate.tic();
+      this->timer.predicate.tic();
       predicate.eval(valuations, ckksCiphers);
-      timer.predicate.toc();
+      this->timer.predicate.toc();
 
       // Construct TRGSW
       tlwes.resize(ckksCiphers.size());
       trgsws.resize(ckksCiphers.size());
-      timer.ckks_to_tfhe.tic();
-      for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
-        converter.toLv1TLWE(ckksCiphers.at(i), tlwes.at(i), this->references.at(i));
-        CircuitBootstrappingFFT(trgsws.at(i), tlwes.at(i), *bkey.ekey);
+      this->timer.ckks_to_tfhe.tic();
+      if constexpr (mode == RunnerMode::normal) {
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFT(ckksCiphers.at(i), trgsws.at(i), this->references.at(i));
+        }
+      } else if constexpr (mode == RunnerMode::fast) {
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFTPoor(ckksCiphers.at(i), trgsws.at(i), this->references.at(i));
+        }
+      } else {
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFTGood(ckksCiphers.at(i), trgsws.at(i));
+        }
       }
-      timer.ckks_to_tfhe.toc();
+      this->timer.ckks_to_tfhe.toc();
 
       for (const auto &trgsw: std::ranges::reverse_view(trgsws)) {
-        timer.dfa.tic();
+        this->timer.dfa.tic();
         runner.eval_one(trgsw);
-        timer.dfa.toc();
+        this->timer.dfa.toc();
       }
 
       return runner.result();

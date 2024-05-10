@@ -25,7 +25,8 @@ namespace ArithHomFA {
   /*!
    * @brief Class for online monitoring with the reverse algorithm
    */
-  class ReverseRunner : public AbstractRunner {
+  template<RunnerMode mode>
+  class ReverseRunner : public AbstractRunner<mode> {
   public:
     ReverseRunner(const seal::SEALContext &context, double scale, const std::string &spec_filename,
                   size_t boot_interval, const BootstrappingKey &bkey, const std::vector<double> &references,
@@ -44,30 +45,40 @@ namespace ArithHomFA {
      * @brief Feeds a valuation to the DFA with valuations
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feed(const std::vector<seal::Ciphertext> &valuations) override {
-      timer.total.tic();
+      this->timer.total.tic();
       assert(valuations.size() == predicate.getSignalSize());
       // Evaluate the predicates
       ckksCiphers.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
-      timer.predicate.tic();
+      this->timer.predicate.tic();
       predicate.eval(valuations, ckksCiphers);
-      timer.predicate.toc();
+      this->timer.predicate.toc();
 
       // Construct TRGSW
       tlwes.resize(ckksCiphers.size());
       trgsws.resize(ckksCiphers.size());
       // Enable nested parallelization
       omp_set_nested(1);
-      timer.ckks_to_tfhe.tic();
+      this->timer.ckks_to_tfhe.tic();
       // Note: this parallelization can decelerate if the queue is small
+      if constexpr (mode == RunnerMode::normal) {
 #pragma omp parallel for default(none) shared(ckksCiphers, trgsws, converter, bkey)
-      for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
-        TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
-        converter.toLv1TLWE(ckksCiphers.at(i), tlwe, this->references.at(i));
-        CircuitBootstrappingFFT(trgsws.at(i), tlwe, *bkey.ekey);
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFT(ckksCiphers.at(i), trgsws.at(i), this->references.at(i));
+        }
+      } else if constexpr (mode == RunnerMode::fast) {
+#pragma omp parallel for default(none) shared(ckksCiphers, trgsws, converter, bkey)
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFTPoor(ckksCiphers.at(i), trgsws.at(i), this->references.at(i));
+        }
+      } else {
+#pragma omp parallel for default(none) shared(ckksCiphers, trgsws, converter, bkey)
+        for (std::size_t i = 0; i < ckksCiphers.size(); ++i) {
+          converter.toLv1TRGSWFFTGood(ckksCiphers.at(i), trgsws.at(i));
+        }
       }
-      timer.ckks_to_tfhe.toc();
+      this->timer.ckks_to_tfhe.toc();
       omp_set_nested(0);
-      timer.total.toc();
+      this->timer.total.toc();
 
       return this->feedRaw(trgsws);
     }
@@ -76,17 +87,17 @@ namespace ArithHomFA {
      * @brief Directly feeds a valuation to the DFA with valuations, mainly for debugging
      */
     TFHEpp::TLWE<TFHEpp::lvl1param> feedRaw(const std::vector<TFHEpp::TRGSWFFT<TFHEpp::lvl1param>> &ciphers) {
-      timer.total.tic();
+      this->timer.total.tic();
       for (const auto &trgsw: ciphers) {
-        timer.dfa.tic();
+        this->timer.dfa.tic();
         runner.eval_one(trgsw);
-        timer.dfa.toc();
+        this->timer.dfa.toc();
       }
 
-      timer.dfa.tic();
+      this->timer.dfa.tic();
       auto result = runner.result();
-      timer.dfa.toc();
-      timer.total.toc();
+      this->timer.dfa.toc();
+      this->timer.total.toc();
 
       return result;
     }

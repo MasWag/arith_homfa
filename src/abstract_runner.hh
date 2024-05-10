@@ -12,9 +12,15 @@
 #include "tic_toc.hh"
 
 namespace ArithHomFA {
+  enum class RunnerMode {
+    normal,
+    fast,
+    slow
+  };
   /*!
    * @brief Abstract class for monitoring
    */
+  template<RunnerMode mode>
   class AbstractRunner {
   public:
     /*!

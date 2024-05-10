@@ -16,6 +16,7 @@
 #include "tfhepp_util.hpp"
 #include "utility.hpp"
 
+#include "abstract_runner.hh"
 #include "ahomfa_runner.hh"
 #include "block_runner.hh"
 #include "ckks_predicate.hh"
@@ -44,6 +45,7 @@ namespace {
   struct Args {
     VERBOSITY verbosity = VERBOSITY::NORMAL;
     TYPE type = TYPE::UNSPECIFIED;
+    ArithHomFA::RunnerMode runnerMode = ArithHomFA::RunnerMode::normal;
 
     bool reversed;
     std::optional<ArithHomFA::SealConfig> sealConfig;
@@ -146,6 +148,20 @@ namespace {
     add_tfhepp_flags(*offline, args);
     add_spec_flag(*offline, args);
     offline->add_option("-l,--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
+    // Choose the runnerMode from normal (default), fast, slow.
+    std::function<void(const std::string &)> mode_callback = [&args](const std::string &mode) {
+      if (mode == "normal") {
+        args.runnerMode = ArithHomFA::RunnerMode::normal;
+      } else if (mode == "fast") {
+        args.runnerMode = ArithHomFA::RunnerMode::fast;
+      } else if (mode == "slow") {
+        args.runnerMode = ArithHomFA::RunnerMode::slow;
+      } else {
+        spdlog::error("Invalid mode: {}", mode);
+        exit(1);
+      }
+    };
+    offline->add_option_function("-m,--mode", mode_callback, "The mode of the runner (normal, fast, slow)");
     offline->parse_complete_callback([&args] { args.type = TYPE::OFFLINE; });
     register_general_options(*offline, args);
   }
@@ -158,6 +174,20 @@ namespace {
     add_spec_flag(*reverse, args);
     reverse->add_option("-l,--bootstrapping-freq", args.bootstrapping_freq)->required()->check(CLI::PositiveNumber);
     reverse->add_flag("--reversed", args.reversed, "The given specification is already reversed");
+    // Choose the runnerMode from normal (default), fast, slow.
+    std::function<void(const std::string &)> mode_callback = [&args](const std::string &mode) {
+      if (mode == "normal") {
+        args.runnerMode = ArithHomFA::RunnerMode::normal;
+      } else if (mode == "fast") {
+        args.runnerMode = ArithHomFA::RunnerMode::fast;
+      } else if (mode == "slow") {
+        args.runnerMode = ArithHomFA::RunnerMode::slow;
+      } else {
+        spdlog::error("Invalid mode: {}", mode);
+        exit(1);
+      }
+    };
+    reverse->add_option_function("-m,--mode", mode_callback, "The mode of the runner (normal, fast, slow)");
     reverse->parse_complete_callback([&args] { args.type = TYPE::REVERSE; });
     register_general_options(*reverse, args);
   }
@@ -169,82 +199,22 @@ namespace {
     add_tfhepp_flags(*block, args);
     add_spec_flag(*block, args);
     block->add_option("-l,--block-size", args.output_freq)->required()->check(CLI::PositiveNumber);
+    // Choose the runnerMode from normal (default), fast, slow.
+    std::function<void(const std::string &)> mode_callback = [&args](const std::string &mode) {
+      if (mode == "normal") {
+        args.runnerMode = ArithHomFA::RunnerMode::normal;
+      } else if (mode == "fast") {
+        args.runnerMode = ArithHomFA::RunnerMode::fast;
+      } else if (mode == "slow") {
+        args.runnerMode = ArithHomFA::RunnerMode::slow;
+      } else {
+        spdlog::error("Invalid mode: {}", mode);
+        exit(1);
+      }
+    };
+    block->add_option_function("-m,--mode", mode_callback, "The mode of the runner (normal, fast, slow)");
     block->parse_complete_callback([&args] { args.type = TYPE::BLOCK; });
     register_general_options(*block, args);
-  }
-
-  void do_pointwise(const ArithHomFA::SealConfig &config, const std::string &relinKeysPath, std::istream &istream,
-                    std::ostream &ostream) {
-    const auto context = config.makeContext();
-    ArithHomFA::CKKSPredicate predicate{context, config.scale};
-    seal::RelinKeys relinKeys;
-    {
-      std::ifstream relinKeysStream(relinKeysPath);
-      if (!relinKeysStream) {
-        spdlog::error("Failed to open relinearization key", strerror(errno));
-        exit(1);
-      }
-      relinKeys.load(context, relinKeysStream);
-    };
-    predicate.setRelinKeys(relinKeys);
-    ArithHomFA::SizedCipherReader reader{istream};
-    ArithHomFA::SizedCipherWriter writer{ostream};
-    std::vector<seal::Ciphertext> valuations, results;
-    valuations.resize(ArithHomFA::CKKSPredicate::getSignalSize());
-    results.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
-    while (istream.good()) {
-      // get the content
-      for (auto &valuation: valuations) {
-        if (!reader.read(context, valuation)) {
-          return;
-        }
-      }
-      // Evaluate
-      predicate.eval(valuations, results);
-      // dump the cipher text
-      for (const auto &result: results) {
-        writer.write(result);
-      }
-    }
-  }
-
-  void do_pointwise_tfhe(const ArithHomFA::SealConfig &config, const std::string &bkey_filename,
-                         const std::string &relinKeysPath, std::istream &istream, std::ostream &ostream) {
-    const auto context = config.makeContext();
-    ArithHomFA::CKKSPredicate predicate{context, config.scale};
-    auto bkey = read_from_archive<ArithHomFA::BootstrappingKey>(bkey_filename);
-    seal::RelinKeys relinKeys;
-    {
-      std::ifstream relinKeysStream(relinKeysPath);
-      if (!relinKeysStream) {
-        spdlog::error("Failed to open the relinearization key", strerror(errno));
-        exit(1);
-      }
-      relinKeys.load(context, relinKeysStream);
-    };
-    predicate.setRelinKeys(relinKeys);
-    ArithHomFA::SizedCipherReader reader{istream};
-    ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
-    std::vector<seal::Ciphertext> valuations, results;
-    valuations.resize(ArithHomFA::CKKSPredicate::getSignalSize());
-    results.resize(ArithHomFA::CKKSPredicate::getPredicateSize());
-    ArithHomFA::CKKSToTFHE converter{context};
-    converter.initializeConverter(bkey);
-    while (istream.good()) {
-      // get the content
-      for (auto &valuation: valuations) {
-        if (!reader.read(context, valuation)) {
-          return;
-        }
-      }
-      // Evaluate and dump the cipher text
-      predicate.eval(valuations, results);
-      for (int i = 0; i < results.size(); ++i) {
-        TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
-        converter.toLv1TLWE(results.at(i), tlwe, ArithHomFA::CKKSPredicate::getReferences().at(i));
-        writer.write(tlwe);
-      }
-    }
   }
 
   void do_plain(const ArithHomFA::SealConfig &config, const std::string &graphFilename, std::istream &istream,
@@ -270,6 +240,7 @@ namespace {
     runner.printTime();
   }
 
+  template<ArithHomFA::RunnerMode mode>
   void do_offline(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
                   const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
                   std::ostream &ostream, int boot_interval) {
@@ -307,9 +278,9 @@ namespace {
     }
 
     assert(ciphers.size() % ArithHomFA::CKKSPredicate::getSignalSize() == 0);
-    ArithHomFA::OfflineRunner runner(context, config.scale, spec_filename,
-                                     ciphers.size() / ArithHomFA::CKKSPredicate::getSignalSize(), boot_interval, bkey,
-                                     ArithHomFA::CKKSPredicate::getReferences());
+    ArithHomFA::OfflineRunner<mode> runner(context, config.scale, spec_filename,
+                                           ciphers.size() / ArithHomFA::CKKSPredicate::getSignalSize(), boot_interval, bkey,
+                                           ArithHomFA::CKKSPredicate::getReferences());
     runner.setRelinKeys(relinKeys);
 
     std::vector<seal::Ciphertext> valuations;
@@ -325,7 +296,8 @@ namespace {
     runner.printTime();
   }
 
-  void run_online(const seal::SEALContext &context, ArithHomFA::AbstractRunner *runner, std::istream &istream,
+  template<ArithHomFA::RunnerMode mode>
+  void run_online(const seal::SEALContext &context, ArithHomFA::AbstractRunner<mode> *runner, std::istream &istream,
                   std::ostream &ostream, const std::optional<std::string> &debug_skey) {
     seal::SecretKey secretKey;
     if (debug_skey) {
@@ -365,6 +337,7 @@ namespace {
     runner->printTime();
   }
 
+  template<ArithHomFA::RunnerMode mode>
   void do_reverse(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
                   const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
                   std::ostream &ostream, int boot_interval, bool reversed,
@@ -388,13 +361,14 @@ namespace {
       relinKeys.load(context, relinKeysStream);
     }
 
-    ArithHomFA::ReverseRunner runner(context, config.scale, spec_filename, boot_interval, bkey,
-                                     ArithHomFA::CKKSPredicate::getReferences(), reversed);
+    ArithHomFA::ReverseRunner<mode> runner(context, config.scale, spec_filename, boot_interval, bkey,
+                                           ArithHomFA::CKKSPredicate::getReferences(), reversed);
     spdlog::debug("Constructed the reverse runner");
     runner.setRelinKeys(relinKeys);
     run_online(context, &runner, istream, ostream, debug_skey);
   }
 
+  template<ArithHomFA::RunnerMode mode>
   void do_block(const ArithHomFA::SealConfig &config, const std::string &spec_filename,
                 const std::string &bkey_filename, const std::string &relinKeysPath, std::istream &istream,
                 std::ostream &ostream, int blockSize, const std::optional<std::string> &debug_skey) {
@@ -417,8 +391,8 @@ namespace {
       relinKeys.load(context, relinKeysStream);
     }
 
-    ArithHomFA::BlockRunner runner(context, config.scale, spec_filename, blockSize, bkey,
-                                   ArithHomFA::CKKSPredicate::getReferences());
+    ArithHomFA::BlockRunner<mode> runner(context, config.scale, spec_filename, blockSize, bkey,
+                                         ArithHomFA::CKKSPredicate::getReferences());
     spdlog::debug("Constructed the block runner");
     runner.setRelinKeys(relinKeys);
     run_online(context, &runner, istream, ostream, debug_skey);
@@ -523,18 +497,33 @@ int main(int argc, char **argv) {
       break;
     }
     case TYPE::OFFLINE: {
-      do_offline(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output,
-                 *args.bootstrapping_freq);
+      if (args.runnerMode == ArithHomFA::RunnerMode::normal) {
+        do_offline<ArithHomFA::RunnerMode::normal>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::fast) {
+        do_offline<ArithHomFA::RunnerMode::fast>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::slow) {
+        do_offline<ArithHomFA::RunnerMode::slow>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq);
+      }
       break;
     }
     case TYPE::REVERSE: {
-      do_reverse(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output,
-                 *args.bootstrapping_freq, args.reversed, args.debug_skey);
+      if (args.runnerMode == ArithHomFA::RunnerMode::normal) {
+        do_reverse<ArithHomFA::RunnerMode::normal>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq, args.reversed, args.debug_skey);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::fast) {
+        do_reverse<ArithHomFA::RunnerMode::fast>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq, args.reversed, args.debug_skey);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::slow) {
+        do_reverse<ArithHomFA::RunnerMode::slow>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.bootstrapping_freq, args.reversed, args.debug_skey);
+      }
       break;
     }
     case TYPE::BLOCK: {
-      do_block(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.output_freq,
-               args.debug_skey);
+      if (args.runnerMode == ArithHomFA::RunnerMode::normal) {
+        do_block<ArithHomFA::RunnerMode::normal>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.output_freq, args.debug_skey);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::fast) {
+        do_block<ArithHomFA::RunnerMode::fast>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.output_freq, args.debug_skey);
+      } else if (args.runnerMode == ArithHomFA::RunnerMode::slow) {
+        do_block<ArithHomFA::RunnerMode::slow>(*args.sealConfig, *args.spec, *args.bkey, *args.relKey, *args.input, *args.output, *args.output_freq, args.debug_skey);
+      }
       break;
     }
     case TYPE::UNSPECIFIED: {

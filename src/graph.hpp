@@ -10,7 +10,7 @@
 
 class Graph {
 public:
-    using State = int;
+    using State = std::size_t;
     // index, next when 0, next when 1
     using DFADelta = std::vector<std::tuple<State, State, State>>;
     using NFADelta =

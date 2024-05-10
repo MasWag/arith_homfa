@@ -278,6 +278,55 @@ namespace ArithHomFA {
     }
 
     /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TRGSW of TFHEpp at lvl1 with high accuracy.
+     *
+     * Since we use 64bit HomDecomp, we do not use amplify.
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] trgsw The resulting TRGSW ciphertext at lvl1
+     *
+     * @pre converter is initialized
+     */
+    void toLv1TRGSWFFTGood(const seal::Ciphertext &cipher, TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw) const {
+      assert(converter);
+      // Convert CKKS ciphertext to TRLWE lvl3 first
+      TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
+      toLv3TLWE(cipher, lvl3TLWE);
+
+      // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+      TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+      converter->toLv1TLWEWithBootstrappingGood(lvl3TLWE, tlwe);
+
+      // Finally apply circuit bootstrapping to make TRGSW
+      CircuitBootstrappingFFTLvl11(trgsw, tlwe, *(converter->getBKey().ekey));
+    }
+
+    /*!
+     * @brief Convert a CKKS ciphertext of SEAL to a TRGSW of TFHEpp at lvl1 with low accuracy.
+     *
+     * @param [in] cipher The CKKS ciphertext to convert
+     * @param [out] trgsw The resulting TRGSW ciphertext at lvl1
+     * @param [in] reference the reference value to decide the amount of
+     * amplification
+     *
+     * @pre converter is initialized
+     */
+    void toLv1TRGSWFFTPoor(const seal::Ciphertext &cipher, TFHEpp::TRGSWFFT<TFHEpp::lvl1param> &trgsw,
+                           double reference = 1024) const {
+      assert(converter);
+      // Convert CKKS ciphertext to TRLWE lvl3 first
+      TFHEpp::TLWE<TFHEpp::lvl3param> lvl3TLWE;
+      toLv3TLWE(cipher, lvl3TLWE, reference);
+
+      // Then convert TLWE lvl3 to TLWE lvl1 + bootstrapping
+      TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
+      converter->toLv1TLWEWithBootstrappingPoor(lvl3TLWE, tlwe);
+
+      // Finally apply circuit bootstrapping to make TRGSW
+      CircuitBootstrappingFFTLvl11(trgsw, tlwe, *(converter->getBKey().ekey));
+    }
+
+    /*!
      * @brief Adaptively amplify the value so that the absolute value is
      * sufficiently large
      *

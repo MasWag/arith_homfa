@@ -47,7 +47,7 @@ public:
     int size()
     {
         int ans = 0;
-        for (int i = 0; i < g_.size(); i++)
+        for (int i = 0; i < static_cast<int>(g_.size()); i++)
             if (i == g_.at(i))
                 ans++;
         return ans;
@@ -148,7 +148,7 @@ Graph Graph::from_istream(std::istream& is)
                            q1s = load_comma_separated_states(match[5].str());
 
         // validate
-        if (q != std::stoi(match[2].str()))
+        if (q != static_cast<std::size_t>(std::stoi(match[2].str())))
             error_die("Invalid state number: {} != {}",
                       std::stoi(match[2].str()), q);
 
@@ -214,7 +214,7 @@ Graph Graph::from_att_istream(std::istream& is)
         if (std::regex_match(line, match, re1)) {  // Format: "from to ch"
             int from = std::stoi(match[1].str()),
                 to = std::stoi(match[2].str()), ch = std::stoi(match[3].str());
-            while (delta.size() <= from)
+            while (delta.size() <= static_cast<std::size_t>(from))
                 delta.push_back({delta.size(), {}, {}});
             if (ch == 0)
                 std::get<1>(delta.at(from)).push_back(to);
@@ -357,7 +357,7 @@ const std::vector<Graph::State>& Graph::prev_states(State state,
 Graph::State Graph::transition64(State src, uint64_t input, int length) const
 {
     Graph::State dst = src;
-    for (size_t i = 0; i < length; i++)
+    for (int i = 0; i < length; i++)
         dst = next_state(dst, (input & (1 << i)) != 0);
     return dst;
 }

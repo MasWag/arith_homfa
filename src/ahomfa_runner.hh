@@ -87,7 +87,7 @@ namespace ArithHomFA {
         }
         // Evaluate and dump the cipher text
         predicate.eval(valuations, results);
-        for (int i = 0; i < results.size(); ++i) {
+        for (std::size_t i = 0; i < results.size(); ++i) {
           TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
           converter.toLv1TLWE(results.at(i), tlwe, ArithHomFA::CKKSPredicate::getReferences().at(i));
           writer.write(tlwe);
