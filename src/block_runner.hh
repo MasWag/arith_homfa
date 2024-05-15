@@ -77,10 +77,12 @@ namespace ArithHomFA {
           converter.toLv1TRGSWFFT(queued_inputs_.at(i), trgsws.at(i), this->references.at(i % ArithHomFA::CKKSPredicate::getPredicateSize()));
         }
       } else if constexpr (mode == RunnerMode::fast) {
+#pragma omp parallel for default(none) shared(queued_inputs_, trgsws, converter, bkey)        
         for (std::size_t i = 0; i < queued_inputs_.size(); ++i) {
           converter.toLv1TRGSWFFTPoor(queued_inputs_.at(i), trgsws.at(i), this->references.at(i % ArithHomFA::CKKSPredicate::getPredicateSize()));
         }
       } else {
+#pragma omp parallel for default(none) shared(queued_inputs_, trgsws, converter, bkey)
         for (std::size_t i = 0; i < queued_inputs_.size(); ++i) {
           converter.toLv1TRGSWFFTGood(queued_inputs_.at(i), trgsws.at(i));
         }
