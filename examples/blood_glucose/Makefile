@@ -1,4 +1,4 @@
-CXXFLAGS += -std=c++20 -I ../../thirdparty/TFHEpp/thirdparties/cereal/include $(shell pkg-config --cflags-only-I seal) $(shell pkg-config --cflags-only-I libspot) -I ../../thirdparty/spdlog/include
+CXXFLAGS += -std=c++20 -I ../../thirdparty/TFHEpp/thirdparties/cereal/include $(shell pkg-config --cflags-only-I seal) $(shell pkg-config --cflags-only-I libspot) -I ../../thirdparty/spdlog/include -DUSE_CONCRETE=ON
 LDLIBS += -lahomfa_runner -fopenmp $(shell pkg-config --libs seal) $(shell pkg-config --libs libspot) -ltfhe++ -ltbb -lspqlios -lranden
 
 CXX_DEBUG_FLAGS = -g -O0

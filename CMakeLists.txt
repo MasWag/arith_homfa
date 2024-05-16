@@ -15,6 +15,8 @@ find_package(Backward)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 add_definitions(-DPROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+# Use the security parameter of Zama's Concrete
+add_definitions(-DUSE_CONCRETE=ON)
 
 # C++ version (SEAL requires 17)
 set(CMAKE_CXX_STANDARD 20) # C++ standard C++20

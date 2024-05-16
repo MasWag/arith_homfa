@@ -40,7 +40,7 @@ namespace ArithHomFA {
       converter.initializeConverter(this->bkey);
       queued_inputs_.reserve(predicate.getPredicateSize() * blockSize);
       // The trivial TLWE representing true
-      latestResult[TFHEpp::lvl1param::n] = (1u << 31); // 1/2
+      latestResult[TFHEpp::lvl1param::k * TFHEpp::lvl1param::n] = 4 * TFHEpp::lvl1param::μ; // 1/2
     }
 
     /*!
