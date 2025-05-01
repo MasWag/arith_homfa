@@ -6,8 +6,8 @@ setup() {
     BG_DIR="${PROJECT_ROOT}/examples/blood_glucose"
     CONFIG="${BG_DIR}/../config.json"
     # Build ArithHomFA
-    cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
-    cmake --build "$BUILD_DIR" -- ahomfa_util libahomfa_runner.a
+    cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake --build "$BUILD_DIR" -- ahomfa_util ahomfa_runner
 
     # Build the runners
     make clean -C "$BG_DIR"

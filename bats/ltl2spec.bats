@@ -4,7 +4,7 @@ setup() {
     PROJECT_ROOT="${BATS_TEST_DIRNAME}/.."
     BUILD_DIR="${PROJECT_ROOT}/cmake-build-debug"
     BG_DIR="${PROJECT_ROOT}/examples/blood_glucose"
-    cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR"
+    cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     cmake --build "$BUILD_DIR" -- ahomfa_util
     PATH="$PATH:$BUILD_DIR"
 }

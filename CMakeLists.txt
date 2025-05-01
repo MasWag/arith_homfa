@@ -60,7 +60,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
-find_package(SEAL 4.1.1 EXACT QUIET)
+find_package(SEAL 4.1.1)
 if(NOT SEAL_FOUND)
         add_subdirectory(thirdparty/SEAL)
         # Import Intel HEXL
