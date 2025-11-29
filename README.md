@@ -1,6 +1,10 @@
 Arithmetic HomFA (ArithHomFA)
 =============================
 
+[![Users Manual](https://img.shields.io/badge/docs-Users-blue)](https://maswag.github.io/arith_homfa/)
+[![Developers Manual](https://img.shields.io/badge/docs-Dev-blue)](https://maswag.github.io/arith_homfa/developer_manual)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
+
 Arithmetic HomFA (ArithHomFA) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables STL monitoring without disclosing the log to the monitor. Note that we employ discrete-time semantics of STL, which is essentially LTL with arithmetic predicates.
 
 Technically, ArithHomFA combines two FHE schemes (CKKS and TFHE) to enjoy their advantages, i.e., linear arithmetic operations and logical operations.
