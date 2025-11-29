@@ -1,6 +1,6 @@
 # ArithHomFA Documentation Guide
 
-This directory contains the MkDocs project for the ArithHomFA manual. The document is rooted at `/doc`, so all commands below assume you start in the repository root.
+This directory contains the MkDocs project for the ArithHomFA manual. The document is rooted at `/doc`, so all commands below assume you start in the repository root. The latest published version is automatically deployed to [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa) via GitHub Actions.
 
 The documentation tree is rooted at `/doc`, and GitHub Actions automatically deploys the rendered MkDocs site to [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa) plus the Doxygen developer manual to [https://maswag.github.io/arith_homfa/developer_manual](https://maswag.github.io/arith_homfa/developer_manual).
 
@@ -54,4 +54,4 @@ cmake -S . -B build
 cmake --build build --target developer_manual
 ```
 
-The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`.
+The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`. The same developer manual is also published at [https://maswag.github.io/arith_homfa/developer_manual/](https://maswag.github.io/arith_homfa/developer_manual/) whenever the GitHub Actions workflow runs.
