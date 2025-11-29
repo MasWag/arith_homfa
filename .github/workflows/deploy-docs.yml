@@ -48,13 +48,8 @@ jobs:
           BUILD_DIR="${WORKSPACE}/.doxygen-build"
           SRC_DIR="${WORKSPACE}"
           mkdir -p "${BUILD_DIR}"
-          VERSION=$(python - <<'PY'
-          import re
-          from pathlib import Path
-          text = Path("CMakeLists.txt").read_text()
-          m = re.search(r'project\(\s*ArithHomFA.*?VERSION\s+([0-9.]+)', text, re.S)
-          print(m.group(1) if m else "0.0.0")
-PY
+          VERSION=$(
+            python -c "import pathlib, re; text = pathlib.Path('CMakeLists.txt').read_text(); m = re.search(r'project\(\s*ArithHomFA.*?VERSION\s+([0-9.]+)', text, re.S); print(m.group(1) if m else '0.0.0')"
           )
           sed -e "s|@PROJECT_VERSION@|${VERSION}|g" \
               -e "s|@CMAKE_BINARY_DIR@|${BUILD_DIR}|g" \
