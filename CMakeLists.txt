@@ -192,3 +192,19 @@ target_link_libraries(unit_test
         ${BDDX_LIBRARIES}
         )
 target_compile_definitions(unit_test PRIVATE ${COMPILE_DEFINITIONS})
+
+find_package(Doxygen QUIET)
+if(DOXYGEN_FOUND)
+  set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in)
+  set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+  configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+
+  add_custom_target(developer_manual
+          COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT "Generating the ArithHomFA developer manual with Doxygen"
+          VERBATIM)
+else()
+  message(STATUS "Doxygen not found. Target 'developer_manual' will not be available.")
+endif()

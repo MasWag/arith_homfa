@@ -30,3 +30,14 @@ mkdocs serve
 ```
 
 This starts a local server (default `http://127.0.0.1:8000`) with live reload. Press `Ctrl+C` to stop it.
+
+## Developer manual (Doxygen)
+
+API-focused developer documentation is generated via Doxygen and hooked into CMake:
+
+```sh
+cmake -S . -B build
+cmake --build build --target developer_manual
+```
+
+The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`.
