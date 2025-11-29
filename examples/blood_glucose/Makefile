@@ -1,44 +1,85 @@
-CXXFLAGS += -std=c++20 -I ../../thirdparty/TFHEpp/thirdparties/cereal/include $(shell pkg-config --cflags-only-I seal) $(shell pkg-config --cflags-only-I libspot) -I ../../thirdparty/spdlog/include
-LDLIBS += -lahomfa_runner -fopenmp $(shell pkg-config --libs seal) $(shell pkg-config --libs libspot) -ltfhe++ -ltbb -lspqlios -lranden
+# Makefile for Blood Glucose Monitoring Example
+# Handles key generation, data encryption, and spec file generation
 
-CXX_DEBUG_FLAGS = -g -O0
-CXX_RELEASE_FLAGS = -s -O3 -flto
+AHOMFA_UTIL := ../../build/src/ahomfa_util
+BUILD_DIR := ../../build
 
-LDFLAGS+= -L $(AHOMFA_BUILD_PATH) -L $(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/src/ -L $(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/thirdparties/spqlios/ -L $(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/thirdparties/randen/
+all: keys specs
 
-# debug
-.PHONY: debug
-debug: CXXFLAGS+=$(CXX_DEBUG_FLAGS)
-debug: AHOMFA_BUILD_PATH = ../../cmake-build-debug
-debug: all
+keys: ckks.key tfhe.key ckks.relinkey tfhe.bkey
 
-# release
-.PHONY: release
-release: CXXFLAGS+=$(CXX_RELEASE_FLAGS)
-release: AHOMFA_BUILD_PATH = ../../cmake-build-release
-release: all
+specs: bg1.spec bg1.reversed.spec
 
-.PHONY: all
-all: $(AHOMFA_BUILD_PATH)/libahomfa_runner.a $(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/src/libtfhe++.a $(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/thirdparties/spqlios/libspqlios.a blood_glucose_one blood_glucose_seven blood_glucose_one_dummy
+# Generate LTL spec from formula
+%.spec: %.ltl $(AHOMFA_UTIL)
+	$(AHOMFA_UTIL) ltl2spec --formula "$$(cat $<)" --num-vars $$(grep -o p[0-9] $< | sort | uniq | wc -l) -o $@
 
-blood_glucose_one: blood_glucose_one.cc
+# Generate reversed spec for reverse monitoring
+%.reversed.spec: %.spec $(AHOMFA_UTIL)
+	$(AHOMFA_UTIL) spec2spec --reverse -i $< -o $@
 
-blood_glucose_seven: blood_glucose_seven.cc
+# Build ahomfa_util if not exists
+$(AHOMFA_UTIL):
+	@echo "Building ahomfa_util..."
+	@mkdir -p $(BUILD_DIR)
+	cd $(BUILD_DIR) && cmake .. -DCMAKE_BUILD_TYPE=Release
+	cd $(BUILD_DIR) && make ahomfa_util -j4
 
-blood_glucose_one_dummy: blood_glucose_one_dummy.cc
+# Generate CKKS key
+ckks.key: $(AHOMFA_UTIL) config.json
+	$(AHOMFA_UTIL) ckks genkey -c config.json -o $@
 
-$(AHOMFA_BUILD_PATH)/libahomfa_runner.a:
-	cmake --build $(AHOMFA_BUILD_PATH) --target libahomfa_runner.a
+# Generate TFHE key
+tfhe.key: $(AHOMFA_UTIL)
+	$(AHOMFA_UTIL) tfhe genkey -o $@
 
-$(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/src/libtfhe++.a:
-	cmake --build $(AHOMFA_BUILD_PATH) --target thirdparty/TFHEpp/src/libtfhe++.a
+# Generate CKKS relinearization key
+ckks.relinkey: $(AHOMFA_UTIL) config.json ckks.key
+	$(AHOMFA_UTIL) ckks genrelinkey -c config.json -K ./ckks.key -o $@
 
-$(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/thirdparties/spqlios/libspqlios.a:
-	cmake --build $(AHOMFA_BUILD_PATH) --target thirdparty/TFHEpp/thirdparties/spqlios/libspqlios.a
+# Generate TFHE bootstrapping key
+tfhe.bkey: $(AHOMFA_UTIL) config.json ckks.key tfhe.key
+	$(AHOMFA_UTIL) tfhe genbkey -c config.json -K ./tfhe.key -S ./ckks.key -o $@
 
-$(AHOMFA_BUILD_PATH)/thirdparty/TFHEpp/thirdparties/randen/libranden.a:
-	cmake --build $(AHOMFA_BUILD_PATH) --target thirdparty/TFHEpp/thirdparties/randen/libranden.a
+# Encrypt blood glucose data (expects .bg.txt input file)
+%.bg.ckks: %.bg.txt $(AHOMFA_UTIL) ckks.key config.json
+	$(AHOMFA_UTIL) ckks enc -c ./config.json -K ./ckks.key -i $< -o $@
 
-.PHONY: clean
+# Generate sample blood glucose data
+sample_data:
+	@echo "Generating sample blood glucose data..."
+	@echo "85" > adult_sample.bg.txt
+	@echo "92" >> adult_sample.bg.txt
+	@echo "78" >> adult_sample.bg.txt
+	@echo "110" >> adult_sample.bg.txt
+	@echo "95" >> adult_sample.bg.txt
+	@echo "88" >> adult_sample.bg.txt
+	@echo "72" >> adult_sample.bg.txt
+	@echo "105" >> adult_sample.bg.txt
+	@echo "98" >> adult_sample.bg.txt
+	@echo "82" >> adult_sample.bg.txt
+	@echo "90" >> adult_sample.bg.txt
+	@echo "75" >> adult_sample.bg.txt
+	@echo "115" >> adult_sample.bg.txt
+	@echo "93" >> adult_sample.bg.txt
+	@echo "87" >> adult_sample.bg.txt
+	@echo "102" >> adult_sample.bg.txt
+	@echo "80" >> adult_sample.bg.txt
+	@echo "96" >> adult_sample.bg.txt
+	@echo "108" >> adult_sample.bg.txt
+	@echo "71" >> adult_sample.bg.txt
+	@for i in {1..480}; do echo "$$((70 + RANDOM % 50))" >> adult_sample.bg.txt; done
+	@echo "Sample data created: adult_sample.bg.txt (500 readings)"
+
+# Encrypt sample data
+encrypt_sample: sample_data adult_sample.bg.ckks
+	@echo "Sample data encrypted: adult_sample.bg.ckks"
+
+# Extract data from CSV (if CSV files are available)
+%.bg.txt: data/%.csv
+	cut -d , -f 2 $< | sed '1 d' > $@
+
 clean:
-	$(RM) blood_glucose_one blood_glucose_seven blood_glucose_one_dummy
+	$(RM) *.key *.bkey *.relinkey *.spec *.ckks *.txt
+
+.PHONY: all keys specs sample_data encrypt_sample clean

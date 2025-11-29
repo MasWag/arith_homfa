@@ -33,3 +33,7 @@
 
 # Emacs
 *~
+
+# Local tooling artifacts
+.venv/
+doc/site/
