@@ -54,4 +54,4 @@ cmake -S . -B build
 cmake --build build --target developer_manual
 ```
 
-HTML output is placed at `build/doc/developer_manual/html/index.html`. The target is available only when `doxygen` is on your `PATH`, and the published version is refreshed by GitHub Actions alongside the MkDocs site.
+The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`.
