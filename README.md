@@ -7,6 +7,11 @@ Technically, ArithHomFA combines two FHE schemes (CKKS and TFHE) to enjoy their 
 
 ArithHomFA consists of a command line tool `ahomfa_util` and a library `libahomfa_runner.a` for monitoring. `ahomfa_util` is a command line utility for the necessary FHE operations, such as key generation, encryption, and decryption. `ahomfa_util` also provides functionality for the transformation of an STL formula into a DFA specification. `libahomfa_runner.a` is a library to conduct the actual monitoring process. A user implements a class defining the predicate used in monitoring in C++, and by linking it with `libahomfa_runner.a`, the user can build a program for oblivious online monitoring.
 
+Documentation
+-------------
+
+The complete manual is published at [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa) and is rebuilt automatically from the files under `doc/` on every push to `master`.
+
 Requirements
 ------------
 

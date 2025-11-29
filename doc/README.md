@@ -1,6 +1,6 @@
 # ArithHomFA Documentation Guide
 
-This directory contains the MkDocs project for the ArithHomFA manual. The document is rooted at `/doc`, so all commands below assume you start in the repository root.
+This directory contains the MkDocs project for the ArithHomFA manual. The document is rooted at `/doc`, so all commands below assume you start in the repository root. The latest published version is automatically deployed to [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa) via GitHub Actions.
 
 ## Prerequisites
 

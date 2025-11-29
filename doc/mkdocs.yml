@@ -1,6 +1,6 @@
 site_name: ArithHomFA Manual
 site_description: "User and developer documentation for the Arithmetic HomFA (ArithHomFA) toolkit."
-site_url: ""
+site_url: "https://maswag.github.io/arith_homfa"
 repo_url: "https://github.com/MasWag/arith_homfa"
 theme:
   name: readthedocs
