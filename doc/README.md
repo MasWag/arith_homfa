@@ -40,4 +40,4 @@ cmake -S . -B build
 cmake --build build --target developer_manual
 ```
 
-The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`.
+The HTML output is written to `build/doc/developer_manual/html/index.html`. The target is created only when `doxygen` is available in your `PATH`. The same developer manual is also published at [https://maswag.github.io/arith_homfa/developer_manual/](https://maswag.github.io/arith_homfa/developer_manual/) whenever the GitHub Actions workflow runs.

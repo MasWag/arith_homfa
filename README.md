@@ -9,8 +9,10 @@ ArithHomFA consists of a command line tool `ahomfa_util` and a library `libahomf
 
 Documentation
 -------------
+- User guide (MkDocs): [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa)
+- Developer manual (Doxygen): [https://maswag.github.io/arith_homfa/developer_manual/](https://maswag.github.io/arith_homfa/developer_manual/)
 
-The complete manual is published at [https://maswag.github.io/arith_homfa](https://maswag.github.io/arith_homfa) and is rebuilt automatically from the files under `doc/` on every push to `master`.
+Both sites are rebuilt automatically from the files under `doc/` on every push to `master`.
 
 Requirements
 ------------
