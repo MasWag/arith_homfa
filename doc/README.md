@@ -1,0 +1,32 @@
+# ArithHomFA Documentation Guide
+
+This directory contains the MkDocs project for the ArithHomFA manual. The document is rooted at `/doc`, so all commands below assume you start in the repository root.
+
+## Prerequisites
+
+- Python 3.9+ available as `/usr/bin/python3`
+- `mkdocs` installed inside a virtual environment (recommended)
+
+## Build steps
+
+```sh
+# 1. Create and activate the virtual environment (first time only)
+/usr/bin/python3 -m venv .venv
+source .venv/bin/activate
+
+# 2. Install MkDocs inside the venv
+pip install mkdocs
+
+# 3. Build the site from /doc
+cd doc
+mkdocs build
+```
+
+The generated static site is written to `doc/site/` (ignored by git). To preview locally:
+
+```sh
+cd doc
+mkdocs serve
+```
+
+This starts a local server (default `http://127.0.0.1:8000`) with live reload. Press `Ctrl+C` to stop it.

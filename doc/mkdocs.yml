@@ -1,0 +1,23 @@
+site_name: ArithHomFA Manual
+site_description: "User and developer documentation for the Arithmetic HomFA (ArithHomFA) toolkit."
+site_url: ""
+repo_url: "https://github.com/MasWag/arith_homfa"
+theme:
+  name: readthedocs
+nav:
+  - Overview: index.md
+  - Quick Start: quick-start.md
+  - Installation: installation.md
+  - Core Concepts: core-concepts.md
+  - Tutorials: tutorials.md
+  - Command-Line Reference: cli-reference.md
+  - Specification Language: spec-language.md
+  - Integration: integration.md
+  - Performance: performance.md
+  - Troubleshooting: troubleshooting.md
+  - Limitations: limitations.md
+  - Developer Notes: developer-notes.md
+  - Appendices: appendices.md
+markdown_extensions:
+  - toc:
+      permalink: true
