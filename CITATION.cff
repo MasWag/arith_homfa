@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it using the metadata below."
+title: "Oblivious Monitoring for Discrete-Time STL via Fully Homomorphic Encryption"
+authors:
+  - family-names: Waga
+    given-names: Masaki
+  - family-names: Matsuoka
+    given-names: Kotaro
+  - family-names: Suwa
+    given-names: Takashi
+  - family-names: Matsumoto
+    given-names: Naoki
+  - family-names: Banno
+    given-names: Ryotaro
+  - family-names: Bian
+    given-names: Song
+  - family-names: Suenaga
+    given-names: Kohei
+type: conference-paper
+date-released: "2024"
+conference:
+  name: "Runtime Verification (RV)"
+  series: "Lecture Notes in Computer Science"
+  volume: "15191"
+  pages: "59-69"
+publisher:
+  name: "Springer"
+doi: "10.1007/978-3-031-74234-7_4"
+url: "https://doi.org/10.1007/978-3-031-74234-7_4"
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: Waga
+      given-names: Masaki
+    - family-names: Matsuoka
+      given-names: Kotaro
+    - family-names: Suwa
+      given-names: Takashi
+    - family-names: Matsumoto
+      given-names: Naoki
+    - family-names: Banno
+      given-names: Ryotaro
+    - family-names: Bian
+      given-names: Song
+    - family-names: Suenaga
+      given-names: Kohei
+  title: "Oblivious Monitoring for Discrete-Time STL via Fully Homomorphic Encryption"
+  conference:
+    name: "Runtime Verification (RV)"
+  year: "2024"
+  doi: "10.1007/978-3-031-74234-7_4"
