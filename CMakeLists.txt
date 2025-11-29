@@ -6,6 +6,12 @@ if(POLICY CMP0069)
 endif()
 project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 
+# Allow bundled third-party projects that still declare very old
+# cmake_minimum_required values to configure under CMake >= 4.0.
+if(NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif()
+
 ## Configure PATH
 set(CMAKE_MODULE_PATH
         ${CMAKE_SOURCE_DIR} "thirdparty/sanitizers-cmake/cmake"
