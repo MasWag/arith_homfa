@@ -1,4 +1,4 @@
-# 4. Core Concepts and Workflow
+# 5. Core Concepts and Workflow
 
 - **Input model.** Traces are vectors of reals encrypted with CKKS. Each predicate consumes a CKKS ciphertext slot per timestamp. Time is discrete and monotonically increasing.
 - **Specification model.** Users describe STL properties as Spot-compatible LTL formulas. `ahomfa_util ltl2spec` translates them into DFA specifications; `spec2spec` can reverse, negate, or minimize automata to match a chosen execution mode.
@@ -26,4 +26,3 @@ ArithHomFA tools expect a JSON file describing the CKKS parameters. The sample a
 - `scale` is the default CKKS scale applied when encoding plaintexts. Match it to the modulus sizes so that ciphertexts stay normalized after multiplications.
 
 All `ahomfa_util ckks ...` commands and monitor binaries take `-c /path/to/config.json` to load these parameters, ensuring the predicates and DFA runner share the same CKKS context.
-

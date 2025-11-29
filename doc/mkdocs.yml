@@ -6,12 +6,12 @@ theme:
   name: readthedocs
 nav:
   - Overview: index.md
-  - Quick Start: quick-start.md
   - Installation: installation.md
-  - Core Concepts: core-concepts.md
+  - Quick Start: quick-start.md
   - Tutorials: tutorials.md
-  - Command-Line Reference: cli-reference.md
+  - Core Concepts: core-concepts.md
   - Specification Language: spec-language.md
+  - Command-Line Reference: cli-reference.md
   - Integration: integration.md
   - Performance: performance.md
   - Troubleshooting: troubleshooting.md

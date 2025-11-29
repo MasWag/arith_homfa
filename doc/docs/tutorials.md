@@ -1,8 +1,8 @@
-# 5. Tutorials
+# 4. Tutorials
 
 Each tutorial lives under `examples/` and is runnable with the commands below. Replace `/tmp/...` paths if you prefer a different scratch location.
 
-## 5.1 Basic monitoring (plain mode)
+## 4.1 Basic monitoring (plain mode)
 
 ```sh
 make -C examples/blood_glucose release
@@ -14,7 +14,7 @@ make -C examples/blood_glucose release
 ```
 Inspect stdout for per-step verdicts and logging around predicate evaluations.
 
-## 5.2 Debugging a failing trace
+## 4.2 Debugging a failing trace
 
 1. Modify `examples/blood_glucose/input.txt` to violate the STL constraint.
 2. Re-run the plain tutorial; the monitor will log first-failure timestamps.
@@ -23,7 +23,7 @@ Inspect stdout for per-step verdicts and logging around predicate evaluations.
    ./examples/blood_glucose/blood_glucose_one pointwise -c examples/config.json --verbose < examples/blood_glucose/input.txt
    ```
 
-## 5.3 Scaling up to block mode
+## 4.3 Scaling up to block mode
 
 ```sh
 ./cmake-build-release/ahomfa_util ckks enc -c examples/config.json -K /tmp/ckks.key -i examples/blood_glucose/input.txt \
@@ -37,7 +37,7 @@ Inspect stdout for per-step verdicts and logging around predicate evaluations.
 ```
 Tune block sizes inside the example to stress-test throughput and memory use.
 
-## 5.4 Online / reversed monitoring
+## 4.4 Online / reversed monitoring
 
 Run the `reverse` subcommand with the reversed specification:
 
@@ -51,6 +51,6 @@ Run the `reverse` subcommand with the reversed specification:
 ```
 This mode emits verdicts as soon as sufficient future context becomes available, mimicking online monitoring on encrypted telemetry.
 
-## 5.5 Domain case study (todo)
+## 4.5 Domain case study (todo)
 
 Add your domain-specific traces (e.g., CPS, security logs) under `examples/`. Reuse the Makefile template and tutorial scaffolding to document reproducible steps for reviewers.

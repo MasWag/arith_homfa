@@ -1,4 +1,4 @@
-# 7. Specification Language Reference
+# 6. Specification Language Reference
 
 1. **Grammar overview.** Formulas follow Spot’s LTL grammar with STL-inspired bounded temporal operators. Predicates are named `p<i>` and refer to indexed CKKS predicate slots.
 2. **Operators.** Standard LTL (`X`, `G`, `F`, `U`, `R`) plus bounded variants using `[a,b]` intervals. Boolean connectives (`!`, `&`, `|`, `->`) are available.
