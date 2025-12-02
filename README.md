@@ -51,17 +51,16 @@ Usage Example
 
 ### Ready-to-run demos
 
-Each curated example under `examples/` ships a `run_example.sh` convenience script that builds the toolkit (if needed), generates keys and DFA specifications, produces sample data, encrypts it, runs the monitor, and decrypts the verdicts.
+Each curated example under `examples/` ships an automation script that builds the toolkit (if needed), generates keys and DFA specifications, produces sample data, encrypts it, runs the monitor, and decrypts the verdicts.
 
 ```sh
-# Blood glucose monitoring
-cd examples/blood_glucose
-./run_example.sh
+# Blood glucose monitoring (formula 1 by default; see --help for options)
+./examples/run_bg.sh --formula 1 --mode fast
 
 # Vehicle RSS monitoring
-cd ../vehicle_rss
-./run_example.sh
+./examples/run_vrss.sh
 ```
+`run_bg.sh` accepts `--formula`, `--dataset`, `--mode`, `--block-size`, and `--bootstrap` flags so you can swap between the curated STL formulas and clinical traces without re-editing the example files. `run_vrss.sh` rebuilds (if needed), runs the RSS workflow, decrypts the TFHE outputs, and sanity-checks that the plain, block, and reverse modes agree.
 
 Under the hood, the scripts call the shared Make targets defined in every example directory:
 

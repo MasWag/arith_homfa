@@ -86,18 +86,19 @@ vehicle_rss/
 ├── vrss.ltl             # Temporal logic formula
 ├── config.json          # CKKS encryption parameters
 ├── Makefile             # Build configuration
-├── CMakeLists.txt       # CMake configuration
-└── run_example.sh       # Automated execution script
+└── CMakeLists.txt       # CMake configuration
 ```
+The orchestration script lives one level up (`../run_vrss.sh`) and drives the full workflow for this example.
 
 ## Step-by-Step Usage Guide
 
 ### Quick Start
 ```bash
-./run_example.sh
+cd ..  # from examples/vehicle_rss to examples/
+./run_vrss.sh
 ```
 
-This automated script handles the complete workflow from key generation to result decryption.
+`run_vrss.sh` builds (if necessary), regenerates keys/specs/sample data, runs the plain/block/reverse monitors, decrypts TFHE outputs, compares the results, and optionally cleans temporary artifacts.
 
 ### Detailed Manual Steps
 
@@ -475,7 +476,7 @@ export SEAL_THROW_ON_TRANSPARENT=1
 export OMP_DISPLAY_ENV=TRUE
 
 # Run with debug output
-./run_example.sh 2>&1 | tee debug.log
+cd .. && ./run_vrss.sh 2>&1 | tee debug.log
 
 # Analyze debug log
 grep -E "ERROR|WARNING|CRITICAL" debug.log

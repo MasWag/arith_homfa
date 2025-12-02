@@ -1,6 +1,6 @@
 # 4. Tutorials
 
-Each tutorial lives under `examples/` and is runnable with the commands below. Replace `/tmp/...` paths if you prefer a different scratch location. For a fully automated walkthrough, use `examples/blood_glucose/run_example.sh` or `examples/vehicle_rss/run_example.sh`, which wrap all of the commands shown here.
+Each tutorial lives under `examples/` and is runnable with the commands below. Replace `/tmp/...` paths if you prefer a different scratch location. For a fully automated walkthrough, use `./examples/run_bg.sh` (blood glucose) or `./examples/run_vrss.sh` (Vehicle RSS), which wrap all of the commands shown here.
 
 ## 4.1 Basic monitoring (plain mode)
 
@@ -55,8 +55,7 @@ This mode emits verdicts as soon as sufficient future context becomes available,
 
 ```sh
 cmake --build build --target vehicle_rss
-cd examples/vehicle_rss
-./run_example.sh  # or run make keys/specs/sample_data/encrypt_sample manually
+./examples/run_vrss.sh  # or run make keys/specs/sample_data/encrypt_sample manually
 ```
 
 The RSS example monitors four simultaneous predicates derived from `vrss.ltl`. Inspect `examples/vehicle_rss/README.md` for the predicate definitions and data format, then adapt the Make targets when bringing your own traces.

@@ -77,18 +77,26 @@ blood_glucose/
 ├── input.txt                 # Sample glucose readings
 ├── output.txt                # Expected output
 ├── Makefile                  # Build configuration
-├── CMakeLists.txt           # CMake configuration
-└── run_example.sh           # Automated execution script
+└── CMakeLists.txt            # CMake configuration
 ```
+An orchestration script (`../run_bg.sh`) lives one directory up and drives the entire workflow end to end.
 
 ## Step-by-Step Usage Guide
 
 ### Quick Start (Automated)
 ```bash
-./run_example.sh
+cd ..  # from examples/blood_glucose to examples/
+./run_bg.sh --formula 1 --mode fast
 ```
 
-This script automates the entire workflow. Follow the prompts for cleanup options.
+`run_bg.sh` automates the entire workflow. It builds binaries when needed, generates/reuses keys and DFA specs, converts the curated CSV traces in `homfa-experiment/`, runs plain/block/reverse monitoring, decrypts the TFHE verdicts, and compares the outputs. Use `./run_bg.sh --help` to discover additional options.
+
+**Key flags**
+- `--formula <id>` – choose among the shipped monitors (1, 2, 4, 5, 6, 7, 8, 10, 11). The script automatically maps each ID to the correct binary and dataset.
+- `--dataset <name>` – override the default dataset. Input CSVs live under `homfa-experiment/ap9/`.
+- `--mode <fast|normal|slow>` – propagate the performance profile to block/reverse runs (`fast` favors latency).
+- `--block-size <n>` – size of ciphertext chunks for block mode.
+- `--bootstrap <n>` – bootstrapping frequency for reverse mode (default 200).
 
 ### Manual Execution
 
@@ -309,7 +317,7 @@ Enable verbose output for troubleshooting:
 ```bash
 export AHOMFA_DEBUG=1
 export SEAL_DEBUG=1
-./run_example.sh 2>&1 | tee debug.log
+cd .. && ./run_bg.sh --formula 1 2>&1 | tee debug.log
 ```
 
 ## Advanced Usage

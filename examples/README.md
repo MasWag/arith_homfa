@@ -87,9 +87,10 @@ make encrypt_sample
 ```
 
 ### 4. Homomorphic Monitoring
-Run the monitoring algorithm on encrypted data:
+Run the monitoring algorithm on encrypted data. From the `examples/` directory you can call the curated orchestration scripts:
 ```bash
-./run_example.sh
+./run_bg.sh --formula 1 --mode fast   # Blood glucose suite (see --help for more options)
+./run_vrss.sh                         # Vehicle RSS suite
 ```
 
 ### 5. Result Decryption
@@ -103,13 +104,13 @@ Decrypt and interpret monitoring results:
 Each example includes a convenient script that automates the entire workflow:
 
 ```bash
-# For Blood Glucose example
-cd examples/blood_glucose
-./run_example.sh
+cd examples
 
-# For Vehicle RSS example
-cd examples/vehicle_rss
-./run_example.sh
+# Blood Glucose example (formula auto-selects the right dataset)
+./run_bg.sh --formula 1
+
+# Vehicle RSS example
+./run_vrss.sh
 ```
 
 ## Configuration
@@ -181,7 +182,7 @@ Optimized monitoring with reversed automata:
 Enable debug output for detailed monitoring information:
 ```bash
 export AHOMFA_DEBUG=1
-./run_example.sh
+./run_bg.sh --formula 1
 ```
 
 ## Further Reading

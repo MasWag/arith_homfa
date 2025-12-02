@@ -1,6 +1,6 @@
 # 3. Quick Start
 
-This walkthrough assumes the [Installation](installation.md) steps are complete and focuses on validating an end-to-end encrypted run with the blood glucose tutorial. For a one-command smoke test, you can also run `examples/blood_glucose/run_example.sh`, which wraps every step below (build, keys, specs, sample data, encryption, monitoring, and decryption).
+This walkthrough assumes the [Installation](installation.md) steps are complete and focuses on validating an end-to-end encrypted run with the blood glucose tutorial. For a one-command smoke test, you can also run `./examples/run_bg.sh` (see `--help` for options), which wraps every step below (build, keys, specs, sample data, encryption, monitoring, and decryption).
 
 ## 3.1 Before you begin
 
