@@ -16,7 +16,8 @@ usage() {
 Usage: ./run_bg.sh [options]
 
 Options:
-  --dataset <name>   Dataset to process (adult#001_night | adult#001_2nd_7days). Default: adult#001_night
+  --formula <id>     Formula identifier (e.g., 1, 7). Defaults to 1.
+  --dataset <name>   Dataset override (adult#001_night | adult#001_2nd_7days).
   --mode <mode>      Monitoring mode for block/reverse (fast | normal | slow). Default: fast
   --block-size <n>   Block size for block mode. Default: 1
   --bootstrap <n>    Bootstrapping frequency for reverse mode. Default: 200
@@ -24,16 +25,24 @@ Options:
 EOF
 }
 
-DATASET_NAME="adult#001_night"
+FORMULA_ID=1
+DATASET_NAME=""
+CUSTOM_DATASET=false
 MONITOR_MODE="${MONITOR_MODE:-fast}"
 BLOCK_SIZE="${BLOCK_SIZE:-1}"
 BOOTSTRAP_FREQ="${BOOTSTRAP_FREQ:-200}"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --formula)
+            [[ $# -lt 2 ]] && { echo "Missing value for --formula"; exit 1; }
+            FORMULA_ID="$2"
+            shift 2
+            ;;
         --dataset)
             [[ $# -lt 2 ]] && { echo "Missing value for --dataset"; exit 1; }
             DATASET_NAME="$2"
+            CUSTOM_DATASET=true
             shift 2
             ;;
         --mode)
@@ -63,11 +72,40 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if ! [[ "${FORMULA_ID}" =~ ^[0-9]+$ ]]; then
+    echo "Formula id must be numeric"
+    exit 1
+fi
+
+if [[ "${CUSTOM_DATASET}" = false ]]; then
+    if (( FORMULA_ID <= 6 )); then
+        DATASET_NAME="adult#001_night"
+    else
+        DATASET_NAME="adult#001_2nd_7days"
+    fi
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 EXAMPLE_DIR="${SCRIPT_DIR}/blood_glucose"
 BUILD_DIR="${SCRIPT_DIR}/build"
 AHOMFA_UTIL="${BUILD_DIR}/arith_homfa/ahomfa_util"
-MONITOR="${BUILD_DIR}/blood_glucose/blood_glucose_one"
+MONITOR_NAME="blood_glucose_one"
+case "${FORMULA_ID}" in
+    1) MONITOR_NAME="blood_glucose_one" ;;
+    2) MONITOR_NAME="blood_glucose_two" ;;
+    4) MONITOR_NAME="blood_glucose_four" ;;
+    5) MONITOR_NAME="blood_glucose_five" ;;
+    6) MONITOR_NAME="blood_glucose_six" ;;
+    7) MONITOR_NAME="blood_glucose_seven" ;;
+    8) MONITOR_NAME="blood_glucose_eight" ;;
+    10) MONITOR_NAME="blood_glucose_ten" ;;
+    11) MONITOR_NAME="blood_glucose_eleven" ;;
+    *)
+        MONITOR_NAME="blood_glucose_one"
+        echo -e "${YELLOW}Formula ${FORMULA_ID} does not map to a dedicated binary; defaulting to blood_glucose_one${NC}"
+        ;;
+esac
+MONITOR="${BUILD_DIR}/blood_glucose/${MONITOR_NAME}"
 CONFIG="${EXAMPLE_DIR}/config.json"
 
 if [[ ! -f "${CONFIG}" ]]; then
@@ -82,14 +120,24 @@ if [[ ! -x "${MONITOR}" ]] || [[ ! -x "${AHOMFA_UTIL}" ]]; then
     cmake --build "${BUILD_DIR}"
 fi
 
+if [[ ! -x "${MONITOR}" ]]; then
+    ALT_MONITOR="${EXAMPLE_DIR}/${MONITOR_NAME}"
+    if [[ -x "${ALT_MONITOR}" ]]; then
+        MONITOR="${ALT_MONITOR}"
+    else
+        echo -e "${RED}Monitor binary ${MONITOR_NAME} not found. Build it first.${NC}"
+        exit 1
+    fi
+fi
+
 CKKS_KEY="${EXAMPLE_DIR}/ckks.key"
 CKKS_RELINKEY="${EXAMPLE_DIR}/ckks.relinkey"
 TFHE_KEY="${EXAMPLE_DIR}/tfhe.key"
 TFHE_BKEY="${EXAMPLE_DIR}/tfhe.bkey"
 
-FORMULA_FILE="${EXAMPLE_DIR}/bg1.ltl"
-SPEC_FILE="${EXAMPLE_DIR}/bg1.spec"
-REVERSED_SPEC_FILE="${EXAMPLE_DIR}/bg1.reversed.spec"
+FORMULA_FILE="${EXAMPLE_DIR}/bg${FORMULA_ID}.ltl"
+SPEC_FILE="${EXAMPLE_DIR}/bg${FORMULA_ID}.spec"
+REVERSED_SPEC_FILE="${EXAMPLE_DIR}/bg${FORMULA_ID}.reversed.spec"
 
 if [[ ! -f "${FORMULA_FILE}" ]]; then
     echo -e "${RED}Formula file not found at ${FORMULA_FILE}${NC}"
@@ -104,7 +152,7 @@ sanitize_name() {
 
 RESULT_DIR="${EXAMPLE_DIR}/results"
 mkdir -p "${RESULT_DIR}"
-RESULT_TAG="bg1_$(sanitize_name "${DATASET_NAME}")"
+RESULT_TAG="bg${FORMULA_ID}_$(sanitize_name "${DATASET_NAME}")"
 PLAIN_RESULT="${RESULT_DIR}/${RESULT_TAG}_plain.txt"
 BLOCK_RESULT_TFHE="${RESULT_DIR}/${RESULT_TAG}_block.tfhe"
 BLOCK_RESULT="${RESULT_DIR}/${RESULT_TAG}_block.txt"
@@ -171,7 +219,7 @@ else
     echo "Reversed specification already up to date"
 fi
 
-echo -e "\n${GREEN}Step 3: Preparing plaintext data...${NC}"
+echo -e "\n${GREEN}Step 3: Preparing plaintext data (${DATASET_NAME})...${NC}"
 if [[ ! -f "${PLAINTEXT_DATA}" ]] || [[ "${dataset_csv}" -nt "${PLAINTEXT_DATA}" ]]; then
     cut -d ',' -f 2 "${dataset_csv}" | sed '1 d' > "${PLAINTEXT_DATA}"
     echo "Created ${PLAINTEXT_DATA}"
@@ -179,7 +227,7 @@ else
     echo "Plaintext data already prepared"
 fi
 
-echo -e "\n${GREEN}Step 4: Encrypting measurements...${NC}"
+echo -e "\n${GREEN}Step 4: Encrypting measurements (${DATASET_NAME})...${NC}"
 if [[ ! -f "${ENCRYPTED_DATA}" ]] || [[ "${PLAINTEXT_DATA}" -nt "${ENCRYPTED_DATA}" ]] || [[ "${CKKS_KEY}" -nt "${ENCRYPTED_DATA}" ]]; then
     "${AHOMFA_UTIL}" ckks enc -c "${CONFIG}" -K "${CKKS_KEY}" -i "${PLAINTEXT_DATA}" -o "${ENCRYPTED_DATA}"
     echo "Encrypted data stored in ${ENCRYPTED_DATA}"
