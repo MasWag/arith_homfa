@@ -15,18 +15,16 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-EXAMPLE_DIR="$(cd "$(dirname "$0")" && pwd)"
-BUILD_DIR="${EXAMPLE_DIR}/../../build"
-AHOMFA_UTIL="${BUILD_DIR}/src/ahomfa_util"
-MONITOR="${BUILD_DIR}/examples/vehicle_rss/vehicle_rss"
+EXAMPLE_DIR="$(cd "$(dirname "$0")" && pwd)/vehicle_rss"
+BUILD_DIR="${EXAMPLE_DIR}/../build"
+AHOMFA_UTIL="${BUILD_DIR}/arith_homfa/ahomfa_util"
+MONITOR="${BUILD_DIR}/vehicle_rss/vehicle_rss"
 
 # Check if build directory exists
 if [ ! -d "${BUILD_DIR}" ]; then
     echo -e "${YELLOW}Build directory not found. Creating and building...${NC}"
-    mkdir -p "${BUILD_DIR}"
-    cd "${BUILD_DIR}"
-    cmake .. -DCMAKE_BUILD_TYPE=Release
-    make -j4
+    cmake -S "${BUILD_DIR}/.." -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
+    cmake --build "${BUILD_DIR}"
     cd "${EXAMPLE_DIR}"
 fi
 
@@ -51,40 +49,35 @@ make -C "${EXAMPLE_DIR}" move15.vrss.ckks
 echo "✓ Data encrypted"
 
 # Step 5: Run monitoring (if monitor executable exists)
-if [ -f "${MONITOR}" ]; then
-    echo -e "\n${GREEN}Step 5: Running homomorphic monitoring...${NC}"
-    
-    # Run reverse monitoring
-    echo "Running reverse monitoring (normal mode)..."
-    "${MONITOR}" reverse \
-        -c "${EXAMPLE_DIR}/config.json" \
-        -r "${EXAMPLE_DIR}/ckks.relinkey" \
-        -b "${EXAMPLE_DIR}/tfhe.bkey" \
-        -f "${EXAMPLE_DIR}/vrss.reversed.spec" \
-        -m normal \
-        -i "${EXAMPLE_DIR}/move15.vrss.ckks" \
-        -o "${EXAMPLE_DIR}/result.tfhe" \
-        --bootstrapping-freq 200 \
-        --reversed
-    
-    echo "✓ Monitoring completed"
-    
-    # Step 6: Decrypt results
-    echo -e "\n${GREEN}Step 6: Decrypting results...${NC}"
-    "${AHOMFA_UTIL}" tfhe dec \
-        -K "${EXAMPLE_DIR}/tfhe.key" \
-        -i "${EXAMPLE_DIR}/result.tfhe" \
-        -o "${EXAMPLE_DIR}/result.txt"
-    
-    echo "✓ Results decrypted"
-    
-    # Display results
-    echo -e "\n${GREEN}Monitoring Results:${NC}"
-    cat "${EXAMPLE_DIR}/result.txt"
-else
-    echo -e "\n${YELLOW}Note: Monitor executable not found. Build the full project to run monitoring.${NC}"
-    echo "To build: cd ${BUILD_DIR} && cmake .. && make"
-fi
+echo -e "\n${GREEN}Step 5: Running homomorphic monitoring...${NC}"
+
+# Run reverse monitoring
+echo "Running reverse monitoring (normal mode)..."
+"${MONITOR}" reverse \
+             -c "${EXAMPLE_DIR}/config.json" \
+             -r "${EXAMPLE_DIR}/ckks.relinkey" \
+             -b "${EXAMPLE_DIR}/tfhe.bkey" \
+             -f "${EXAMPLE_DIR}/vrss.reversed.spec" \
+             -m fast \
+             -i "${EXAMPLE_DIR}/move15.vrss.ckks" \
+             -o "${EXAMPLE_DIR}/result.tfhe" \
+             --bootstrapping-freq 200 \
+             --reversed
+
+echo "✓ Monitoring completed"
+
+# Step 6: Decrypt results
+echo -e "\n${GREEN}Step 6: Decrypting results...${NC}"
+"${AHOMFA_UTIL}" tfhe dec \
+                 -K "${EXAMPLE_DIR}/tfhe.key" \
+                 -i "${EXAMPLE_DIR}/result.tfhe" \
+                 -o "${EXAMPLE_DIR}/result.txt"
+
+echo "✓ Results decrypted"
+
+# Display results
+echo -e "\n${GREEN}Monitoring Results:${NC}"
+cat "${EXAMPLE_DIR}/result.txt"
 
 echo -e "\n${GREEN}=========================================${NC}"
 echo -e "${GREEN}Example completed successfully!${NC}"
