@@ -315,8 +315,8 @@ cmake .. && make -j$(nproc)
 
 Enable verbose output for troubleshooting:
 ```bash
-export AHOMFA_DEBUG=1
-export SEAL_DEBUG=1
+export SPDLOG_LEVEL=debug
+export SEAL_THROW_ON_TRANSPARENT=1
 cd .. && ./run_bg.sh --formula 1 2>&1 | tee debug.log
 ```
 

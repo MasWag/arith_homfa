@@ -181,7 +181,7 @@ Optimized monitoring with reversed automata:
 
 Enable debug output for detailed monitoring information:
 ```bash
-export AHOMFA_DEBUG=1
+export SPDLOG_LEVEL=debug
 ./run_bg.sh --formula 1
 ```
 

@@ -471,7 +471,7 @@ ldd ./vehicle_rss
 Enable detailed logging:
 ```bash
 # Set debug environment variables
-export AHOMFA_DEBUG=1
+export SPDLOG_LEVEL=debug
 export SEAL_THROW_ON_TRANSPARENT=1
 export OMP_DISPLAY_ENV=TRUE
 

@@ -22,7 +22,7 @@ Each subcommand has `-h/--help` for the exhaustive flag list; see `doc/ahomfa_ut
 
 - CKKS config JSON (see `examples/config.json`) defines polynomial modulus degree, coefficient modulus, initial scale, and slot count.
 - Monitor executables accept `-c <config>` to load those parameters; CLI utilities share the same format.
-- Precedence: CLI flags override config defaults; environment variables (e.g., `AHOMFA_TMPDIR`) override path defaults if implemented in your monitor.
+- Precedence: CLI flags override config defaults; some monitors honor environment variables (e.g., `SPDLOG_LEVEL`) for logging tweaks, but there is no repository-wide tmpdir override.
 
 ## 7.3 Input formats
 
@@ -38,6 +38,6 @@ Each subcommand has `-h/--help` for the exhaustive flag list; see `doc/ahomfa_ut
 
 ## 7.5 Environment variables
 
-- `SPDLOG_LEVEL`: adjust runtime log level.
-- `AHOMFA_TMPDIR`: override tmp directory used by helper scripts (if defined in your wrapper).
-- `SEAL_HOME`, `SPOT_HOME`: help CMake locate dependencies when not installed system-wide.
+- `SPDLOG_LEVEL`: adjust runtime log level emitted by monitors and utilities.
+- `SEAL_THROW_ON_TRANSPARENT=1`: ask SEAL to abort if a ciphertext becomes transparent (useful during predicate development).
+- OpenMP knobs such as `OMP_DISPLAY_ENV=TRUE` or `OMP_NUM_THREADS`: inspect thread placement or throttle parallelism for encrypted runs.
