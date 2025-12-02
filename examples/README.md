@@ -47,8 +47,16 @@ sudo apt-get install -y \
     ninja-build \
     libomp-dev \
     libtbb-dev \
-    libssl-dev
+    libssl-dev \
+    python3 \
+    opam
 ```
+
+Additional tooling:
+- **Microsoft SEAL** and **Spot** must be installed system-wide (see the project root README for details).
+- The vehicle RSS example builds `thirdparty/ltlconv` via `opam`/`dune`; make sure OCaml tooling is initialized (`opam init && eval $(opam env)`).
+- The vehicle RSS data generators invoke `python3 extract_preceding.py`, so Python 3 needs to be on your `PATH`.
+- Both examples rely on standard GNU utilities (`cut`, `sed`, `diff`, `cmp`) that ship with most Linux distributions.
 
 ### Building ArithHomFA
 Before running the examples, build the main ArithHomFA project:
