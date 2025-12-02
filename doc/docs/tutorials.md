@@ -59,7 +59,3 @@ cmake --build build --target vehicle_rss
 ```
 
 The RSS example monitors four simultaneous predicates derived from `vrss.ltl`. Inspect `examples/vehicle_rss/README.md` for the predicate definitions and data format, then adapt the Make targets when bringing your own traces.
-
-## 4.6 Domain case study (todo)
-
-Add your domain-specific traces (e.g., CPS, security logs) under `examples/`. Reuse the Makefile template and tutorial scaffolding to document reproducible steps for reviewers.
