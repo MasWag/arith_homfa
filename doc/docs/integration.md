@@ -1,4 +1,4 @@
-# 8. Instrumentation and Integration
+# 8. Predicate Integration
 
 Custom predicates live in classes derived from `ArithHomFA::CKKSPredicate` (see `src/ckks_predicate.hh`) and are compiled together with `libahomfa_runner.a`. Keep predicate logic free of side effects; rely on spdlog for diagnostics because stdout/stderr are reserved for ciphertext streaming (printing with `std::cout` will corrupt the protocol). `libahomfa_runner.a` already provides the `main` used by the example binaries (e.g., `blood_glucose_one`), so you typically build standalone monitors that read encrypted traces from stdin/stdout rather than embedding the runner into another host.
 

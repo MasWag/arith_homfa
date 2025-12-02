@@ -8,8 +8,6 @@
 
 **Archived snapshot.** Provide a Zenodo DOI when available.
 
-**How to cite.** Cite the RV'24 paper listed in `CITATION.cff` (DOI: [10.1007/978-3-031-74234-7_4](https://doi.org/10.1007/978-3-031-74234-7_4)) together with this manual when referencing the artifact.
-
 **Artifact contents.** This repository ships the `ahomfa_util` command-line utility, the `libahomfa_runner.a` monitoring library, sample STL formulas, build scripts, and two curated example suites (`examples/blood_glucose`, `examples/vehicle_rss`) with data, specs, and automation scripts.
 
 ## 1.1 Purpose and use cases
@@ -30,7 +28,7 @@ This manual is organized to mirror a user’s journey:
 - Follow [Quick Start](quick-start.md) for a guided encrypted run, then branch into [Tutorials](tutorials.md) for variants (plain, pointwise, block, reversed).
 - Once you have a working example, read [Core Concepts](core-concepts.md) to understand the CKKS/TFHE split and DFA workflow.
 - When crafting custom properties or tooling, consult the [Specification Language Reference](spec-language.md) and [Command-Line Reference](cli-reference.md).
-- [Instrumentation and Integration](integration.md) covers embedding the runner into larger systems and adapting predicates to your application.
+- [Predicate Integration](integration.md) covers embedding the runner into larger systems and adapting predicates to your application.
 - Keep [Troubleshooting](troubleshooting.md) and [Limitations](limitations.md) nearby when debugging; [Developer Notes](developer-notes.md) and [Appendices](appendices.md) provide extended context.
 
 Feel free to skim forward, but the Installation → Quick Start → Tutorials path ensures later sections build on a working baseline.
