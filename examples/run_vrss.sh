@@ -1,4 +1,9 @@
 #!/bin/bash
+################################################
+# NAME
+#  run_vrs
+################################################
+
 set -e
 
 # Vehicle RSS Example Execution Script
