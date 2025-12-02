@@ -1,10 +1,20 @@
-cmake_policy(SET CMP0048 NEW)
+cmake_minimum_required(VERSION 3.16...3.28)
+
+# CMake >= 4.2 removes compatibility for projects targeting < 3.5.
+# Some bundled third-parties (cpu-features via HEXL) still declare VERSION 3.0,
+# so force the minimum policy version high enough to keep them building.
+if(NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif()
+
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
 if(POLICY CMP0069)
   cmake_policy(SET CMP0069 NEW)
 endif()
-project(ArithHomFABenchmarks LANGUAGES CXX VERSION 0.0.1)
 
-cmake_minimum_required(VERSION 3.16)
+project(ArithHomFABenchmarks LANGUAGES CXX VERSION 0.0.1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
