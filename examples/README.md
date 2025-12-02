@@ -33,10 +33,9 @@ Implements safety monitoring for autonomous vehicles using RSS predicates to ens
 
 ### System Requirements
 - Linux-based system (Ubuntu 20.04+ recommended)
-- C++ compiler with C++17 support (GCC 9+ or Clang 10+)
-- CMake (>= 3.16)
-- Make or Ninja build system
-- OpenMP support for parallel processing
+- GCC 10+ with C++17 support (Clang is currently unsupported because of template instantiation issues)
+- CMake (>= 3.16) plus Make or Ninja
+- OpenMP-capable CPU for best performance
 
 ### Dependencies
 ```bash
@@ -56,15 +55,14 @@ Before running the examples, build the main ArithHomFA project:
 
 ```bash
 # From the project root directory
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+git submodule update --init --recursive
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target ahomfa_util libahomfa_runner.a
 ```
 
 ## General Usage Pattern
 
-Each example follows a similar workflow:
+Each example follows a similar workflow. The automation scripts (`run_bg.sh`, `run_vrss.sh`) run every step for you, but the individual `make` targets are handy when iterating on a specific stage.
 
 ### 1. Key Generation
 Generate encryption keys for both CKKS and TFHE schemes:
@@ -96,7 +94,7 @@ Run the monitoring algorithm on encrypted data. From the `examples/` directory y
 ### 5. Result Decryption
 Decrypt and interpret monitoring results:
 ```bash
-../../build/src/ahomfa_util tfhe dec -K tfhe.key -i result.tfhe -o result.txt
+../build/ahomfa_util tfhe dec -K tfhe.key -i result.tfhe -o result.txt
 ```
 
 ## Quick Start
@@ -106,10 +104,10 @@ Each example includes a convenient script that automates the entire workflow:
 ```bash
 cd examples
 
-# Blood Glucose example (formula auto-selects the right dataset)
-./run_bg.sh --formula 1
+# Blood Glucose example (formula auto-selects the right dataset unless overridden)
+./run_bg.sh --formula 1 --mode fast
 
-# Vehicle RSS example
+# Vehicle RSS example (builds binaries, regenerates data, and diff-checks verdicts)
 ./run_vrss.sh
 ```
 
