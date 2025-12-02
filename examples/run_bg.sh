@@ -16,7 +16,7 @@ usage() {
 Usage: ./run_bg.sh [options]
 
 Options:
-  --formula <id>     Formula identifier (e.g., 1, 7). Defaults to 1.
+  --formula <id>     Formula identifier (required, e.g., 1, 7).
   --dataset <name>   Dataset override (adult#001_night | adult#001_2nd_7days).
   --mode <mode>      Monitoring mode for block/reverse (fast | normal | slow). Default: fast
   --block-size <n>   Block size for block mode. Default: 1
@@ -25,7 +25,7 @@ Options:
 EOF
 }
 
-FORMULA_ID=1
+FORMULA_ID="${FORMULA_ID:-}"
 DATASET_NAME=""
 CUSTOM_DATASET=false
 MONITOR_MODE="${MONITOR_MODE:-fast}"
@@ -71,6 +71,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -z "${FORMULA_ID}" ]]; then
+    echo "Formula id must be specified via --formula <id>"
+    usage
+    exit 1
+fi
 
 if ! [[ "${FORMULA_ID}" =~ ^[0-9]+$ ]]; then
     echo "Formula id must be numeric"
