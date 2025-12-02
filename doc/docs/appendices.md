@@ -1,4 +1,4 @@
-# Appendices
+# 12. Appendices
 
 ## Appendix A — Runnable examples catalog
 

@@ -14,7 +14,7 @@ For encrypted workloads, expect multi-minute builds and high RAM consumption (â‰
 ## 2.2 Build from source
 
 ```sh
-git clone git@github.com:MasWag/arith_homfa.git
+git clone https://github.com/MasWag/arith_homfa.git
 cd arith_homfa
 git submodule update --init --recursive
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

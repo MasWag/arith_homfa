@@ -1,4 +1,4 @@
-# 10. Troubleshooting and FAQ
+# 9. Troubleshooting and FAQ
 
 - **`spot` not found during `ltl2spec`.** Install Spot libraries and ensure `pkg-config` sees `spot.pc`.
 - **Monitor prints nothing.** Remember that encrypted modes write ciphertext to stdout; pipe into `tfhe dec` or redirect to a file.

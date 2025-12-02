@@ -1,4 +1,4 @@
-# 11. Limitations and Known Issues
+# 10. Limitations and Known Issues
 
 - Only discrete-time STL is supported; no dense-time semantics.
 - Predicates must be implemented in C++ with SEAL; there is no high-level DSL yet.
