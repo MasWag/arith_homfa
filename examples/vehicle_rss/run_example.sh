@@ -40,14 +40,14 @@ echo -e "\n${GREEN}Step 2: Generating specification files...${NC}"
 make -C "${EXAMPLE_DIR}" specs
 echo "✓ Specification files generated"
 
-# Step 3: Create sample data
-echo -e "\n${GREEN}Step 3: Creating sample vehicle data...${NC}"
-make -C "${EXAMPLE_DIR}" sample_data
-echo "✓ Sample data created"
+# Step 3: Generate move15.vrss.txt
+echo -e "\n${GREEN}Step 3: Generating move15.vrss.txt...${NC}"
+make -C "${EXAMPLE_DIR}" move15.vrss.txt
+echo "✓ move15.vrss.txt generated"
 
 # Step 4: Encrypt data
 echo -e "\n${GREEN}Step 4: Encrypting vehicle data...${NC}"
-make -C "${EXAMPLE_DIR}" encrypt_sample
+make -C "${EXAMPLE_DIR}" move15.vrss.ckks
 echo "✓ Data encrypted"
 
 # Step 5: Run monitoring (if monitor executable exists)

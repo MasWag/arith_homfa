@@ -22,3 +22,6 @@
 [submodule "scripts/lattice-estimator"]
 	path = scripts/lattice-estimator
 	url = https://github.com/malb/lattice-estimator.git
+[submodule "thirdparty/ltlconv"]
+	path = thirdparty/ltlconv
+	url = https://github.com/gfngfn/ltlconv.git
