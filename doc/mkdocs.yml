@@ -13,7 +13,6 @@ nav:
   - Specification Language: spec-language.md
   - Command-Line Reference: cli-reference.md
   - Integration: integration.md
-  - Performance: performance.md
   - Troubleshooting: troubleshooting.md
   - Limitations: limitations.md
   - Developer Notes: developer-notes.md

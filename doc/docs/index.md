@@ -30,7 +30,7 @@ This manual is organized to mirror a user’s journey:
 - Follow [Quick Start](quick-start.md) for a guided encrypted run, then branch into [Tutorials](tutorials.md) for variants (plain, pointwise, block, reversed).
 - Once you have a working example, read [Core Concepts](core-concepts.md) to understand the CKKS/TFHE split and DFA workflow.
 - When crafting custom properties or tooling, consult the [Specification Language Reference](spec-language.md) and [Command-Line Reference](cli-reference.md).
-- [Instrumentation and Integration](integration.md) plus [Performance and Reproducibility](performance.md) cover embedding the runner into larger systems.
+- [Instrumentation and Integration](integration.md) covers embedding the runner into larger systems and adapting predicates to your application.
 - Keep [Troubleshooting](troubleshooting.md) and [Limitations](limitations.md) nearby when debugging; [Developer Notes](developer-notes.md) and [Appendices](appendices.md) provide extended context.
 
 Feel free to skim forward, but the Installation → Quick Start → Tutorials path ensures later sections build on a working baseline.
