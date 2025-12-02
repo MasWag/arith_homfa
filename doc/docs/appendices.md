@@ -12,18 +12,18 @@
 
 | Paper section | Manual location |
 | --- | --- |
-| RV'24 system overview | §1 Overview + §4 Core Concepts |
-| Algorithm details | §7 Specification Language + `src/` comments |
-| Evaluation | §5 Tutorials + §9 Performance |
+| RV'24 system overview | §1 Overview + §5 Core Concepts |
+| Algorithm details | §6 Specification Language + `src/` comments |
+| Evaluation | §4 Tutorials (blood glucose + vehicle RSS) |
 
-Populate this table once the camera-ready paper numbers are public.
+Update the references if future paper revisions renumber sections.
 
 ## Appendix C — Artifact checklist
 
 - Tool version + git commit recorded in Front Matter.
 - Build scripts (`CMakeLists.txt`, `examples/*/Makefile`).
 - Sample traces/specs/keys under `examples/`.
-- Reproduction commands in §2 and §5.
+- Reproduction commands in §2 and §4.
 
 ## Appendix D — Third-party licenses
 

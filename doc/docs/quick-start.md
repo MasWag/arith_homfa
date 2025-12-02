@@ -60,4 +60,4 @@ Dataflow overview
 Encrypted trace + keys ----> CKKS/TFHE monitor (blood_glucose_one) ----> TFHE verdict --> tfhe dec
 ```
 
-The decrypted TFHE stream (`0`/`1`) reports whether the STL obligations hold at each timestep. If the output diverges from the documented tutorial values, revisit Installation (toolchain), Tutorials §4.2 (debugging failing traces), or Troubleshooting §10 before integrating custom predicates.
+The decrypted TFHE stream (`0`/`1`) reports whether the STL obligations hold at each timestep. If the output diverges from the documented tutorial values, revisit Installation (toolchain), Tutorials §4.2 (debugging failing traces), or Troubleshooting §9 before integrating custom predicates.
