@@ -1,4 +1,43 @@
 #!/usr/bin/env bash
+################################################
+# NAME
+#  run_bg.sh - execute the Blood Glucose homomorphic monitoring workflow
+# SYNOPSIS
+#  run_bg.sh [options]
+# DESCRIPTION
+#  Orchestrates the end-to-end Blood Glucose example: prepares the build tree,
+#  resolves the requested formula and dataset, generates or refreshes CKKS/TFHE
+#  key material, converts LTL formulas into specifications, encrypts glucose
+#  traces, runs plain/block/reverse monitors, and validates the decrypted
+#  verdicts.
+# PREREQUISITES
+#  * A configured build directory at ./build (the script configures & builds on demand).
+#  * Example assets residing under ./blood_glucose (config, formulas, datasets).
+#  * The ahomfa_util helper plus blood_glucose_* monitor binaries produced by the build.
+# OUTPUTS
+#  * blood_glucose/results/bg<formula>_<dataset>_plain.txt        Plaintext baseline verdicts.
+#  * blood_glucose/results/bg<formula>_<dataset>_block.tfhe       TFHE ciphertext from block monitoring.
+#  * blood_glucose/results/bg<formula>_<dataset>_block.txt        Decrypted block monitoring verdicts.
+#  * blood_glucose/results/bg<formula>_<dataset>_reverse.tfhe     TFHE ciphertext from reverse monitoring.
+#  * blood_glucose/results/bg<formula>_<dataset>_reverse.txt      Decrypted reverse monitoring verdicts.
+# WORKFLOW
+#  # Parse CLI/environment inputs, map formula ids to monitor binaries and datasets.
+#  # Ensure ahomfa_util plus the targeted monitor are built, building ../build if needed.
+#  # Generate CKKS secret/relinearization keys and TFHE secret/bootstrap keys.
+#  # Translate the selected LTL formula into a spec plus reversed spec when stale or missing.
+#  # Derive plaintext samples from the CSV dataset and encrypt them with CKKS.
+#  # Execute plain, block, and reverse monitoring passes and capture TFHE outputs.
+#  # Decrypt encrypted verdicts, compare against the plain trace, emit results, prompt for cleanup.
+# OPTIONS
+#  * --formula <id>: Required formula identifier (determines binary and spec files).
+#  * --dataset <name>: Override dataset basename (defaults derive from the formula id).
+#  * --mode <fast|normal|slow>: Select monitor performance mode (default: fast).
+#  * --block-size <n>: Set encrypted block length for block mode (default: 1).
+#  * --bootstrap <n>: Bootstrapping frequency for reverse mode (default: 200).
+#  * FORMULA_ID, MONITOR_MODE, BLOCK_SIZE, BOOTSTRAP_FREQ: environment overrides for the defaults.
+# INTERACTIVE BEHAVIOR
+#  The script prompts at completion (when stdin is a TTY) to delete generated result files.
+################################################
 set -euo pipefail
 
 echo "========================================="
