@@ -1,7 +1,39 @@
 #!/bin/bash
 ################################################
 # NAME
-#  run_vrs
+#  run_vrss.sh - execute the Vehicle RSS homomorphic monitoring workflow
+# SYNOPSIS
+#  run_vrss.sh
+# DESCRIPTION
+#  This helper script runs the complete Vehicle RSS example shipped with ArithHomFA.
+#  It validates the build directory, creates or reuses cryptographic material,
+#  generates synthetic driving traces, executes plain and encrypted monitors, and
+#  decrypts plus compares the resulting verdicts.
+# PREREQUISITES
+#  * A configured build directory at ../build (the script builds it on demand).
+#  * Example assets located under vehicle_rss (keys, specs, config, traces).
+#  * The ahomfa_util and vehicle_rss binaries produced by the build.
+# OUTPUTS
+#  * vehicle_rss/result_plain.txt      Plaintext baseline output.
+#  * vehicle_rss/result_block.tfhe     TFHE ciphertext of block monitoring.
+#  * vehicle_rss/result_block.txt      Decrypted block monitoring verdicts.
+#  * vehicle_rss/result_reverse.tfhe   TFHE ciphertext of reverse monitoring.
+#  * vehicle_rss/result_reverse.txt    Decrypted reverse monitoring verdicts.
+# WORKFLOW
+#  # Ensure the build tree exists and contains ahomfa_util and vehicle_rss.
+#  # Run the vehicle_rss make targets: keys, specs, move15.vrss.txt, move15.vrss.ckks.
+#  # Execute the plain monitor to capture the baseline text verdicts.
+#  # Execute block and reverse monitors in the selected mode (default: fast) using CKKS inputs.
+#  # Decrypt TFHE results with ahomfa_util and compare all verdicts for consistency.
+#  # Show the plain results and optionally clean generated artifacts when prompted.
+# OPTIONS
+#  * No positional arguments or flags are parsed; run the script without parameters.
+#  * MONITOR_MODE: export to switch vehicle_rss performance mode (default: fast).
+#  * BLOCK_SIZE: export to adjust the encrypted block length fed to vehicle_rss (default: 1).
+#  * BUILD_DIR: override to point at a prebuilt ArithHomFA tree (default: ../build).
+#  * EXAMPLE_DIR: override if the vehicle_rss assets live elsewhere (default: ./vehicle_rss).
+# INTERACTIVE BEHAVIOR
+#  The script prompts at the end to decide whether to delete generated files via make clean.
 ################################################
 
 set -e
