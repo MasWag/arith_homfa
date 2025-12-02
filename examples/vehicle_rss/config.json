@@ -1,0 +1,7 @@
+{
+	"SealConfig": {
+		"poly_modulus_degree": 8192,
+		"base_sizes": [60, 40, 60],
+		"scale": 1099511627776
+	}
+}
