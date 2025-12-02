@@ -22,3 +22,12 @@
 [submodule "scripts/lattice-estimator"]
 	path = scripts/lattice-estimator
 	url = https://github.com/malb/lattice-estimator.git
+[submodule "thirdparty/ltlconv"]
+	path = thirdparty/ltlconv
+	url = https://github.com/gfngfn/ltlconv.git
+[submodule "examples/blood_glucose/homfa-experiment"]
+	path = examples/blood_glucose/homfa-experiment
+	url = https://github.com/virtualsecureplatform/homfa-experiment.git
+[submodule "examples/scrdoc"]
+	path = examples/scrdoc
+	url = https://github.com/MasWag/scrdoc.git

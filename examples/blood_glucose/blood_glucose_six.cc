@@ -7,32 +7,28 @@
 
 namespace ArithHomFA {
     /*!
-     * @brief Compute glucose > 70 && glucose < 180
+     * @brief Compute glucose < 70
      *
      * signal size == 1
-     * predicate size == 2
+     * predicate size == 1
      */
     void CKKSPredicate::evalPredicateInternal(const std::vector<seal::Ciphertext> &valuation,
                                               std::vector<seal::Ciphertext> &result) {
-        std::array<seal::Plaintext, 2> plains;
-        this->encoder.encode(70, this->scale, plains.front());
-        this->encoder.encode(180, this->scale, plains.back());
-        this->evaluator.sub_plain(valuation.front(), plains.front(), result.front());
-        this->evaluator.sub_plain(valuation.front(), plains.back(), result.back());
-        this->evaluator.negate_inplace(result.back());
+        seal::Plaintext plain;
+        this->encoder.encode(70, this->scale, plain);
+        this->evaluator.sub_plain(valuation.front(), plain, result.front());
+        this->evaluator.negate_inplace(result.front());
         this->evaluator.mod_switch_to_inplace(result.front(), context.last_parms_id());
-        this->evaluator.mod_switch_to_inplace(result.back(), context.last_parms_id());
     }
 
     void CKKSPredicate::evalPredicateInternal(const std::vector<double> &valuation,
                                               std::vector<double> &result) {
-        result.front() = valuation.front() - 70;
-        result.back() = 180 - valuation.back();
+        result.front() = 70 - valuation.front();
     }
 
     // Define the signal and predicate sizes
     const std::size_t CKKSPredicate::signalSize = 1;
-    const std::size_t CKKSPredicate::predicateSize = 2;
+    const std::size_t CKKSPredicate::predicateSize = 1;
     // The approximate maximum value of the difference between the signal and the threshold
-    const std::vector<double> CKKSPredicate::references = {300, 300};
+    const std::vector<double> CKKSPredicate::references = {300};
 }

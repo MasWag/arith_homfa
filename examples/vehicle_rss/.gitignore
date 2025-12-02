@@ -1,0 +1,11 @@
+*.vrss.txt
+ltlconv
+vrss.ltl
+cmake-build-release/
+
+ckks.key
+ckks.relinkey
+tfhe.bkey
+tfhe.key
+*.spec
+*.ckks

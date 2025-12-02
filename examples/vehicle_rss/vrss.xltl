@@ -1,0 +1,15 @@
+let $posMin := p0 in
+let $safeNeg := p1 in
+let $safePos := p2 in
+let $sameLane := p6 && p7 in
+let $safe := $sameLane -> (($posMin && $safePos) || (!$posMin && $safeNeg)) in
+let $bMaxAcc := p3 in
+let $bMinBr := p4 in
+let $fMaxBr := p5 in
+G(
+  $safe && X(!$safe) ->
+  X(
+    ($safe R[0,1] ($safe || ($bMaxAcc && $fMaxBr))) &&
+    ($safe R[2,infinity] ($safe || ($bMinBr && $fMaxBr)))
+  )
+)

@@ -17,7 +17,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
-find_package(SEAL 4.1.1 EXACT REQUIRED)
+find_package(SEAL 4.1.1 REQUIRED)
 
 link_libraries(
         SEAL::seal
