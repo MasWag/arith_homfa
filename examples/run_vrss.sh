@@ -20,6 +20,15 @@ BUILD_DIR="${EXAMPLE_DIR}/../build"
 AHOMFA_UTIL="${BUILD_DIR}/arith_homfa/ahomfa_util"
 MONITOR="${BUILD_DIR}/vehicle_rss/vehicle_rss"
 
+# Output locations
+PLAIN_RESULT="${EXAMPLE_DIR}/result_plain.txt"
+BLOCK_RESULT_TFHE="${EXAMPLE_DIR}/result_block.tfhe"
+BLOCK_RESULT="${EXAMPLE_DIR}/result_block.txt"
+REVERSE_RESULT_TFHE="${EXAMPLE_DIR}/result_reverse.tfhe"
+REVERSE_RESULT="${EXAMPLE_DIR}/result_reverse.txt"
+MONITOR_MODE="fast"
+BLOCK_SIZE=1
+
 # Check if build directory exists
 if [ ! -d "${BUILD_DIR}" ]; then
     echo -e "${YELLOW}Build directory not found. Creating and building...${NC}"
@@ -48,36 +57,85 @@ echo -e "\n${GREEN}Step 4: Encrypting vehicle data...${NC}"
 make -C "${EXAMPLE_DIR}" move15.vrss.ckks
 echo "✓ Data encrypted"
 
-# Step 5: Run monitoring (if monitor executable exists)
-echo -e "\n${GREEN}Step 5: Running homomorphic monitoring...${NC}"
+# Step 5: Run monitoring across plain, block, and reverse algorithms
+echo -e "\n${GREEN}Step 5: Running monitoring in plain, block, and reverse modes...${NC}"
 
-# Run reverse monitoring
-echo "Running reverse monitoring (fast mode)..."
+echo "Running plain monitoring (baseline)..."
+"${MONITOR}" plain \
+             -c "${EXAMPLE_DIR}/config.json" \
+             -f "${EXAMPLE_DIR}/vrss.spec" \
+             -i "${EXAMPLE_DIR}/move15.vrss.txt" \
+             -o "${PLAIN_RESULT}"
+echo "✓ Plain monitoring completed"
+
+echo "Running block monitoring (${MONITOR_MODE} mode)..."
+"${MONITOR}" block \
+             -c "${EXAMPLE_DIR}/config.json" \
+             -r "${EXAMPLE_DIR}/ckks.relinkey" \
+             -b "${EXAMPLE_DIR}/tfhe.bkey" \
+             -f "${EXAMPLE_DIR}/vrss.spec" \
+             -l "${BLOCK_SIZE}" \
+             -m "${MONITOR_MODE}" \
+             -i "${EXAMPLE_DIR}/move15.vrss.ckks" \
+             -o "${BLOCK_RESULT_TFHE}"
+echo "✓ Block monitoring completed"
+
+echo "Running reverse monitoring (${MONITOR_MODE} mode)..."
 "${MONITOR}" reverse \
              -c "${EXAMPLE_DIR}/config.json" \
              -r "${EXAMPLE_DIR}/ckks.relinkey" \
              -b "${EXAMPLE_DIR}/tfhe.bkey" \
              -f "${EXAMPLE_DIR}/vrss.reversed.spec" \
-             -m fast \
+             -m "${MONITOR_MODE}" \
              -i "${EXAMPLE_DIR}/move15.vrss.ckks" \
-             -o "${EXAMPLE_DIR}/result.tfhe" \
+             -o "${REVERSE_RESULT_TFHE}" \
              --bootstrapping-freq 200 \
              --reversed
+echo "✓ Reverse monitoring completed"
 
-echo "✓ Monitoring completed"
-
-# Step 6: Decrypt results
-echo -e "\n${GREEN}Step 6: Decrypting results...${NC}"
+# Step 6: Decrypt TFHE results
+echo -e "\n${GREEN}Step 6: Decrypting homomorphic monitoring results...${NC}"
 "${AHOMFA_UTIL}" tfhe dec \
                  -K "${EXAMPLE_DIR}/tfhe.key" \
-                 -i "${EXAMPLE_DIR}/result.tfhe" \
-                 -o "${EXAMPLE_DIR}/result.txt"
+                 -i "${BLOCK_RESULT_TFHE}" \
+                 -o "${BLOCK_RESULT}"
+"${AHOMFA_UTIL}" tfhe dec \
+                 -K "${EXAMPLE_DIR}/tfhe.key" \
+                 -i "${REVERSE_RESULT_TFHE}" \
+                 -o "${REVERSE_RESULT}"
+echo "✓ Block and reverse results decrypted"
 
-echo "✓ Results decrypted"
+# Step 7: Verify that all modes produce the same outcome
+echo -e "\n${GREEN}Step 7: Validating monitoring consistency...${NC}"
+PLAIN_LINES=$(grep -cve '^[[:space:]]*$' "${PLAIN_RESULT}" || true)
+BLOCK_LINES=$(grep -cve '^[[:space:]]*$' "${BLOCK_RESULT}" || true)
+REVERSE_LINES=$(grep -cve '^[[:space:]]*$' "${REVERSE_RESULT}" || true)
+MIN_LINES=$(printf "%s\n%s\n%s\n" "${PLAIN_LINES}" "${BLOCK_LINES}" "${REVERSE_LINES}" | sort -n | head -n1)
+
+if [ "${MIN_LINES}" -eq 0 ]; then
+    echo -e "${RED}✗ Unable to compare monitoring outputs: one of the result files is empty${NC}"
+    exit 1
+fi
+
+if [ "${PLAIN_LINES}" -ne "${BLOCK_LINES}" ] || [ "${PLAIN_LINES}" -ne "${REVERSE_LINES}" ]; then
+    echo -e "${YELLOW}Note: result lengths differ (plain=${PLAIN_LINES}, block=${BLOCK_LINES}, reverse=${REVERSE_LINES}). Comparing the first ${MIN_LINES} entries.${NC}"
+fi
+
+if cmp -s <(head -n "${MIN_LINES}" "${PLAIN_RESULT}") <(head -n "${MIN_LINES}" "${BLOCK_RESULT}") \
+   && cmp -s <(head -n "${MIN_LINES}" "${PLAIN_RESULT}") <(head -n "${MIN_LINES}" "${REVERSE_RESULT}"); then
+    echo "✓ Plain, block, and reverse monitoring results match on the compared entries"
+else
+    echo -e "${RED}✗ Monitoring outputs differ between modes${NC}"
+    echo "Plain vs Block diff:"
+    diff -u <(head -n "${MIN_LINES}" "${PLAIN_RESULT}") <(head -n "${MIN_LINES}" "${BLOCK_RESULT}") || true
+    echo "Plain vs Reverse diff:"
+    diff -u <(head -n "${MIN_LINES}" "${PLAIN_RESULT}") <(head -n "${MIN_LINES}" "${REVERSE_RESULT}") || true
+    exit 1
+fi
 
 # Display results
 echo -e "\n${GREEN}Monitoring Results:${NC}"
-cat "${EXAMPLE_DIR}/result.txt"
+cat "${PLAIN_RESULT}"
 
 echo -e "\n${GREEN}=========================================${NC}"
 echo -e "${GREEN}Example completed successfully!${NC}"
@@ -88,6 +146,13 @@ read -p "Do you want to clean up generated files? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     make -C "${EXAMPLE_DIR}" clean
-    rm -f "${EXAMPLE_DIR}/result.tfhe" "${EXAMPLE_DIR}/result.txt"
+    rm -f \
+        "${BLOCK_RESULT_TFHE}" \
+        "${BLOCK_RESULT}" \
+        "${REVERSE_RESULT_TFHE}" \
+        "${REVERSE_RESULT}" \
+        "${PLAIN_RESULT}" \
+        "${EXAMPLE_DIR}/result.tfhe" \
+        "${EXAMPLE_DIR}/result.txt"
     echo "✓ Cleanup completed"
 fi
