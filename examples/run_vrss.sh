@@ -52,7 +52,7 @@ echo "✓ Data encrypted"
 echo -e "\n${GREEN}Step 5: Running homomorphic monitoring...${NC}"
 
 # Run reverse monitoring
-echo "Running reverse monitoring (normal mode)..."
+echo "Running reverse monitoring (fast mode)..."
 "${MONITOR}" reverse \
              -c "${EXAMPLE_DIR}/config.json" \
              -r "${EXAMPLE_DIR}/ckks.relinkey" \
