@@ -17,8 +17,8 @@ For encrypted workloads, expect multi-minute builds and high RAM consumption (â‰
 git clone git@github.com:MasWag/arith_homfa.git
 cd arith_homfa
 git submodule update --init --recursive
-cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
-cmake --build cmake-build-release -- ahomfa_util libahomfa_runner.a
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target ahomfa_util libahomfa_runner.a
 ```
 
 ## 2.3 Sanity checks
@@ -26,7 +26,7 @@ cmake --build cmake-build-release -- ahomfa_util libahomfa_runner.a
 After building, run:
 
 ```sh
-./cmake-build-release/ahomfa_util --help
+./build/ahomfa_util --help
 ctest --output-on-failure
 ```
 

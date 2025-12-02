@@ -42,12 +42,35 @@ The following shows how to build `ahomfa_util` and `libahomfa_runner.a` using cm
 
 ```sh
 git submodule update --init --recursive
-cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
-cmake --build cmake-build-release -- ahomfa_util libahomfa_runner.a
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target ahomfa_util libahomfa_runner.a
 ```
 
 Usage Example
 -------------
+
+### Ready-to-run demos
+
+Each curated example under `examples/` ships a `run_example.sh` convenience script that builds the toolkit (if needed), generates keys and DFA specifications, produces sample data, encrypts it, runs the monitor, and decrypts the verdicts.
+
+```sh
+# Blood glucose monitoring
+cd examples/blood_glucose
+./run_example.sh
+
+# Vehicle RSS monitoring
+cd ../vehicle_rss
+./run_example.sh
+```
+
+Under the hood, the scripts call the shared Make targets defined in every example directory:
+
+- `make keys` – create CKKS/TFHE secret keys plus the relinearization/bootstrapping keys.
+- `make specs` – transform the bundled LTL formulas (e.g., `bg1.ltl`, `vrss.ltl`) into DFA specs and reversed specs.
+- `make sample_data` / `make encrypt_sample` – synthesize representative traces and encrypt them with CKKS.
+- `make release` (blood_glucose) – build the monitor binary without having to rebuild the entire repository.
+
+Use the scripts for quick smoke tests, then switch to the manual steps below when adapting the workflow to your own predicates and traces.
 
 ### Outline
 
@@ -78,32 +101,39 @@ The following shows a concrete example of ArithHomFA using the blood_glucose exa
 
 First, a user has to decide the CKKS parameter and the monitored specification.
 
-In ArithHomFA, the CKKS parameter is given by a JSON file. An example is in `./examples/config.json`.
+In ArithHomFA, the CKKS parameter is given by a JSON file. Examples are provided in `./examples/blood_glucose/config.json` and `./examples/vehicle_rss/config.json`.
 
-The monitored specification consists of the LTL formula and the predicate. An LTL formula is given by an format accepted by [Spot](https://spot.lre.epita.fr/) with atomic propositions p0, p1, ..., where pi is the i-th predicate. A concrete example is shown in `examples/blood_glucose/gp0.ltl`.
+The monitored specification consists of the LTL formula and the predicate. An LTL formula is given by an format accepted by [Spot](https://spot.lre.epita.fr/) with atomic propositions p0, p1, ..., where pi is the i-th predicate. Concrete examples are shown in `examples/blood_glucose/bg1.ltl` and `examples/vehicle_rss/vrss.ltl`.
 
 The predicate is given by an implementation of a C++ class `ArithHomFA::CKKSPredicate` in `./src/ckks_predicate.hh`. Here, we also have to specify an approximate upper bound of the difference between the given value and the threshold. A concrete example is shown in `examples/blood_glucose/blood_glucose_one.cc`.
 
 #### Step 2: Monitor Building
 
-Then, on the server-side, one builds a monitor using the predicate in C++ and `libahomfa_runner.a`. A concrete example of `Makefile` is shown in `examples/blood_glucose/Makefile`. For release build, one can build the monitor `blood_glucose_one` by `make -C ./examples/blood_glucose/ release` or `make release` at `examples/blood_glucose`.
+Then, on the server-side, one builds a monitor using the predicate in C++ and `libahomfa_runner.a`. A concrete example of `Makefile` is shown in `examples/blood_glucose/Makefile`. For release build, one can build the monitor `blood_glucose_one` by `make -C ./examples/blood_glucose release` or `make release` at `examples/blood_glucose`.
 
 #### Step 3: Spec Transformation
 
 In this step, we transform the LTL formula into a DFA specification using the  `ltl2spec` subcommand of `ahomfa_util`. First, ensure that your LTL formula is properly formatted and saved (as shown in the blood glucose example). Then, run the following command:
 
 ```sh
-./build/ahomfa_util ltl2spec -e $(cat ./examples/blood_glucose/gp0.ltl) --num-vars 1 > ./examples/blood_glucose/gp0.spec
+./build/ahomfa_util ltl2spec \
+  -e "$(cat ./examples/blood_glucose/bg1.ltl)" \
+  --num-vars 1 \
+  -o ./examples/blood_glucose/bg1.spec
 ```
-This command will read the LTL formula from the provided file (`gp0.ltl`) with one predicate, convert it into a DFA specification, and save the output into `gp0.spec`.
+This command reads the LTL formula from `bg1.ltl` (one predicate), converts it into a DFA specification, and saves the output into `bg1.spec`.
 
-If you are planning to use the reversed algorithm, it's also recommended to generate the reversed specification. The `spec2spec` subcommand provides an option to generate reversed specifications. In this case, `--reverse` option is used. The command would be:
+If you are planning to use the reversed algorithm, it's also recommended to generate the reversed specification. The `ltl2spec` subcommand provides an option to emit reversed specifications directly via the `--reverse` flag. The command would be:
 
 ```sh
-./build/ahomfa_util spec2spec --reverse -i ./examples/blood_glucose/gp0.spec -o ./examples/blood_glucose/gp0.reversed.spec
+./build/ahomfa_util ltl2spec \
+  -e "$(cat ./examples/blood_glucose/bg1.ltl)" \
+  --num-vars 1 \
+  --reverse \
+  -o ./examples/blood_glucose/bg1.reversed.spec
 ```
 
-This command reads the DFA specification from the gp0.spec file, reverses it, and saves the result in the gp0.reversed.spec file. This reversed specification should be used for running the monitor in reverse mode in Step 7.
+This command reads the LTL formula, outputs the DFA, and saves the reversed version in `bg1.reversed.spec`. This reversed specification should be used for running the monitor in reverse mode in Step 7.
 
 #### Step 4: Key Generation
 
@@ -112,7 +142,7 @@ In the fourth step, the client generates four keys using the `ahomfa_util` comma
 Generate the private key for the CKKS scheme:
 
 ```sh
-./build/ahomfa_util ckks genkey -c ./example/config.json -o /tmp/ckks.key
+./build/ahomfa_util ckks genkey -c ./examples/blood_glucose/config.json -o /tmp/ckks.key
 ```
 
 Generate the private key for the TFHE scheme:
@@ -124,13 +154,13 @@ Generate the private key for the TFHE scheme:
 Generate the relinearization key for the CKKS scheme:
 
 ```sh
-./build/ahomfa_util ckks genrelinkey -c ./example/config.json -K /tmp/ckks.key -o /tmp/ckks.relinkey
+./build/ahomfa_util ckks genrelinkey -c ./examples/blood_glucose/config.json -K /tmp/ckks.key -o /tmp/ckks.relinkey
 ```
 
 Generate the bootstrapping key for the TFHE scheme:
 
 ```sh
-./build/ahomfa_util tfhe genbkey -K /tmp/tfhe.key -o /tmp/tfhe.bkey -c ./example/config.json -S /tmp/ckks.key
+./build/ahomfa_util tfhe genbkey -K /tmp/tfhe.key -o /tmp/tfhe.bkey -c ./examples/blood_glucose/config.json -S /tmp/ckks.key
 ```
 
 All keys are saved to temporary files for later use.
@@ -140,7 +170,7 @@ All keys are saved to temporary files for later use.
 The client encrypts the multi-dimensional signal using the `ahomfa_util ckks enc` command. The command to run is as follows:
 
 ```sh
-./build/ahomfa_util ckks enc -c ./example/config.json -K /tmp/ckks.key -o /tmp/data.ckks < ./examples/blood_glucose/input.txt
+./build/ahomfa_util ckks enc -c ./examples/blood_glucose/config.json -K /tmp/ckks.key -o /tmp/data.ckks < ./examples/blood_glucose/input.txt
 ```
 
 This command reads input data from `input.txt`, encrypts it using the CKKS scheme with the previously generated CKKS key, and saves the output to `data.ckks`.
@@ -150,7 +180,13 @@ This command reads input data from `input.txt`, encrypts it using the CKKS schem
 In this step, the server-side executes the monitor with the information obtained from previous steps. To do this, run:
 
 ```sh
-./examples/blood_glucose/blood_glucose_one reverse --reversed -c ./example/config.json -f ./examples/blood_glucose/gp0.reversed.spec -r /tmp/ckks.relinkey -b /tmp/tfhe.bkey < /tmp/data.ckks > /tmp/result.tfhe
+./examples/blood_glucose/blood_glucose_one reverse \
+  --reversed \
+  -c ./examples/blood_glucose/config.json \
+  -f ./examples/blood_glucose/bg1.reversed.spec \
+  -r /tmp/ckks.relinkey \
+  -b /tmp/tfhe.bkey \
+  < /tmp/data.ckks > /tmp/result.tfhe
 ```
 
 This command runs the monitoring process, which reads the encrypted data, relinearization key, bootstrapping key, and specification file, and produces a stream of TLWE cipher texts encrypted by the TFHE scheme.
@@ -168,7 +204,7 @@ This command will decrypt the results produced in the monitoring step using the 
 On the Predicate Definition in C++
 ----------------------------------
 
-In ArithHomFA, a user has to provide an implementation of `ArithHomFA::CKKSPredicate` class in C++. This class specifies the arithmetic operations conducted in the monitor. This corresponds to the arithmetic expressions in the monitored STL formula. A concrete example is in `examples/blood_glucose/blood_glucose_one.cc`. Here are some notes on its implementation. See [the example of Microsoft SEAL](https://github.com/microsoft/SEAL/blob/main/native/examples/5_ckks_basics.cpp) for the usage example of SEAL itself.
+In ArithHomFA, a user has to provide an implementation of `ArithHomFA::CKKSPredicate` class in C++. This class specifies the arithmetic operations conducted in the monitor. This corresponds to the arithmetic expressions in the monitored STL formula. Concrete examples are in `examples/blood_glucose/blood_glucose_one.cc` and `examples/vehicle_rss/vrss_predicate.cc`. Here are some notes on its implementation. See [the example of Microsoft SEAL](https://github.com/microsoft/SEAL/blob/main/native/examples/5_ckks_basics.cpp) for the usage example of SEAL itself.
 
 - Since we heavily use standard outputs, it is not allowed to print messages, for example, using `std::cout`. Instead, a user can use `spdlog` to print messages.
 - Users must correctly implement arithmetic operations with Microsoft SEAL. For example, the user must correctly handle the scale of CKKS ciphertexts.

@@ -10,7 +10,7 @@
 
 **How to cite.** Cite the RV'24 paper listed in `CITATION.cff` (DOI: [10.1007/978-3-031-74234-7_4](https://doi.org/10.1007/978-3-031-74234-7_4)) together with this manual when referencing the artifact.
 
-**Artifact contents.** This repository ships the `ahomfa_util` command-line utility, the `libahomfa_runner.a` monitoring library, sample STL formulas, build scripts, and the blood glucose tutorial dataset.
+**Artifact contents.** This repository ships the `ahomfa_util` command-line utility, the `libahomfa_runner.a` monitoring library, sample STL formulas, build scripts, and two curated example suites (`examples/blood_glucose`, `examples/vehicle_rss`) with data, specs, and automation scripts.
 
 ## 1.1 Purpose and use cases
 

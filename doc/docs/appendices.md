@@ -5,6 +5,7 @@
 | Directory | Highlights |
 | --- | --- |
 | `examples/blood_glucose` | Full plain/block/reverse tutorials, predicates for glucose monitoring, Makefile template. |
+| `examples/vehicle_rss` | RSS-based automotive safety predicates, data synthesizers, and monitoring scripts. |
 | `examples/` (add yours) | Follow the README template, include traces, specs, and expected verdict logs. |
 
 ## Appendix B — Paper cross-reference

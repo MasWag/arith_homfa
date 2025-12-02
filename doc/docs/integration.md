@@ -5,8 +5,8 @@ Custom predicates live in classes derived from `ArithHomFA::CKKSPredicate` (see 
 To exercise the toolchain in CI, build the utilities and run a plain-mode monitor against a known trace:
 
 ```sh
-cmake --build cmake-build-release --target ahomfa_util
-./cmake-build-release/ahomfa_util ltl2spec -n "$NUM_VARS" -e "$LTL_FORMULA" -o spec.tmp
+cmake --build build --target ahomfa_util
+./build/ahomfa_util ltl2spec -n "$NUM_VARS" -e "$LTL_FORMULA" -o spec.tmp
 ./your_monitor plain -c config.json -f spec.tmp < trace.csv
 ```
 
