@@ -122,17 +122,16 @@ In this step, we transform the LTL formula into a DFA specification using the `l
 ```
 This command reads the LTL formula from `bg1.ltl` (one predicate), converts it into a DFA specification, and saves the output into `bg1.spec`.
 
-If you are planning to use the reversed algorithm, it's also recommended to generate the reversed specification. The `ltl2spec` subcommand provides an option to emit reversed specifications directly via the `--reverse` flag. The command would be:
+If you plan to use the reversed algorithm, convert the forward spec first (as above) and then run `spec2spec --reverse`:
 
 ```sh
-./build/ahomfa_util ltl2spec \
-  -e "$(cat ./examples/blood_glucose/bg1.ltl)" \
-  --num-vars 1 \
+./build/ahomfa_util spec2spec \
   --reverse \
+  -i ./examples/blood_glucose/bg1.spec \
   -o ./examples/blood_glucose/bg1.reversed.spec
 ```
 
-This command reads the LTL formula, outputs the DFA, and saves the reversed version in `bg1.reversed.spec`. This reversed specification should be used for running the monitor in reverse mode in Step 7.
+This command reads the DFA from `bg1.spec`, reverses it, and saves the result in `bg1.reversed.spec`. Use the reversed specification for the monitor’s `reverse` subcommand in Step 7.
 
 #### Step 4: Key Generation
 
