@@ -14,7 +14,7 @@ if(POLICY CMP0069)
   cmake_policy(SET CMP0069 NEW)
 endif()
 
-project(ArithHomFABenchmarks LANGUAGES CXX VERSION 0.0.1)
+project(ArithHomFABenchmarks LANGUAGES C CXX VERSION 0.0.1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
@@ -34,7 +34,19 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}
 add_subdirectory(../ arith_homfa)
 add_subdirectory(blood_glucose)
 add_subdirectory(vehicle_rss)
-add_subdirectory(../thirdparty/TFHEpp/thirdparties/hexl/ hexl)
+
+# TFHEpp's bundled HEXL writes generated headers into its source tree, which
+# lives outside the examples sandbox. Copy it into the build tree so the files
+# remain writable before adding the subdirectory.
+set(TFHEPP_HEXL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/TFHEpp/thirdparties/hexl")
+set(TFHEPP_HEXL_STAGING_DIR "${CMAKE_BINARY_DIR}/tfhepp_hexl-src")
+execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E rm -rf "${TFHEPP_HEXL_STAGING_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY)
+execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${TFHEPP_HEXL_SOURCE_DIR}" "${TFHEPP_HEXL_STAGING_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY)
+add_subdirectory(${TFHEPP_HEXL_STAGING_DIR} hexl)
 
 # Hack to disable -march=native if it is not supported
 include(CheckCXXCompilerFlag)
