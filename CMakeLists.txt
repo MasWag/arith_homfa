@@ -1,10 +1,15 @@
+set(CMAKE_POLICY_DEFAULT_CMP0175 OLD)
+
 cmake_minimum_required(VERSION 3.16)
 
 cmake_policy(SET CMP0048 NEW)
 if(POLICY CMP0069)
   cmake_policy(SET CMP0069 OLD)
 endif()
-project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+project(ArithHomFA LANGUAGES C CXX VERSION 0.0.1)
 
 # Allow bundled third-party projects that still declare very old
 # cmake_minimum_required values to configure under CMake >= 4.0.
@@ -66,17 +71,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
-find_package(SEAL 4.1.1)
-if(NOT SEAL_FOUND)
-        add_subdirectory(thirdparty/SEAL)
-        # Import Intel HEXL
-        add_subdirectory(thirdparty/TFHEpp/thirdparties/hexl)
-else()
-        if(SEAL_STATIC_FOUND)
-        set(SEAL_LIB SEAL::seal)
-        elseif(SEAL_SHARED_FOUND)
-        set(SEAL_LIB SEAL::seal_shared)
-        endif()
+find_package(SEAL 4.1.1 REQUIRED)
+if(SEAL_STATIC_FOUND)
+    set(SEAL_LIB SEAL::seal)
+elseif(SEAL_SHARED_FOUND)
+    set(SEAL_LIB SEAL::seal_shared)
 endif()
 
 # Import TBB
