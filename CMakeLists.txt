@@ -14,7 +14,7 @@ endif()
 if(POLICY CMP0167)
   cmake_policy(SET CMP0167 OLD)
 endif()
-project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
+project(ArithHomFA LANGUAGES C CXX VERSION 0.0.1)
 
 # Allow bundled third-party projects that still declare very old
 # cmake_minimum_required values to configure under CMake >= 4.0.
@@ -63,6 +63,15 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
 
+# TFHEpp expects a PRNG choice; ensure randen is used consistently so the
+# static library we link against is available.
+set(USE_BLAKE3
+        OFF
+        CACHE BOOL "Use blake3 as CSPRNG" FORCE)
+set(USE_RANDEN
+        ON
+        CACHE BOOL "Use randen as CSPRNG" FORCE)
+
 add_subdirectory(thirdparty/TFHEpp)
 
 # Hack to disable -march=native if it is not supported
@@ -79,8 +88,16 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 find_package(SEAL 4.1.1)
 if(NOT SEAL_FOUND)
         add_subdirectory(thirdparty/SEAL)
-        # Import Intel HEXL
-        add_subdirectory(thirdparty/TFHEpp/thirdparties/hexl)
+        # Import Intel HEXL from a writable staging area
+        set(TFHEPP_HEXL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/TFHEpp/thirdparties/hexl")
+        set(TFHEPP_HEXL_STAGING_DIR "${CMAKE_BINARY_DIR}/tfhepp_hexl-src")
+        execute_process(
+                COMMAND "${CMAKE_COMMAND}" -E rm -rf "${TFHEPP_HEXL_STAGING_DIR}"
+                COMMAND_ERROR_IS_FATAL ANY)
+        execute_process(
+                COMMAND "${CMAKE_COMMAND}" -E copy_directory "${TFHEPP_HEXL_SOURCE_DIR}" "${TFHEPP_HEXL_STAGING_DIR}"
+                COMMAND_ERROR_IS_FATAL ANY)
+        add_subdirectory(${TFHEPP_HEXL_STAGING_DIR} hexl)
 else()
         if(SEAL_STATIC_FOUND)
         set(SEAL_LIB SEAL::seal)
