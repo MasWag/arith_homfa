@@ -13,16 +13,19 @@ This walkthrough assumes the [Installation](installation.md) steps are complete 
 ```sh
 git submodule update --init --recursive
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target ahomfa_util libahomfa_runner.a
+cmake --build build --target ahomfa_util ahomfa_runner
 ```
 
 ## 3.3 Compile the tutorial monitor
 
+Configure the examples workspace (first run only), then build the monitor target:
+
 ```sh
-cmake --build build --target blood_glucose_one
+cmake -S examples -B examples/build -DCMAKE_BUILD_TYPE=Release
+cmake --build examples/build --target blood_glucose_one
 ```
 
-The resulting `blood_glucose_one` binary exposes plain, block, pointwise, and reversed execution modes for experimentation.
+The resulting `blood_glucose_one` binary lives under `examples/build/blood_glucose/blood_glucose_one` and exposes plain, block, pointwise, and reversed execution modes for experimentation.
 
 ## 3.4 Generate keys and encrypted data
 
@@ -34,22 +37,25 @@ The resulting `blood_glucose_one` binary exposes plain, block, pointwise, and re
 ./build/ahomfa_util ckks enc -c examples/blood_glucose/config.json -K /tmp/ckks.key -o /tmp/data.ckks < examples/blood_glucose/input.txt
 ```
 
+> **Heads-up:** `tfhe genbkey` emits a multi-gigabyte bootstrapping key and can take tens of minutes (or longer) depending on CPU cores. Run it once and keep the resulting `/tmp/tfhe.bkey` for future trials.
+
 ## 3.5 Produce forward and reversed specifications
 
 ```sh
 ./build/ahomfa_util ltl2spec -n 1 -e "$(cat examples/blood_glucose/bg1.ltl)" -o /tmp/bg1.spec
-./build/ahomfa_util ltl2spec -n 1 -e "$(cat examples/blood_glucose/bg1.ltl)" --reverse -o /tmp/bg1.rev.spec
+./build/ahomfa_util spec2spec --reverse -i /tmp/bg1.spec -o /tmp/bg1.rev.spec
 ```
 
 ## 3.6 Run the monitor and decrypt verdicts
 
 ```sh
-./examples/blood_glucose/blood_glucose_one reverse \
+./examples/build/blood_glucose/blood_glucose_one reverse \
   --reversed \
   -c examples/blood_glucose/config.json \
   -f /tmp/bg1.rev.spec \
   -r /tmp/ckks.relinkey \
   -b /tmp/tfhe.bkey \
+  --bootstrapping-freq 200 \
   < /tmp/data.ckks > /tmp/result.tfhe
 ./build/ahomfa_util tfhe dec -K /tmp/tfhe.key -i /tmp/result.tfhe
 ```

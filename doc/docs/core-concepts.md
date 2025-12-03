@@ -40,10 +40,9 @@ ArithHomFA splits responsibilities between a **server** (who owns the monitor an
       -n 1 \
       -e "$(cat examples/blood_glucose/bg1.ltl)" \
       -o /tmp/bg1.spec
-    ./build/ahomfa_util ltl2spec \
-      -n 1 \
-      -e "$(cat examples/blood_glucose/bg1.ltl)" \
+    ./build/ahomfa_util spec2spec \
       --reverse \
+      -i /tmp/bg1.spec \
       -o /tmp/bg1.rev.spec
     ```
 
@@ -76,12 +75,13 @@ ArithHomFA splits responsibilities between a **server** (who owns the monitor an
 6. **Run the encrypted monitor (server).** The server executes the monitor with the DFA, encrypted trace, and public keys. The reversed mode shown below matches the tutorial:
 
     ```sh
-    ./examples/blood_glucose/blood_glucose_one reverse \
+    ./examples/build/blood_glucose/blood_glucose_one reverse \
       --reversed \
       -c examples/blood_glucose/config.json \
       -f /tmp/bg1.rev.spec \
       -r /tmp/ckks.relinkey \
       -b /tmp/tfhe.bkey \
+      --bootstrapping-freq 200 \
       < /tmp/data.ckks > /tmp/result.tfhe
     ```
 

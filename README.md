@@ -179,12 +179,13 @@ This command reads input data from `input.txt`, encrypts it using the CKKS schem
 In this step, the server-side executes the monitor with the information obtained from previous steps. To do this, run:
 
 ```sh
-./examples/blood_glucose/blood_glucose_one reverse \
+./examples/build/blood_glucose/blood_glucose_one reverse \
   --reversed \
   -c ./examples/blood_glucose/config.json \
   -f ./examples/blood_glucose/bg1.reversed.spec \
   -r /tmp/ckks.relinkey \
   -b /tmp/tfhe.bkey \
+  --bootstrapping-freq 200 \
   < /tmp/data.ckks > /tmp/result.tfhe
 ```
 
