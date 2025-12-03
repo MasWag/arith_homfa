@@ -1,8 +1,18 @@
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0167 OLD)
+set(CMAKE_POLICY_DEFAULT_CMP0175 OLD)
+
 cmake_minimum_required(VERSION 3.16)
 
 cmake_policy(SET CMP0048 NEW)
 if(POLICY CMP0069)
-  cmake_policy(SET CMP0069 OLD)
+  cmake_policy(SET CMP0069 NEW)
+endif()
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
 endif()
 project(ArithHomFA LANGUAGES CXX VERSION 0.0.1)
 

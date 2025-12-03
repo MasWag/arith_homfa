@@ -1,3 +1,7 @@
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0167 OLD)
+set(CMAKE_POLICY_DEFAULT_CMP0175 OLD)
+
 cmake_minimum_required(VERSION 3.16...3.28)
 
 # CMake >= 4.2 removes compatibility for projects targeting < 3.5.
