@@ -11,6 +11,8 @@
 
 BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
 
+  using NormalReverseRunner = ArithHomFA::ReverseRunner<ArithHomFA::RunnerMode::normal>;
+
   struct CKKSConfigFixture {
     const double scale = std::pow(2, 40);
     const ArithHomFA::SealConfig config = {
@@ -48,7 +50,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     std::vector<double> input = {100, 90, 80, 75, 60, 80, 90};
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 10, bkey, {1000}};
+    NormalReverseRunner runner{context, scale, graph, 10, bkey, {1000}};
     std::vector<bool> expected = {true, true, true, true, false, false, false};
     seal::Plaintext plain;
     seal::Ciphertext cipher;
@@ -77,7 +79,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     bool wasFalse = false;
     for (int i = 0; i < 10000; ++i) {
@@ -111,7 +113,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     // Make the input
     seal::Plaintext plain;
@@ -151,7 +153,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     // Make the input
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
@@ -189,7 +191,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     bool wasFalse = false;
     seal::Plaintext plain;
@@ -223,7 +225,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     // Make the input
     seal::Plaintext plain;
@@ -263,7 +265,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     ArithHomFA::BootstrappingKey bKey(skey, lvl3Key);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     // Make the input
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
@@ -301,7 +303,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     // Prepare for the runner
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
+    NormalReverseRunner runner{context, scale, graph, 50000, bKey, {150}};
 
     // Make the input
     TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw =
@@ -338,7 +340,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     std::vector<double> input = {100, 90, 80, 75, 60, 80, 90};
-    ArithHomFA::ReverseRunner runner{context, scale, graph, 10, bkey, {1000}};
+    NormalReverseRunner runner{context, scale, graph, 10, bkey, {1000}};
     std::vector<bool> expected = {true, true, true, true, false, false, false};
     seal::Plaintext plain;
     seal::Ciphertext cipher;

@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_SUITE(OfflineRunnerTest)
     seal::Encryptor encryptor(context, sealKey);
 
     std::vector<double> input = {100, 90, 80, 75, 60, 80, 90};
-    ArithHomFA::OfflineRunner runner{context, scale, graph, input.size(), 10, bkey, {1000}};
+    ArithHomFA::OfflineRunner<ArithHomFA::RunnerMode::normal> runner{context, scale, graph, input.size(), 10, bkey, {1000}};
     std::vector<bool> expected = {true, true, true, true, false, false, false};
     seal::Plaintext plain;
     seal::Ciphertext cipher;

@@ -182,11 +182,14 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     converter.toLv3TRLWE(cipher, trlwe, INT32_MAX * minValue);
     // converter.toLv3TRLWE(cipher, trlwe);
 
-    // Decrypt the TRLWE with TFHEpp
-    const auto trlwePlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl3param>(trlwe, lvl3Key);
+    // Decrypt the TRLWE with TFHEpp by extracting a TLWE sample
+    TFHEpp::TLWE<TFHEpp::lvl3param> tlweExtracted;
+    TFHEpp::SampleExtractIndex<TFHEpp::lvl3param>(tlweExtracted, trlwe, 0);
+    const bool decrypted =
+        TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(tlweExtracted, lvl3Key);
 
     // Assert the result
-    RC_ASSERT(trlwePlain.front() == (value > 0));
+    RC_ASSERT(decrypted == (value > 0));
   }
 
   RC_BOOST_FIXTURE_PROP(toLv3TLWE, CKKSToTFHEFixture, (const bool &useLargerParam)) {
