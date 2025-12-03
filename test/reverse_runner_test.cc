@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make the input
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
         TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(1u << 30, // 1/4
-                                                  TFHEpp::lvl1param::α, skey.key.lvl1);
+                                                  TFHEpp::lvl1param::α, skey.key.get<TFHEpp::lvl1param>());
     TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
     TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
                                                                                                 *bKey.ekey);
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
     // Make the input
     TFHEpp::TLWE<TFHEpp::lvl1param> tlwe =
         TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(-(1u << 30), // -1/4
-                                                  TFHEpp::lvl1param::α, skey.key.lvl1);
+                                                  TFHEpp::lvl1param::α, skey.key.get<TFHEpp::lvl1param>());
     TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw;
     TFHEpp::CircuitBootstrappingFFT<TFHEpp::lvl10param, TFHEpp::lvl02param, TFHEpp::lvl21param>(trgsw, tlwe,
                                                                                                 *bKey.ekey);
@@ -305,7 +305,7 @@ BOOST_AUTO_TEST_SUITE(ReverseRunnerTest)
 
     // Make the input
     TFHEpp::TRGSWFFT<TFHEpp::lvl1param> trgsw =
-        TFHEpp::trgswfftSymEncrypt<TFHEpp::lvl1param>({true}, TFHEpp::lvl1param::α, skey.key.lvl1);
+        TFHEpp::trgswfftSymEncrypt<TFHEpp::lvl1param>({true}, TFHEpp::lvl1param::α, skey.key.get<TFHEpp::lvl1param>());
 
     bool wasFalse = false;
     for (int i = 0; i < 10000; ++i) {

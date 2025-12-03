@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_SUITE(BootstrappingKeyTest)
     converter.toLv3Key(secretKey, lvl3Key);
 
     // Generate the bootstrapping key
-    ArithHomFA::BootstrappingKey bKey{sKey, lvl3Key, sKey.key.lvlhalf};
+    ArithHomFA::BootstrappingKey bKey{sKey, lvl3Key, sKey.key.get<TFHEpp::lvlhalfparam>()};
 
     std::stringstream stream;
     write_to_archive(stream, bKey);

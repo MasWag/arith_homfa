@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     for (auto &value: values) {
       TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
       outputReader.read(tlwe);
-      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
       RC_ASSERT(tlwePlain == (value > 70));
     }
   }
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     for (auto &value: values) {
       TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
       outputReader.read(tlwe);
-      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
       RC_ASSERT(tlwePlain == (value > 70));
     }
     std::remove(inputFilename);
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_SUITE(PointwiseRunnerTest)
     for (auto &value: values) {
       TFHEpp::TLWE<TFHEpp::lvl1param> tlwe;
       outputReader.read(tlwe);
-      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
       BOOST_TEST(tlwePlain == (value > 70));
     }
   }

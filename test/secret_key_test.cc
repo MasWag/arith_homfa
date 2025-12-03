@@ -14,10 +14,18 @@ BOOST_AUTO_TEST_SUITE(SecretKeyTest)
     write_to_archive(stream, generatedKey);
     auto loadedKey = read_from_archive<TFHEpp::SecretKey>(stream);
 
-    BOOST_TEST(generatedKey.key.lvl0 == loadedKey.key.lvl0, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvl1 == loadedKey.key.lvl1, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvl2 == loadedKey.key.lvl2, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvlhalf == loadedKey.key.lvlhalf, boost::test_tools::per_element());
+    const auto generatedLvl0 = generatedKey.key.get<TFHEpp::lvl0param>();
+    const auto generatedLvl1 = generatedKey.key.get<TFHEpp::lvl1param>();
+    const auto generatedLvl2 = generatedKey.key.get<TFHEpp::lvl2param>();
+    const auto generatedLvlHalf = generatedKey.key.get<TFHEpp::lvlhalfparam>();
+    const auto loadedLvl0 = loadedKey.key.get<TFHEpp::lvl0param>();
+    const auto loadedLvl1 = loadedKey.key.get<TFHEpp::lvl1param>();
+    const auto loadedLvl2 = loadedKey.key.get<TFHEpp::lvl2param>();
+    const auto loadedLvlHalf = loadedKey.key.get<TFHEpp::lvlhalfparam>();
+    BOOST_TEST(generatedLvl0 == loadedLvl0, boost::test_tools::per_element());
+    BOOST_TEST(generatedLvl1 == loadedLvl1, boost::test_tools::per_element());
+    BOOST_TEST(generatedLvl2 == loadedLvl2, boost::test_tools::per_element());
+    BOOST_TEST(generatedLvlHalf == loadedLvlHalf, boost::test_tools::per_element());
   }
 
   BOOST_AUTO_TEST_CASE(writeAndReadViaFile) {
@@ -31,10 +39,18 @@ BOOST_AUTO_TEST_SUITE(SecretKeyTest)
     std::ifstream stream{keyFilename};
     auto loadedKey = read_from_archive<TFHEpp::SecretKey>(stream);
 
-    BOOST_TEST(generatedKey.key.lvl0 == loadedKey.key.lvl0, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvl1 == loadedKey.key.lvl1, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvl2 == loadedKey.key.lvl2, boost::test_tools::per_element());
-    BOOST_TEST(generatedKey.key.lvlhalf == loadedKey.key.lvlhalf, boost::test_tools::per_element());
+    const auto fileGeneratedLvl0 = generatedKey.key.get<TFHEpp::lvl0param>();
+    const auto fileGeneratedLvl1 = generatedKey.key.get<TFHEpp::lvl1param>();
+    const auto fileGeneratedLvl2 = generatedKey.key.get<TFHEpp::lvl2param>();
+    const auto fileGeneratedLvlHalf = generatedKey.key.get<TFHEpp::lvlhalfparam>();
+    const auto fileLoadedLvl0 = loadedKey.key.get<TFHEpp::lvl0param>();
+    const auto fileLoadedLvl1 = loadedKey.key.get<TFHEpp::lvl1param>();
+    const auto fileLoadedLvl2 = loadedKey.key.get<TFHEpp::lvl2param>();
+    const auto fileLoadedLvlHalf = loadedKey.key.get<TFHEpp::lvlhalfparam>();
+    BOOST_TEST(fileGeneratedLvl0 == fileLoadedLvl0, boost::test_tools::per_element());
+    BOOST_TEST(fileGeneratedLvl1 == fileLoadedLvl1, boost::test_tools::per_element());
+    BOOST_TEST(fileGeneratedLvl2 == fileLoadedLvl2, boost::test_tools::per_element());
+    BOOST_TEST(fileGeneratedLvlHalf == fileLoadedLvlHalf, boost::test_tools::per_element());
   }
 
 BOOST_AUTO_TEST_SUITE_END()

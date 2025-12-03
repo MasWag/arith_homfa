@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
       converter.toLv1TLWE(cipher, tlwe, INT32_MAX * minValue);
 
       // Decrypt the TLWE with TFHEpp
-      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+      const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
 
       // Assert the result
       RC_ASSERT(tlwePlain == (value > 0));
@@ -406,7 +406,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     converter.toLv1TLWE(ciphers.at(0), tlwe, threshold * threshold * minValue * minValue);
 
     // Decrypt the TLWE with TFHEpp
-    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
 
     // Assert the result
     RC_ASSERT(tlwePlain == (values[0] * values[1] > 0));
@@ -473,7 +473,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     TFHEpp::CMUXFFT<TFHEpp::lvl1param>(result, trgsw, one, zero);
 
     // Assert the result
-    const auto resultPlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl1param>(result, skey.key.lvl1).front();
+    const auto resultPlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl1param>(result, skey.key.get<TFHEpp::lvl1param>()).front();
     RC_ASSERT(resultPlain == (value > 0));
   }
 #endif
@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     converter.toLv1TLWE(result.front(), tlwe, reference);
 
     // Decrypt the TLWE with TFHEpp
-    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
+    const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.get<TFHEpp::lvl1param>());
 
     // Assert the result
     RC_ASSERT(tlwePlain == (value > 70));

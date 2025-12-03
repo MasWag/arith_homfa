@@ -118,7 +118,8 @@ include_directories(
         thirdparty/TFHEpp/include
         thirdparty/TFHEpp/thirdparties/spqlios
         thirdparty/TFHEpp/thirdparties/randen
-        thirdparty/TFHEpp/thirdparties/cereal/include)
+        thirdparty/TFHEpp/thirdparties/cereal/include
+        thirdparty/TFHEpp/thirdparties/AES/src)
 
 link_directories(
         /usr/local/lib/)

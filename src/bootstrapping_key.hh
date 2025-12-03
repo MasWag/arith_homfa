@@ -23,7 +23,7 @@ namespace ArithHomFA {
     }
 
     BootstrappingKey(const TFHEpp::SecretKey &skey, const TFHEpp::Key<TFHEpp::lvl3param> &lvl3key)
-        : BootstrappingKey(skey, lvl3key, skey.key.lvlhalf) {
+        : BootstrappingKey(skey, lvl3key, skey.key.get<typename mid2lowP::targetP>()) {
     }
 
     BootstrappingKey(const TFHEpp::SecretKey &skey, const TFHEpp::Key<TFHEpp::lvl3param> &lvl3key,

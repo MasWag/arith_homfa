@@ -405,6 +405,7 @@ namespace {
 
   void do_enc_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream) {
     auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
 
     ArithHomFA::SizedTLWEWriter<TFHEpp::lvl1param> writer{ostream};
     bool content;
@@ -416,7 +417,7 @@ namespace {
       }
       spdlog::debug("Content: {}", content);
       writer.write(
-          TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(content ? 1u << 31 : 0, TFHEpp::lvl1param::α, skey.key.lvl1));
+          TFHEpp::tlweSymEncrypt<TFHEpp::lvl1param>(content ? 1u << 31 : 0, TFHEpp::lvl1param::α, lvl1key));
     }
     spdlog::info("Given contents are encrypted with the TFHE scheme");
   }
@@ -424,13 +425,14 @@ namespace {
   void do_dec_TFHEpp(const std::string &skey_filename, std::istream &istream, std::ostream &ostream,
                      const bool vertical) {
     auto skey = read_from_archive<TFHEpp::SecretKey>(skey_filename);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
 
     ArithHomFA::SizedTLWEReader<TFHEpp::lvl1param> reader{istream};
     while (istream.good()) {
       // get the cipher text from stdin
       TFHEpp::TLWE<TFHEpp::lvl1param> cipher;
       if (reader.read(cipher)) {
-        const bool res = vertical ? TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(cipher, skey.key.lvl1) :
+        const bool res = vertical ? TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(cipher, lvl1key) :
                                     decrypt_TLWELvl1_to_bit(cipher, skey);
         ostream << (res ? "true" : "false") << std::endl;
       } else {

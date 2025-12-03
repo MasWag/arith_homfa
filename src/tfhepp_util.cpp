@@ -296,12 +296,14 @@ void TRLWELvl1_mult_X_k(TRLWELvl1& out, const TRLWELvl1& src, size_t k)
 
 uint32_t phase_of_TLWELvl1(const TLWELvl1& src, const SecretKey& skey)
 {
-    return TFHEpp::tlweSymPhase<TFHEpp::lvl1param>(src, skey.key.lvl1);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
+    return TFHEpp::tlweSymPhase<TFHEpp::lvl1param>(src, lvl1key);
 }
 
 PolyLvl1 phase_of_TRLWELvl1(const TRLWELvl1& src, const SecretKey& skey)
 {
-    return TFHEpp::trlwePhase<TFHEpp::lvl1param>(src, skey.key.lvl1);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
+    return TFHEpp::trlwePhase<TFHEpp::lvl1param>(src, lvl1key);
 }
 
 // w = w |> SEI |> IKS(gk) |> GateBootstrappingTLWE2TRLWE(gk)
@@ -380,13 +382,15 @@ void do_SEI_IKS_GBTLWE2TRLWE_3(TRLWELvl1& w, const EvalKey& ek)
 
 TRGSWLvl1FFT encrypt_bit_to_TRGSWLvl1FFT(bool b, const SecretKey& skey)
 {
-    return TFHEpp::trgswfftSymEncrypt<Lvl1>({b}, Lvl1::α, skey.key.lvl1);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
+    return TFHEpp::trgswfftSymEncrypt<Lvl1>({b}, Lvl1::α, lvl1key);
 }
 
 bool decrypt_TLWELvl1_to_bit(const TLWELvl1& c, const SecretKey& skey)
 {
     // Use {0, 1/2} as message space
-    typename TFHEpp::lvl1param::T phase = TFHEpp::tlweSymPhase<TFHEpp::lvl1param>(c, skey.key.lvl1);
+    const auto lvl1key = skey.key.get<TFHEpp::lvl1param>();
+    typename TFHEpp::lvl1param::T phase = TFHEpp::tlweSymPhase<TFHEpp::lvl1param>(c, lvl1key);
     return (phase + (2*TFHEpp::lvl1param::μ /* 1/4 */)) > (4*TFHEpp::lvl1param::μ /* 1/2 */);
 }
 

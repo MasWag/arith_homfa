@@ -92,7 +92,7 @@ namespace ArithHomFA {
       output[TFHEpp::lvl1param::k * TFHEpp::lvl1param::n] += 1ULL << (std::numeric_limits<typename TFHEpp::lvl1param::T>::digits - basebit - 1);
       TFHEpp::TLWE<TFHEpp::lvlhalfparam> tlwelvlhalf;
       TFHEpp::IdentityKeySwitch<typename BootstrappingKey::mid2lowP>(tlwelvlhalf, output, *bk.kskm2l);
-      TFHEpp::GateBootstrappingTLWE2TLWEFFT<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
+      TFHEpp::GateBootstrappingTLWE2TLWE<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
     }
 
     /*!
@@ -106,7 +106,7 @@ namespace ArithHomFA {
       output[TFHEpp::lvl1param::k * TFHEpp::lvl1param::n] += 1ULL << (std::numeric_limits<typename TFHEpp::lvl1param::T>::digits - basebit - 1);
       TFHEpp::TLWE<TFHEpp::lvlhalfparam> tlwelvlhalf;
       TFHEpp::IdentityKeySwitch<typename BootstrappingKey::mid2lowP>(tlwelvlhalf, output, *bk.kskm2l);
-      TFHEpp::GateBootstrappingTLWE2TLWEFFT<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
+      TFHEpp::GateBootstrappingTLWE2TLWE<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
     }
 
     /*!
@@ -120,7 +120,7 @@ namespace ArithHomFA {
       output[TFHEpp::lvl1param::k * TFHEpp::lvl1param::n] += 1ULL << (std::numeric_limits<typename TFHEpp::lvl1param::T>::digits - basebit - 1);
       TFHEpp::TLWE<TFHEpp::lvlhalfparam> tlwelvlhalf;
       TFHEpp::IdentityKeySwitch<typename BootstrappingKey::mid2lowP>(tlwelvlhalf, output, *bk.kskm2l);
-      TFHEpp::GateBootstrappingTLWE2TLWEFFT<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
+      TFHEpp::GateBootstrappingTLWE2TLWE<typename BootstrappingKey::brP>(output, tlwelvlhalf, *bk.bkfft, TFHEpp::μpolygen<typename BootstrappingKey::brP::targetP, BootstrappingKey::brP::targetP::μ>());
     }
 
     const BootstrappingKey getBKey() const {

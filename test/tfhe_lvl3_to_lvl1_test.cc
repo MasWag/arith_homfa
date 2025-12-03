@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
     // Check the correctness of the results
     for (uint test = 0; test < numtest; test++) {
       BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
-                        TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));
+                        TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.get<TFHEpp::lvl1param>()));
     }
   }
 
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_SUITE(Lvl3ToLvl1Test)
     // Check the correctness of the results
     for (uint test = 0; test < numtest; test++) {
       BOOST_CHECK_EQUAL(TFHEpp::tlweSymDecrypt<TFHEpp::lvl3param>(ciphers.at(test), lvl3key),
-                        TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.lvl1));
+                        TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(result_single.at(test), skey.key.get<TFHEpp::lvl1param>()));
     }
   }
 

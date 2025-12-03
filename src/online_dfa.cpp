@@ -332,7 +332,8 @@ void OnlineDFARunner3::eval_queued_inputs()
         for (size_t i = 0; i < Lvl1::n; i++)
             tmp[1][i] = -(1u << 29);
         TRLWELvl1_add(tmp, next_trlwe);
-        auto res = TFHEpp::trlweSymDecrypt<Lvl1>(tmp, debug_skey_->key.lvl1);
+        const auto lvl1key = debug_skey_->key.get<TFHEpp::lvl1param>();
+        auto res = TFHEpp::trlweSymDecrypt<Lvl1>(tmp, lvl1key);
         for (Graph::State st : graph_.all_states())
             spdlog::debug("{} {}", st, res.at(st));
     }
