@@ -9,6 +9,8 @@
 
 BOOST_AUTO_TEST_SUITE(BlockRunnerTest)
 
+  using NormalBlockRunner = ArithHomFA::BlockRunner<ArithHomFA::RunnerMode::normal>;
+
   template <class Param> static TFHEpp::Key<Param> keyGen(std::uniform_int_distribution<int32_t> & generator) {
     TFHEpp::Key<Param> key;
     for (typename Param::T &i: key) {
@@ -47,7 +49,7 @@ BOOST_AUTO_TEST_SUITE(BlockRunnerTest)
 
     std::vector<double> input = {100, 90, 80, 75, 60, 80, 90};
     {
-      ArithHomFA::BlockRunner runner{context, scale, graph, 10, bkey, {1000}};
+      NormalBlockRunner runner{context, scale, graph, 10, bkey, {1000}};
       std::vector<bool> expected = {true, true, true, true, true, true, true};
       seal::Plaintext plain;
       seal::Ciphertext cipher;
@@ -61,7 +63,7 @@ BOOST_AUTO_TEST_SUITE(BlockRunnerTest)
       runner.printTime();
     }
     {
-      ArithHomFA::BlockRunner runner{context, scale, graph, 1, bkey, {1000}};
+      NormalBlockRunner runner{context, scale, graph, 1, bkey, {1000}};
       std::vector<bool> expected = {true, true, true, true, false, false, false};
       seal::Plaintext plain;
       seal::Ciphertext cipher;
@@ -75,7 +77,7 @@ BOOST_AUTO_TEST_SUITE(BlockRunnerTest)
       runner.printTime();
     }
     {
-      ArithHomFA::BlockRunner runner{context, scale, graph, 3, bkey, {1000}};
+      NormalBlockRunner runner{context, scale, graph, 3, bkey, {1000}};
       std::vector<bool> expected = {true, true, true, true, true, false, false};
       seal::Plaintext plain;
       seal::Ciphertext cipher;

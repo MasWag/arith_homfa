@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <ostream>
 #include <utility>
 
@@ -40,7 +41,7 @@ namespace ArithHomFA {
      * @param input The level 3 TLWE ciphertext
      * @param output The array of level 1 TLWE ciphertexts
      */
-    template<uint size>
+    template<std::size_t size>
     void toLv1TLWE(const TFHEpp::TLWE<TFHEpp::lvl3param> &input,
                    std::array<TFHEpp::TLWE<TFHEpp::lvl1param>, size> &output) const {
       TFHEpp::HomDecomp<typename BootstrappingKey::high2midP, typename BootstrappingKey::mid2lowP,
