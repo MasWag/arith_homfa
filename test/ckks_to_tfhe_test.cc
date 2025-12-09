@@ -148,8 +148,10 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     }
   }
 
-  RC_BOOST_FIXTURE_PROP(toLv3TRLWE, CKKSToTFHEFixture, (const int32_t &intValue, const bool &useLargerParam)) {
-    // We implicitly require that the given value is not too large. Otherwise, the encoding fails.
+  RC_BOOST_FIXTURE_PROP(toLv3TRLWE, CKKSToTFHEFixture, (const bool &useLargerParam)) {
+    // We require that the given value is in a certain range. Otherwise, the decryption fails.
+    const auto intValue =
+      *rc::gen::inRange<int64_t>(static_cast<int64_t>(-10.0 / minValue), static_cast<int64_t>(10.0 / minValue));
     const double &value = static_cast<double>(intValue) * minValue;
     RC_PRE(value != 0);
 
@@ -175,12 +177,13 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
     TFHEpp::TRLWE<TFHEpp::lvl3param> trlwe;
     const seal::Evaluator evaluator(context);
     auto context_data = context.get_context_data(cipher.parms_id());
+
+    // Manually switch to the last level with mod_switch
     while (context_data->next_context_data()){
       evaluator.mod_switch_to_next_inplace(cipher);
       context_data = context_data->next_context_data();
     }
-    converter.toLv3TRLWE(cipher, trlwe, INT32_MAX * minValue);
-    // converter.toLv3TRLWE(cipher, trlwe);
+    converter.toLv3TRLWE(cipher, trlwe);
 
     // Decrypt the TRLWE with TFHEpp
     const auto trlwePlain = TFHEpp::trlweSymDecrypt<TFHEpp::lvl3param>(trlwe, lvl3Key);
@@ -326,7 +329,8 @@ BOOST_AUTO_TEST_SUITE(CKKSToTFHETest)
         context_data = context_data->next_context_data();
       }
       // converter.toLv1TLWE(cipher, tlwe, threshold * minValue);
-      converter.toLv1TLWE(cipher, tlwe, INT32_MAX * minValue);
+      // converter.toLv1TLWE(cipher, tlwe, INT32_MAX * minValue);
+      converter.toLv1TLWE(cipher, tlwe);
 
       // Decrypt the TLWE with TFHEpp
       const auto tlwePlain = TFHEpp::tlweSymDecrypt<TFHEpp::lvl1param>(tlwe, skey.key.lvl1);
