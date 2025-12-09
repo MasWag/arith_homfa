@@ -1,6 +1,6 @@
 cmake_policy(SET CMP0048 NEW)
 if(POLICY CMP0069)
-    cmake_policy(SET CMP0069 NEW)
+  cmake_policy(SET CMP0069 OLD)
 endif()
 project(BloodGlucose LANGUAGES CXX VERSION 0.0.1)
 
