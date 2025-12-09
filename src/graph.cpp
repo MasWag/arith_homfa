@@ -629,7 +629,7 @@ spot::twa_graph_ptr ltl_to_monitor(const std::string& formula, size_t var_size)
     spot::bdd_dict_ptr dict = spot::make_bdd_dict();
     spot::twa_graph_ptr aut = spot::make_twa_graph(dict);
     for (size_t i = 0; i < var_size; i++)
-        aut->register_ap(fmt::format("p{}", i));
+        aut->register_ap(spdlog::fmt_lib::format("p{}", i));
     spot::translator trans{dict};
     trans.set_type(spot::postprocessor::Monitor);
     trans.set_pref(spot::postprocessor::Any);
@@ -647,7 +647,7 @@ Graph::ltl_to_nfa_tuple(const std::string& formula, size_t var_size,
         spot::bdd_dict_ptr dict = aut->get_dict();
         for (size_t i = 0; i < var_size; i++) {
             auto it =
-                dict->var_map.find(spot::formula::ap(fmt::format("p{}", i)));
+                dict->var_map.find(spot::formula::ap(spdlog::fmt_lib::format("p{}", i)));
             if (it != dict->var_map.end())
                 var2idx.emplace(it->second, i);
         }

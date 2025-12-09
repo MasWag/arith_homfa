@@ -159,10 +159,17 @@ if [[ ! -f "${CONFIG}" ]]; then
 fi
 
 # Build artifacts if necessary
-if [[ ! -x "${MONITOR}" ]] || [[ ! -x "${AHOMFA_UTIL}" ]]; then
-    echo -e "${YELLOW}Build artifacts missing. Configuring and building examples...${NC}"
-    cmake -S "${BUILD_DIR}/.." -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
-    cmake --build "${BUILD_DIR}"
+if [[ "${AHOMFA_SKIP_BUILD:-0}" != "1" ]]; then
+    if [[ ! -x "${MONITOR}" ]] || [[ ! -x "${AHOMFA_UTIL}" ]]; then
+        echo -e "${YELLOW}Build artifacts missing. Configuring and building examples...${NC}"
+        cmake -S "${BUILD_DIR}/.." -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
+        cmake --build "${BUILD_DIR}"
+    fi
+else
+    if [[ ! -x "${MONITOR}" ]] || [[ ! -x "${AHOMFA_UTIL}" ]]; then
+        echo -e "${RED}AHOMFA_SKIP_BUILD=1 but required binaries are missing at ${MONITOR} or ${AHOMFA_UTIL}.${NC}"
+        exit 1
+    fi
 fi
 
 if [[ ! -x "${MONITOR}" ]]; then

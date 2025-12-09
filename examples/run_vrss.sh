@@ -52,8 +52,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-EXAMPLE_DIR="$(cd "$(dirname "$0")" && pwd)/vehicle_rss"
-BUILD_DIR="${EXAMPLE_DIR}/../build"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+EXAMPLE_DIR="${SCRIPT_DIR}/vehicle_rss"
+BUILD_DIR="${SCRIPT_DIR}/build"
 AHOMFA_UTIL="${BUILD_DIR}/arith_homfa/ahomfa_util"
 MONITOR="${BUILD_DIR}/vehicle_rss/vehicle_rss"
 
@@ -67,11 +68,18 @@ MONITOR_MODE="fast"
 BLOCK_SIZE=1
 
 # Check if build directory exists
-if [ ! -d "${BUILD_DIR}" ]; then
-    echo -e "${YELLOW}Build directory not found. Creating and building...${NC}"
-    cmake -S "${BUILD_DIR}/.." -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
-    cmake --build "${BUILD_DIR}"
-    cd "${EXAMPLE_DIR}"
+if [[ "${AHOMFA_SKIP_BUILD:-0}" != "1" ]]; then
+    if [ ! -d "${BUILD_DIR}" ] || [ ! -x "${MONITOR}" ] || [ ! -x "${AHOMFA_UTIL}" ]; then
+        echo -e "${YELLOW}Build directory not found. Creating and building...${NC}"
+        cmake -S "${BUILD_DIR}/.." -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
+        cmake --build "${BUILD_DIR}"
+        cd "${EXAMPLE_DIR}"
+    fi
+else
+    if [ ! -x "${MONITOR}" ] || [ ! -x "${AHOMFA_UTIL}" ]; then
+        echo -e "${RED}AHOMFA_SKIP_BUILD=1 but required binaries are missing at ${MONITOR} or ${AHOMFA_UTIL}.${NC}"
+        exit 1
+    fi
 fi
 
 # Step 1: Generate keys

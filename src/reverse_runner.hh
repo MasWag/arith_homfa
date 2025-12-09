@@ -7,7 +7,7 @@
 
 #include <execution>
 #include <ranges>
-#include <omp.h>
+#include "omp_compat.hh"
 
 #include <boost/iterator/zip_iterator.hpp>
 

@@ -37,14 +37,45 @@ set(CMAKE_CXX_STANDARD 20) # C++ standard C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(HOMFA_OPENMP_FLAG "-fopenmp")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_definitions(SPDLOG_USE_STD_FORMAT)
+  set(HOMFA_OPENMP_FLAG "-fopenmp=libgomp")
+  set(HOMFA_GCC_ROOT "/usr/lib/gcc/${CMAKE_SYSTEM_PROCESSOR}-pc-linux-gnu")
+  file(GLOB HOMFA_GCC_VERSION_DIRS "${HOMFA_GCC_ROOT}/*")
+  if(HOMFA_GCC_VERSION_DIRS)
+    list(SORT HOMFA_GCC_VERSION_DIRS)
+    list(REVERSE HOMFA_GCC_VERSION_DIRS)
+    foreach(HOMFA_GCC_DIR ${HOMFA_GCC_VERSION_DIRS})
+      if(EXISTS "${HOMFA_GCC_DIR}/include/omp.h")
+        set(HOMFA_FALLBACK_OMP_HEADER "${HOMFA_GCC_DIR}/include/omp.h")
+        break()
+      endif()
+    endforeach()
+    if(HOMFA_FALLBACK_OMP_HEADER)
+      add_compile_definitions(HOMFA_FALLBACK_OMP_HEADER="${HOMFA_FALLBACK_OMP_HEADER}")
+    endif()
+  endif()
+endif()
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # find_package (OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -fopenmp")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fopenmp")
+if(DEFINED OpenMP_C_FLAGS AND NOT OpenMP_C_FLAGS MATCHES "NOTFOUND")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+if(DEFINED OpenMP_CXX_FLAGS AND NOT OpenMP_CXX_FLAGS MATCHES "NOTFOUND")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+if(DEFINED OpenMP_EXE_LINKER_FLAGS AND NOT OpenMP_EXE_LINKER_FLAGS MATCHES "NOTFOUND")
+  set(CMAKE_EXE_LINKER_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HOMFA_OPENMP_FLAG}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HOMFA_OPENMP_FLAG}")
 set(CMAKE_EXE_LINKER_FLAGS
-  "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} -fopenmp")
+  "${CMAKE_EXE_LINKER_FLAGS} ${HOMFA_OPENMP_FLAG}")
 
 # Get git revision
 # Thanks to: https://stackoverflow.com/a/6526533
