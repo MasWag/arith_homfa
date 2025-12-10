@@ -36,4 +36,28 @@ include_directories(
         ../../thirdparty/TFHEpp/thirdparties/cereal/include)
 
 add_executable(blood_glucose_one
-        bg_predicate.cc)
+  blood_glucose_one.cc)
+
+add_executable(blood_glucose_two
+  blood_glucose_two.cc)
+
+add_executable(blood_glucose_four
+  blood_glucose_four.cc)
+
+add_executable(blood_glucose_five
+  blood_glucose_five.cc)
+
+add_executable(blood_glucose_six
+  blood_glucose_six.cc)
+
+add_executable(blood_glucose_seven
+  blood_glucose_seven.cc)
+
+add_executable(blood_glucose_eight
+  blood_glucose_eight.cc)
+
+add_executable(blood_glucose_ten
+  blood_glucose_ten.cc)
+
+add_executable(blood_glucose_eleven
+  blood_glucose_eleven.cc)
