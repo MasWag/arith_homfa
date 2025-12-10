@@ -4,9 +4,9 @@
 
 **License.** Code: GNU GPLv3 (`LICENSE`); examples/data share the same license unless noted.
 
-**Repository.** https://github.com/MasWag/arith_homfa
+**Repository.** <https://github.com/MasWag/arith_homfa>
 
-**Archived snapshot.** Provide a Zenodo DOI when available.
+**Archived snapshot.** <https://doi.org/10.5281/zenodo.17879145>
 
 **Artifact contents.** This repository ships the `ahomfa_util` command-line utility, the `libahomfa_runner.a` monitoring library, sample STL formulas, build scripts, and two curated example suites (`examples/blood_glucose`, `examples/vehicle_rss`) with data, specs, and automation scripts.
 
