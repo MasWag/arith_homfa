@@ -64,12 +64,15 @@ RUN wget -O seal.tar.gz "https://github.com/microsoft/SEAL/archive/refs/tags/v${
     ldconfig && \
     rm -rf "SEAL-${SEAL_VERSION}" seal.tar.gz
 
-WORKDIR /
-RUN git clone https://github.com/MasWag/arith_homfa --depth 1 --recursive --shallow-submodules
+# Clone and build arith_homfa
+RUN mkdir /arith_homfa
 WORKDIR /arith_homfa
-
-# Build arith_homfa.
-RUN cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
+RUN git init && \
+    git remote add origin https://github.com/MasWag/arith_homfa.git && \
+    git fetch --depth 1 origin d78134551ec03f20038d83a42ab04cda4eae7df1 && \
+    git checkout FETCH_HEAD && \
+    git submodule update --recursive --init && \
+    cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
     cmake --build cmake-build-release -j"$(nproc)" && \
     cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     cmake --build examples/build -j"$(nproc)"
