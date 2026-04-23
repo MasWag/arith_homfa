@@ -32,14 +32,14 @@ Implements safety monitoring for autonomous vehicles using RSS predicates to ens
 ## Prerequisites
 
 ### System Requirements
-- Linux-based system (Ubuntu 20.04+ recommended)
+- Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported.
 - GCC 10+ with C++17 support (Clang is currently unsupported because of template instantiation issues)
 - CMake (>= 3.16) plus Make or Ninja
 - OpenMP-capable CPU for best performance
 
 ### Dependencies
 ```bash
-# Install required packages (Ubuntu/Debian)
+# Install required packages (Ubuntu 24.04 or Debian 13)
 sudo apt-get update
 sudo apt-get install -y \
     build-essential \

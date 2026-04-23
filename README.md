@@ -23,10 +23,11 @@ Both sites are rebuilt automatically from the files under `doc/` on every push t
 Requirements
 ------------
 
+- Supported OS: 64-bit Ubuntu 24.04 LTS (noble) or Debian 13 (trixie).
 - GCC
     - Currently, Clang is not supported because of an issue on link-time optimization of clang.
         - See [here](https://stackoverflow.com/questions/60225945/explicit-c-template-instantiation-with-clang) for the details of the issue.
-    - We tested with GCC 10
+    - Use the distribution GCC from Ubuntu 24.04 or Debian 13.
 - CMake
 - Boost
 - [Microsoft SEAL](https://github.com/microsoft/SEAL): A CKKS library.

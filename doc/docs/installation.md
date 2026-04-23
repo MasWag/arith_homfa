@@ -2,8 +2,8 @@
 
 ## 2.1 System requirements
 
-- 64-bit Linux (tested on recent Ubuntu releases). GCC is required; Clang currently fails due to template instantiation issues.
-- CMake ≥ 3.16, make, and a C++17-capable GCC (tested with GCC 10).
+- 64-bit Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported; other Linux distributions may work but are outside the supported configuration.
+- CMake ≥ 3.16, make, and a C++17-capable GCC from the supported distribution. Clang currently fails due to template instantiation issues.
 - Boost headers/libraries.
 - [Microsoft SEAL 4.1.1](https://github.com/microsoft/SEAL) installed system-wide (`libseal.a` symlink may be required).
 - [Spot](https://spot.lre.epita.fr/) for LTL parsing and automata construction (tested with 2.10.4+, newer releases should work).

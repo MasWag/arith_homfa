@@ -37,3 +37,6 @@
 # Local tooling artifacts
 .venv/
 doc/site/
+build
+cmake-build-release
+cmake-build-debug

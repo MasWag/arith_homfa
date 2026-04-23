@@ -11,6 +11,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       bash \
+      bats \
       bison \
       build-essential \
       ca-certificates \
@@ -78,7 +79,10 @@ RUN git clone https://github.com/MasWag/arith_homfa --depth 1 --recursive --shal
 WORKDIR /arith_homfa
 
 RUN cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build cmake-build-release -j"$(nproc)"
+    cmake --build cmake-build-release -j"$(nproc)" && \
+    cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    cmake --build examples/build -j"$(nproc)"
+
 
 ENV PATH="/arith_homfa/cmake-build-release:/arith_homfa/examples:/arith_homfa/examples/build/vehicle_rss:/arith_homfa/examples/build/blood_glucose:${PATH}"
 WORKDIR /arith_homfa

@@ -55,13 +55,13 @@ Temporal Monitoring → Result Encryption (TFHE) → Safety Status
 - TFHE library (Boolean operations)
 
 ### System Requirements
-- Linux-based OS (Ubuntu 20.04+ recommended)
+- Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported.
 - Minimum 8GB RAM (16GB recommended for large datasets)
 - Multi-core processor for parallel operations
 
 ### Installation
 ```bash
-# Install dependencies (Ubuntu/Debian)
+# Install dependencies (Ubuntu 24.04 or Debian 13)
 sudo apt-get update
 sudo apt-get install -y \
     build-essential \

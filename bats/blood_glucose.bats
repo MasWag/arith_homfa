@@ -3,6 +3,8 @@
 setup() {
     PROJECT_ROOT="${BATS_TEST_DIRNAME}/.."
     BUILD_DIR="${PROJECT_ROOT}/cmake-build-release"
+    EXAMPLE_DIR="${PROJECT_ROOT}/examples/"
+    EXAMPLE_BUILD_DIR="${PROJECT_ROOT}/examples/build"
     BG_DIR="${PROJECT_ROOT}/examples/blood_glucose"
     CONFIG="${BG_DIR}/../config.json"
     # Build ArithHomFA
@@ -10,10 +12,14 @@ setup() {
     cmake --build "$BUILD_DIR" -- ahomfa_util ahomfa_runner
 
     # Build the runners
-    make clean -C "$BG_DIR"
-    make release -C "$BG_DIR" -j4
+    cmake -S "$EXAMPLE_DIR" -B "$EXAMPLE_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake --build "$EXAMPLE_BUILD_DIR" 
 
-    PATH="$PATH:$BUILD_DIR:$BG_DIR"
+    # Build the input data
+    make clean -C "$BG_DIR"
+    make all -C "$BG_DIR" -j4
+
+    PATH="$PATH:$BUILD_DIR:$BG_DIR:$EXAMPLE_BUILD_DIR/blood_glucose"
 
     # Options
     BOOTSTRAPPING_FREQ=200
@@ -137,7 +143,7 @@ dec() {
     # Assume that the input data is already encrypted
     [ -f "$BATS_TMPDIR/input_data.ckks" ]
 
-    run reverse blood_glucose_one "${BG_DIR}/gp0.ltl" 1
+    run reverse blood_glucose_one "${BG_DIR}/bg1.ltl" 1
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/result.reverse.tfhe" ]
     # Assume that the specs are generated
@@ -155,7 +161,7 @@ dec() {
     # Assume that the input data is already encrypted
     [ -f "$BATS_TMPDIR/input_data.ckks" ]
 
-    run block blood_glucose_one "${BG_DIR}/gp0.ltl" 1
+    run block blood_glucose_one "${BG_DIR}/bg1.ltl" 1
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/result.block.tfhe" ]
     # Assume that the spec is generated
@@ -234,15 +240,15 @@ dec() {
 }
 
 #########################################################
-########################## BG1' #########################
+########################## BG10 ##########################
 #########################################################
 
-@test "Compute pointwise difference for bg1'" {
+@test "Compute pointwise difference for bg10" {
     # Assume that the input data is already encrypted
     [ -f "$BATS_TMPDIR/input_data.ckks" ]
 
     # Conduct pointwise computation
-    run blood_glucose_one_dummy pointwise -i "$BATS_TMPDIR/input_data.ckks" -o "$BATS_TMPDIR/pointwise.ckks" -c "$CONFIG" -r "$BATS_TMPDIR/ckks.relinkey"
+    run blood_glucose_ten pointwise -i "$BATS_TMPDIR/input_data.ckks" -o "$BATS_TMPDIR/pointwise.ckks" -c "$CONFIG" -r "$BATS_TMPDIR/ckks.relinkey"
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/pointwise.ckks" ]
     run ahomfa_util ckks dec -i "$BATS_TMPDIR/pointwise.ckks" -o "$BATS_TMPDIR/pointwise.ckks.plain" -K "$BATS_TMPDIR/ckks.key" -c "${CONFIG}"
@@ -250,7 +256,7 @@ dec() {
     [ -f "$BATS_TMPDIR/pointwise.ckks.plain" ]
 
     # Conduct pointwise + scheme switching
-    run blood_glucose_one_dummy pointwise-tfhe -i "$BATS_TMPDIR/input_data.ckks" -o "$BATS_TMPDIR/pointwise.tfhe" -c "$CONFIG" -r "$BATS_TMPDIR/ckks.relinkey" -b "$BATS_TMPDIR/tfhe.bkey"
+    run blood_glucose_ten pointwise-tfhe -i "$BATS_TMPDIR/input_data.ckks" -o "$BATS_TMPDIR/pointwise.tfhe" -c "$CONFIG" -r "$BATS_TMPDIR/ckks.relinkey" -b "$BATS_TMPDIR/tfhe.bkey"
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/pointwise.tfhe" ]
     # At this stage, we need to split the torus at 0 and 1/2
@@ -259,15 +265,17 @@ dec() {
     [ -f "$BATS_TMPDIR/pointwise.tfhe.plain" ]
 
     # Compare the plaintext
-    awk '$0 < 0 {print "false"} $0 >= 0 {print "true"}' < "$BATS_TMPDIR/pointwise.ckks.plain" > "$BATS_TMPDIR/pointwise.ckks.plain.bool"
-    diff "$BATS_TMPDIR/pointwise.ckks.plain.bool" "$BATS_TMPDIR/pointwise.tfhe.plain"
+    awk '$0 < 0 {print "false"} $0 >= 0 {print "true"}' < "$BATS_TMPDIR/pointwise.ckks.plain" | awk 'NR != 5' > "$BATS_TMPDIR/pointwise.ckks.plain.bool"
+    # The value of the fifth row is almost 0 and unstable
+    [ -n "$(awk 'NR == 5 && $1 < 0.01 && $1 > -0.01{print}' "$BATS_TMPDIR/pointwise.ckks.plain" )" ]
+    awk 'NR != 5' < "$BATS_TMPDIR/pointwise.tfhe.plain" | diff "$BATS_TMPDIR/pointwise.ckks.plain.bool" -
 }
 
-@test "Compute reverse difference for bg1'" {
+@test "Compute reverse difference for bg10" {
     # Assume that the input data is already encrypted
     [ -f "$BATS_TMPDIR/input_data.ckks" ]
 
-    run reverse blood_glucose_one_dummy "${BG_DIR}/gp0.ltl" 1
+    run reverse blood_glucose_ten "${BG_DIR}/bg10.ltl" 1
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/result.reverse.tfhe" ]
     # Assume that the specs are generated
@@ -276,16 +284,16 @@ dec() {
     dec "$BATS_TMPDIR/result.reverse.tfhe" "$BATS_TMPDIR/result.reverse.txt"
     [ -f "$BATS_TMPDIR/result.reverse.txt" ]
 
-    plain blood_glucose_one_dummy && [ -f "$BATS_TMPDIR/result.plain.txt" ]
+    plain blood_glucose_ten && [ -f "$BATS_TMPDIR/result.plain.txt" ]
 
     diff "$BATS_TMPDIR/result.reverse.txt" "$BATS_TMPDIR/result.plain.txt"
 }
 
-@test "Compute block difference for bg1'" {
+@test "Compute block difference for bg10" {
     # Assume that the input data is already encrypted
     [ -f "$BATS_TMPDIR/input_data.ckks" ]
 
-    run block blood_glucose_one_dummy "${BG_DIR}/gp0.ltl" 1
+    run block blood_glucose_ten "${BG_DIR}/bg10.ltl" 1
     [ "$status" -eq 0 ]
     [ -f "$BATS_TMPDIR/result.block.tfhe" ]
     # Assume that the spec is generated
@@ -293,7 +301,7 @@ dec() {
     dec "$BATS_TMPDIR/result.block.tfhe" "$BATS_TMPDIR/result.block.txt"
     [ -f "$BATS_TMPDIR/result.block.txt" ]
 
-    plain blood_glucose_one_dummy && [ -f "$BATS_TMPDIR/result.plain.txt" ]
+    plain blood_glucose_ten && [ -f "$BATS_TMPDIR/result.plain.txt" ]
 
     diff "$BATS_TMPDIR/result.block.txt" "$BATS_TMPDIR/result.plain.txt"
 }

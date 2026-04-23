@@ -36,6 +36,7 @@ This nested temporal formula ensures:
 ## Prerequisites
 
 ### Software Requirements
+- Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported.
 - C++ compiler with C++17 support
 - CMake (>= 3.16)
 - OpenMP for parallel processing
@@ -44,7 +45,7 @@ This nested temporal formula ensures:
 
 ### Build Dependencies
 ```bash
-# Install required packages (Ubuntu/Debian)
+# Install required packages (Ubuntu 24.04 or Debian 13)
 sudo apt-get install -y \
     build-essential \
     cmake \
