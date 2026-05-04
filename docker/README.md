@@ -13,25 +13,19 @@ Both images:
 - start from the official `ubuntu:noble` or `debian:trixie` image,
 - install build dependencies with `apt`,
 - build and install Microsoft SEAL 4.1.1,
-- install or build Spot,
-- copy the repository into the image, and
+- build and install Spot from source,
+- fetch the pinned upstream repository commit into the image, and
 - build the repository with CMake/Ninja.
 
-## Important note about submodules
-
-The build expects the repository submodules to be present in the Docker build context.
-Before building the image, run:
-
-```sh
-git submodule update --init --recursive
-```
+The Dockerfiles build the pinned upstream commit
+`8fb07f1b2b06c847f6a21ce79ffb26a425b4b119` for reproducibility.
 
 ## Build commands
 
 Quick build using the provided script:
 
 ```sh
-./build_images.sh
+./docker/build_images.sh
 ```
 
 Manual build:
@@ -39,6 +33,33 @@ Manual build:
 ```sh
 docker build -f docker/ubuntu24.04/Dockerfile -t maswag/arith_homfa:noble .
 docker build -f docker/debian-trixie/Dockerfile -t maswag/arith_homfa:trixie .
+```
+
+## Spot version
+
+Both Dockerfiles build Spot from source. The default Spot version is `2.15.1`.
+
+To build both supported images with a different Spot version, set `SPOT_VERSION`
+when running the build script:
+
+```sh
+SPOT_VERSION=2.10.4 ./docker/build_images.sh
+```
+
+For a manual build, pass the same value as a Docker build argument:
+
+```sh
+docker build \
+  -f docker/ubuntu24.04/Dockerfile \
+  --build-arg SPOT_VERSION=2.10.4 \
+  -t maswag/arith_homfa:noble-spot2.10.4 \
+  .
+
+docker build \
+  -f docker/debian-trixie/Dockerfile \
+  --build-arg SPOT_VERSION=2.10.4 \
+  -t maswag/arith_homfa:trixie-spot2.10.4 \
+  .
 ```
 
 ## Usage examples

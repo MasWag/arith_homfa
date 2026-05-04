@@ -1,14 +1,22 @@
 FROM ubuntu:noble
 
+ARG SEAL_VERSION=4.1.1
+ARG SPOT_VERSION=2.15.1
+ARG MSGSL_VERSION=4.0.0
+
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
-    SEAL_VERSION=4.1.1 \
-    SPOT_VERSION=2.10.4 \
-    MSGSL_VERSION=4.0.0
+    SEAL_VERSION=${SEAL_VERSION} \
+    SPOT_VERSION=${SPOT_VERSION} \
+    MSGSL_VERSION=${MSGSL_VERSION}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && \
+RUN sed -i \
+      -e 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.kernel.org/ubuntu/|g' \
+      -e 's|http://security.ubuntu.com/ubuntu/|http://mirrors.kernel.org/ubuntu/|g' \
+      /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
       bash \
       bats \
@@ -26,6 +34,8 @@ RUN apt-get update && \
       m4 \
       make \
       ninja-build \
+      ocaml \
+      opam \
       pkg-config \
       python3 \
       texinfo \
@@ -34,6 +44,9 @@ RUN apt-get update && \
       zlib1g-dev \
       libzstd-dev && \
     rm -rf /var/lib/apt/lists/*
+
+RUN opam init --bare --disable-sandboxing -y && \
+    opam switch create default ocaml-system -y
 
 WORKDIR /tmp
 
@@ -79,15 +92,17 @@ RUN mkdir /arith_homfa
 WORKDIR /arith_homfa
 RUN git init && \
     git remote add origin https://github.com/MasWag/arith_homfa.git && \
-    git fetch --depth 1 origin d78134551ec03f20038d83a42ab04cda4eae7df1 && \
+    git fetch --depth 1 origin 8fb07f1b2b06c847f6a21ce79ffb26a425b4b119 && \
     git checkout FETCH_HEAD && \
     git submodule update --recursive --init && \
+    eval "$(opam env)" && \
+    opam install ./thirdparty/ltlconv --deps-only --with-test -y && \
     cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
     cmake --build cmake-build-release -j"$(nproc)" && \
     cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     cmake --build examples/build -j"$(nproc)"
 
 
-ENV PATH="/arith_homfa/cmake-build-release:/arith_homfa/examples:/arith_homfa/examples/build/vehicle_rss:/arith_homfa/examples/build/blood_glucose:${PATH}"
+ENV PATH="/root/.opam/default/bin:/arith_homfa/cmake-build-release:/arith_homfa/examples:/arith_homfa/examples/build/vehicle_rss:/arith_homfa/examples/build/blood_glucose:${PATH}"
 WORKDIR /arith_homfa
 CMD ["/bin/bash"]

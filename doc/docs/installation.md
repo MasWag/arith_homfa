@@ -6,7 +6,7 @@
 - CMake ≥ 3.16, make, and a C++17-capable GCC from the supported distribution. Clang currently fails due to template instantiation issues.
 - Boost headers/libraries.
 - [Microsoft SEAL 4.1.1](https://github.com/microsoft/SEAL) installed system-wide (`libseal.a` symlink may be required).
-- [Spot](https://spot.lre.epita.fr/) for LTL parsing and automata construction (tested with 2.10.4+, newer releases should work).
+- [Spot](https://spot.lre.epita.fr/) for LTL parsing and automata construction (tested with 2.15.1+, newer releases should work).
 - Optional: bats for shell tests.
 
 For encrypted workloads, expect multi-minute builds and high RAM consumption (≥16 GB) during bootstrapping-heavy runs.

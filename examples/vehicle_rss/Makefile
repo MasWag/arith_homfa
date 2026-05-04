@@ -40,7 +40,7 @@ vrss.ltl: ./ltlconv vrss.xltl
 	./ltlconv vrss.xltl -o $@
 
 ./ltlconv:
-	(cd ../../thirdparty/ltlconv && opam install . --deps-only --with-test -y && dune build)
+	(cd ../../thirdparty/ltlconv && eval "$$(opam env)" && opam install . --deps-only --with-test -y && dune build)
 	cp ../../thirdparty/ltlconv/_build/default/bin/main.exe ./ltlconv
 
 clean:

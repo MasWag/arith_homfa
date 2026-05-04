@@ -9,18 +9,25 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 # Build tags
 UBUNTU_TAG="maswag/arith_homfa:noble"
 DEBIAN_TAG="maswag/arith_homfa:trixie"
+SPOT_VERSION="${SPOT_VERSION:-2.15.1}"
+
+BUILD_ARGS=(
+  --build-arg "SPOT_VERSION=${SPOT_VERSION}"
+)
 
 # Build Ubuntu 24.04 image
-echo "Building $UBUNTU_TAG..."
+echo "Building $UBUNTU_TAG with Spot ${SPOT_VERSION}..."
 docker build \
   -f "$SCRIPT_DIR/ubuntu24.04/Dockerfile" \
+  "${BUILD_ARGS[@]}" \
   -t "$UBUNTU_TAG" \
   "$REPO_ROOT"
 
 echo ""
-echo "Building $DEBIAN_TAG..."
+echo "Building $DEBIAN_TAG with Spot ${SPOT_VERSION}..."
 docker build \
   -f "$SCRIPT_DIR/debian-trixie/Dockerfile" \
+  "${BUILD_ARGS[@]}" \
   -t "$DEBIAN_TAG" \
   "$REPO_ROOT"
 

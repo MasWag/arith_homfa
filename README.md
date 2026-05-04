@@ -36,7 +36,7 @@ Requirements
     - See [here](https://github.com/microsoft/SEAL#getting-started) for the installation.
     - You may need to create a symbolic link with `sudo ln -s /usr/local/lib/libseal-4.1.a /usr/local/lib/libseal.a`.
 - [Spot](https://spot.lre.epita.fr/): A library to handle temporal logic and omega automata. 
-    - We tested with Spot 2.10.4.
+    - We tested with Spot 2.15.1.
     - See [this page](https://spot.lre.epita.fr/install.html) for the installation.
 
 How to build

@@ -4,47 +4,52 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG SEAL_VERSION=4.1.1
+ARG SPOT_VERSION=2.15.1
+ARG MSGSL_VERSION=4.0.0
 
-# Spot publishes Debian stable packages for trixie.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      ca-certificates \
-      curl \
-      gpg \
-      wget && \
-    install -d -m 0755 /etc/apt/keyrings && \
-    wget -q -O /etc/apt/keyrings/lre-epita.gpg https://www.lre.epita.fr/repo/debian.gpg && \
-    echo 'deb [signed-by=/etc/apt/keyrings/lre-epita.gpg] http://www.lre.epita.fr/repo/debian/ stable/' \
-      > /etc/apt/sources.list.d/lre-epita.list && \
-    apt-get update && \
     apt-get install -y --no-install-recommends \
       bash \
       bats \
       bison \
       build-essential \
+      ca-certificates \
       cmake \
+      curl \
       file \
       flex \
       gawk \
       git \
+      gpg \
       libboost-all-dev \
       libgmp-dev \
-      libmsgsl-dev \
-      libspot-dev \
       libtbb-dev \
+      libzstd-dev \
       m4 \
       make \
       ninja-build \
+      ocaml \
+      opam \
       pkg-config \
       python3 \
-      spot \
       texinfo \
-      xz-utils \
-      zlib1g-dev \
-      libzstd-dev && \
+      wget && \
     rm -rf /var/lib/apt/lists/*
 
+RUN opam init --bare --disable-sandboxing -y && \
+    opam switch create default ocaml-system -y
+
 WORKDIR /tmp
+
+RUN wget -O msgsl.tar.gz "https://github.com/microsoft/GSL/archive/refs/tags/v${MSGSL_VERSION}.tar.gz" && \
+    tar -xzf msgsl.tar.gz && \
+    cmake -S "GSL-${MSGSL_VERSION}" -B "GSL-${MSGSL_VERSION}/build" \
+      -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DGSL_TEST=OFF && \
+    cmake --build "GSL-${MSGSL_VERSION}/build" && \
+    cmake --install "GSL-${MSGSL_VERSION}/build" && \
+    rm -rf "GSL-${MSGSL_VERSION}" msgsl.tar.gz
 
 # Build and install Microsoft SEAL from source.
 RUN wget -O seal.tar.gz "https://github.com/microsoft/SEAL/archive/refs/tags/v${SEAL_VERSION}.tar.gz" && \
@@ -64,19 +69,32 @@ RUN wget -O seal.tar.gz "https://github.com/microsoft/SEAL/archive/refs/tags/v${
     ldconfig && \
     rm -rf "SEAL-${SEAL_VERSION}" seal.tar.gz
 
+# Build and install Spot from source.
+RUN wget -O spot.tar.gz "https://www.lre.epita.fr/dload/spot/spot-${SPOT_VERSION}.tar.gz" && \
+    tar -xzf spot.tar.gz && \
+    cd "spot-${SPOT_VERSION}" && \
+    ./configure --prefix=/usr/local --disable-python && \
+    make -j"$(nproc)" && \
+    make install && \
+    ldconfig && \
+    cd /tmp && \
+    rm -rf "spot-${SPOT_VERSION}" spot.tar.gz
+
 # Clone and build arith_homfa
 RUN mkdir /arith_homfa
 WORKDIR /arith_homfa
 RUN git init && \
     git remote add origin https://github.com/MasWag/arith_homfa.git && \
-    git fetch --depth 1 origin d78134551ec03f20038d83a42ab04cda4eae7df1 && \
+    git fetch --depth 1 origin 8fb07f1b2b06c847f6a21ce79ffb26a425b4b119 && \
     git checkout FETCH_HEAD && \
     git submodule update --recursive --init && \
+    eval "$(opam env)" && \
+    opam install ./thirdparty/ltlconv --deps-only --with-test -y && \
     cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
     cmake --build cmake-build-release -j"$(nproc)" && \
     cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
     cmake --build examples/build -j"$(nproc)"
 
 
-ENV PATH="/arith_homfa/cmake-build-release:/arith_homfa/examples:/arith_homfa/examples/build/vehicle_rss:/arith_homfa/examples/build/blood_glucose:${PATH}"
+ENV PATH="/root/.opam/default/bin:/arith_homfa/cmake-build-release:/arith_homfa/examples:/arith_homfa/examples/build/vehicle_rss:/arith_homfa/examples/build/blood_glucose:${PATH}"
 CMD ["/bin/bash"]

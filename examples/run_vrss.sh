@@ -176,9 +176,15 @@ echo -e "${GREEN}Example completed successfully!${NC}"
 echo -e "${GREEN}=========================================${NC}"
 
 # Cleanup option
-read -p "Do you want to clean up generated files? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+CLEANUP_REPLY="n"
+if [ -t 0 ]; then
+    read -p "Do you want to clean up generated files? (y/n) " -n 1 -r CLEANUP_REPLY
+    echo
+else
+    echo "No interactive input detected; leaving generated files in place."
+fi
+
+if [[ ${CLEANUP_REPLY} =~ ^[Yy]$ ]]; then
     make -C "${EXAMPLE_DIR}" clean
     rm -f \
         "${BLOCK_RESULT_TFHE}" \
