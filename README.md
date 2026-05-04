@@ -5,6 +5,7 @@ Arithmetic HomFA (ArithHomFA)
 [![Developers Manual](https://img.shields.io/badge/docs-Dev-green)](https://maswag.github.io/arith_homfa/developer_manual)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 [![DOI](https://zenodo.org/badge/630259638.svg)](https://doi.org/10.5281/zenodo.17879145)
+[![Docker Pulls](https://img.shields.io/docker/pulls/maswag/arith_homfa)](https://hub.docker.com/r/maswag/arith_homfa)
 
 
 Arithmetic HomFA (ArithHomFA) is a prototype toolkit for oblivious online STL (signal temporal logic) monitoring, i.e., it enables STL monitoring without disclosing the log to the monitor. Note that we employ discrete-time semantics of STL, which is essentially LTL with arithmetic predicates.
