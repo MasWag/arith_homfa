@@ -32,8 +32,8 @@ Requirements
 - Boost
 - [Microsoft SEAL](https://github.com/microsoft/SEAL): A CKKS library.
     - We tested with SEAL 4.1.1.
-    - See [here](https://spot.lre.epita.fr/install.html) for the installation.
-    - You may need to create a symbolic link via `sudo ln -s /usr/local/lib/libseal-4.1.a /usr/local/lib/libseal.a`.
+    - See [here](https://github.com/microsoft/SEAL#getting-started) for the installation.
+    - You may need to create a symbolic link with `sudo ln -s /usr/local/lib/libseal-4.1.a /usr/local/lib/libseal.a`.
 - [Spot](https://spot.lre.epita.fr/): A library to handle temporal logic and omega automata. 
     - We tested with Spot 2.10.4.
     - See [this page](https://spot.lre.epita.fr/install.html) for the installation.
