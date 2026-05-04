@@ -10,7 +10,7 @@
 #  generates synthetic driving traces, executes plain and encrypted monitors, and
 #  decrypts plus compares the resulting verdicts.
 # PREREQUISITES
-#  * A configured build directory at ../build (the script builds it on demand).
+#  * A configured build directory at examples/build (the script creates it when missing).
 #  * Example assets located under vehicle_rss (keys, specs, config, traces).
 #  * The ahomfa_util and vehicle_rss binaries produced by the build.
 # OUTPUTS
@@ -28,10 +28,7 @@
 #  # Show the plain results and optionally clean generated artifacts when prompted.
 # OPTIONS
 #  * No positional arguments or flags are parsed; run the script without parameters.
-#  * MONITOR_MODE: export to switch vehicle_rss performance mode (default: fast).
-#  * BLOCK_SIZE: export to adjust the encrypted block length fed to vehicle_rss (default: 1).
-#  * BUILD_DIR: override to point at a prebuilt ArithHomFA tree (default: ../build).
-#  * EXAMPLE_DIR: override if the vehicle_rss assets live elsewhere (default: ./vehicle_rss).
+#  * The script currently uses fast monitoring mode and encrypted block length 1.
 # INTERACTIVE BEHAVIOR
 #  The script prompts at the end to decide whether to delete generated files via make clean.
 ################################################

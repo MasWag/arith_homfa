@@ -18,7 +18,7 @@ git clone https://github.com/MasWag/arith_homfa.git
 cd arith_homfa
 git submodule update --init --recursive
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target ahomfa_util libahomfa_runner.a
+cmake --build build --target ahomfa_util ahomfa_runner
 ```
 
 ## 2.3 Sanity checks

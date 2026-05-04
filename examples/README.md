@@ -65,12 +65,12 @@ Before running the examples, build the main ArithHomFA project:
 # From the project root directory
 git submodule update --init --recursive
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target ahomfa_util libahomfa_runner.a
+cmake --build build --target ahomfa_util ahomfa_runner
 ```
 
 ## General Usage Pattern
 
-Each example follows a similar workflow. The automation scripts (`run_bg.sh`, `run_vrss.sh`) run every step for you, but the individual `make` targets are handy when iterating on a specific stage.
+Each example follows a similar workflow. The automation scripts (`run_bg.sh`, `run_vrss.sh`) run every step for you, while the individual `make` targets remain handy when iterating on a specific stage.
 
 ### 1. Key Generation
 Generate encryption keys for both CKKS and TFHE schemes:
@@ -95,14 +95,16 @@ make encrypt_sample
 ### 4. Homomorphic Monitoring
 Run the monitoring algorithm on encrypted data. From the `examples/` directory you can call the curated orchestration scripts:
 ```bash
-./run_bg.sh --formula 1 --mode fast   # Blood glucose suite (see --help for more options)
-./run_vrss.sh                         # Vehicle RSS suite
+./run_bg.sh --formula 1 --mode fast   # Blood glucose suite; --formula is required
+./run_vrss.sh                         # Vehicle RSS suite; no script flags
 ```
 
+`run_bg.sh` maps the selected formula to the matching `blood_glucose_*` monitor, derives plaintext samples from the bundled CSV traces, encrypts them, runs plain/block/reverse monitoring, writes outputs under `blood_glucose/results/`, decrypts the encrypted verdicts, and compares them with the plaintext baseline. `run_vrss.sh` drives the Vehicle RSS Make targets, writes `vehicle_rss/result_*` outputs, decrypts the block/reverse verdicts, and compares plain, block, and reverse results.
+
 ### 5. Result Decryption
-Decrypt and interpret monitoring results:
+Decrypt and interpret monitoring results from an example directory:
 ```bash
-../build/ahomfa_util tfhe dec -K tfhe.key -i result.tfhe -o result.txt
+../build/arith_homfa/ahomfa_util tfhe dec -K tfhe.key -i result.tfhe -o result.txt
 ```
 
 ## Quick Start
@@ -112,10 +114,10 @@ Each example includes a convenient script that automates the entire workflow:
 ```bash
 cd examples
 
-# Blood Glucose example (formula auto-selects the right dataset unless overridden)
+# Blood Glucose example (formula selects the default dataset unless overridden)
 ./run_bg.sh --formula 1 --mode fast
 
-# Vehicle RSS example (builds binaries, regenerates data, and diff-checks verdicts)
+# Vehicle RSS example (regenerates data and compares verdicts)
 ./run_vrss.sh
 ```
 

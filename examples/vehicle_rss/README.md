@@ -72,10 +72,9 @@ sudo apt-get install -y \
     libssl-dev
 
 # Build ArithHomFA
-cd ../../  # Navigate to project root
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+cd ../../  # from examples/vehicle_rss to the project root
+cmake -S examples -B examples/build -DCMAKE_BUILD_TYPE=Release
+cmake --build examples/build --target ahomfa_util vehicle_rss
 ```
 
 ## File Structure
@@ -121,10 +120,10 @@ make specs
 Converts the RSS temporal formula to finite automata:
 ```bash
 # Standard automaton
-../../build/src/ahomfa_util ltl2spec -n 4 -e "$(cat vrss.ltl)" -o vrss.spec
+../build/arith_homfa/ahomfa_util ltl2spec -n 4 -e "$(cat vrss.ltl)" -o vrss.spec
 
 # Reversed automaton (optimized)
-../../build/src/ahomfa_util ltl2spec -n 4 -e "$(cat vrss.ltl)" -o vrss.reversed.spec --reverse
+../build/arith_homfa/ahomfa_util spec2spec --reverse -i vrss.spec -o vrss.reversed.spec
 ```
 
 Note: `-n 4` indicates four predicates (p0, p1, p2, p3)
@@ -157,7 +156,7 @@ make encrypt_sample
 
 Encrypts telemetry using CKKS:
 ```bash
-../../build/src/ahomfa_util ckks enc \
+../build/arith_homfa/ahomfa_util ckks enc \
     -c config.json \
     -K ckks.key \
     -i move15.vrss.txt \
@@ -168,7 +167,7 @@ Encrypts telemetry using CKKS:
 
 **Reverse Mode (Recommended)**
 ```bash
-../../build/examples/vehicle_rss/vehicle_rss reverse \
+../build/vehicle_rss/vehicle_rss reverse \
     -c config.json \
     -r ckks.relinkey \
     -b tfhe.bkey \
@@ -193,7 +192,7 @@ Encrypts telemetry using CKKS:
 
 #### 6. Decrypt Results
 ```bash
-../../build/src/ahomfa_util tfhe dec \
+../build/arith_homfa/ahomfa_util tfhe dec \
     -K tfhe.key \
     -i result.tfhe \
     -o result.txt
@@ -406,15 +405,15 @@ class RSSMonitor:
 
 ```bash
 # CPU profiling
-perf record -g ./vehicle_rss reverse -c config.json ...
+perf record -g ../build/vehicle_rss/vehicle_rss reverse -c config.json ...
 perf report
 
 # Memory profiling
-valgrind --tool=massif ./vehicle_rss reverse -c config.json ...
+valgrind --tool=massif ../build/vehicle_rss/vehicle_rss reverse -c config.json ...
 ms_print massif.out.*
 
 # Timing analysis
-time -v ./vehicle_rss reverse -c config.json ...
+time -v ../build/vehicle_rss/vehicle_rss reverse -c config.json ...
 ```
 
 ## Troubleshooting
@@ -436,10 +435,11 @@ time -v ./vehicle_rss reverse -c config.json ...
 export OMP_NUM_THREADS=$(nproc)
 
 # Use Release build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -march=native"
+cmake -S .. -B ../build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O3 -march=native"
+cmake --build ../build --target vehicle_rss
 
 # Disable debug symbols
-strip ./vehicle_rss
+strip ../build/vehicle_rss/vehicle_rss
 ```
 
 #### 3. Incorrect Results
@@ -455,15 +455,14 @@ strip ./vehicle_rss
 **Solutions**:
 ```bash
 # Clean build
-rm -rf build/
-mkdir build && cd build
+rm -rf ../build
 
 # Verbose build for debugging
-cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
-make VERBOSE=1
+cmake -S .. -B ../build -DCMAKE_VERBOSE_MAKEFILE=ON
+cmake --build ../build --target vehicle_rss --verbose
 
 # Check library paths
-ldd ./vehicle_rss
+ldd ../build/vehicle_rss/vehicle_rss
 ```
 
 ### Debug Mode

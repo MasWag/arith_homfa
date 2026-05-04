@@ -56,10 +56,9 @@ sudo apt-get install -y \
 ### Project Build
 Ensure ArithHomFA is built before running this example:
 ```bash
-cd ../../  # Navigate to project root
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+cd ../../  # from examples/blood_glucose to the project root
+cmake -S examples -B examples/build -DCMAKE_BUILD_TYPE=Release
+cmake --build examples/build --target ahomfa_util blood_glucose_one
 ```
 
 ## File Structure
@@ -119,8 +118,8 @@ make specs
 
 Converts LTL formulas to deterministic finite automata (DFA):
 ```bash
-../../build/src/ahomfa_util ltl2spec -n 1 -e "$(cat bg1.ltl)" -o bg1.spec
-../../build/src/ahomfa_util ltl2spec -n 1 -e "$(cat bg1.ltl)" -o bg1.reversed.spec --reverse
+../build/arith_homfa/ahomfa_util ltl2spec -n 1 -e "$(cat bg1.ltl)" -o bg1.spec
+../build/arith_homfa/ahomfa_util spec2spec --reverse -i bg1.spec -o bg1.reversed.spec
 ```
 
 #### 3. Prepare Sample Data
@@ -139,7 +138,7 @@ make encrypt_sample
 
 Encrypts glucose readings using CKKS:
 ```bash
-../../build/src/ahomfa_util ckks enc \
+../build/arith_homfa/ahomfa_util ckks enc \
     -c config.json \
     -K ckks.key \
     -i adult_sample.bg.txt \
@@ -150,7 +149,7 @@ Encrypts glucose readings using CKKS:
 
 **Reverse Mode (Optimized)**
 ```bash
-../../build/examples/blood_glucose/blood_glucose_one reverse \
+../build/blood_glucose/blood_glucose_one reverse \
     -c config.json \
     -r ckks.relinkey \
     -b tfhe.bkey \
@@ -164,7 +163,7 @@ Encrypts glucose readings using CKKS:
 
 **Block Mode (Standard)**
 ```bash
-../../build/examples/blood_glucose/blood_glucose_one block \
+../build/blood_glucose/blood_glucose_one block \
     -c config.json \
     -r ckks.relinkey \
     -b tfhe.bkey \
@@ -175,7 +174,7 @@ Encrypts glucose readings using CKKS:
 
 #### 6. Decrypt Results
 ```bash
-../../build/src/ahomfa_util tfhe dec \
+../build/arith_homfa/ahomfa_util tfhe dec \
     -K tfhe.key \
     -i result.tfhe \
     -o result.txt
@@ -186,15 +185,15 @@ Encrypts glucose readings using CKKS:
 #### Plain Mode (No Encryption)
 For testing and comparison:
 ```bash
-./blood_glucose_one plain -c config.json -f gp0.spec < input.txt
+../build/blood_glucose/blood_glucose_one plain -c config.json -f gp0.spec < input.txt
 ```
 
 #### Pointwise Evaluation
 Evaluates predicate at each time point:
 ```bash
-../../build/src/ahomfa_util ckks enc -c config.json -K ckks.key -i input.txt | \
-./blood_glucose_one pointwise -c config.json | \
-../../build/src/ahomfa_util ckks dec -c config.json -K ckks.key
+../build/arith_homfa/ahomfa_util ckks enc -c config.json -K ckks.key -i input.txt | \
+../build/blood_glucose/blood_glucose_one pointwise -c config.json | \
+../build/arith_homfa/ahomfa_util ckks dec -c config.json -K ckks.key
 ```
 
 ## Expected Output
@@ -298,7 +297,8 @@ done
 # Enable OpenMP parallelization
 export OMP_NUM_THREADS=$(nproc)
 # Use Release build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake -S .. -B ../build -DCMAKE_BUILD_TYPE=Release
+cmake --build ../build --target blood_glucose_one
 ```
 
 #### 4. Compilation Errors
@@ -307,9 +307,9 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 ```bash
 # Clean and rebuild
 make clean
-rm -rf ../../build
-mkdir -p ../../build && cd ../../build
-cmake .. && make -j$(nproc)
+rm -rf ../build
+cmake -S .. -B ../build -DCMAKE_BUILD_TYPE=Release
+cmake --build ../build --target ahomfa_util blood_glucose_one -j$(nproc)
 ```
 
 ### Debug Mode
@@ -369,7 +369,7 @@ def process_glucose_observation(observation):
 make benchmark
 
 # Profile execution
-perf record ./blood_glucose_one reverse -c config.json ...
+perf record ../build/blood_glucose/blood_glucose_one reverse -c config.json ...
 perf report
 ```
 

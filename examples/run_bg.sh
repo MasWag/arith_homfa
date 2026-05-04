@@ -11,7 +11,7 @@
 #  traces, runs plain/block/reverse monitors, and validates the decrypted
 #  verdicts.
 # PREREQUISITES
-#  * A configured build directory at ./build (the script configures & builds on demand).
+#  * A configured build directory at examples/build (the script configures & builds on demand).
 #  * Example assets residing under ./blood_glucose (config, formulas, datasets).
 #  * The ahomfa_util helper plus blood_glucose_* monitor binaries produced by the build.
 # OUTPUTS
@@ -22,7 +22,7 @@
 #  * blood_glucose/results/bg<formula>_<dataset>_reverse.txt      Decrypted reverse monitoring verdicts.
 # WORKFLOW
 #  # Parse CLI/environment inputs, map formula ids to monitor binaries and datasets.
-#  # Ensure ahomfa_util plus the targeted monitor are built, building ../build if needed.
+#  # Ensure ahomfa_util plus the targeted monitor are built, building examples/build if needed.
 #  # Generate CKKS secret/relinearization keys and TFHE secret/bootstrap keys.
 #  # Translate the selected LTL formula into a spec plus reversed spec when stale or missing.
 #  # Derive plaintext samples from the CSV dataset and encrypt them with CKKS.

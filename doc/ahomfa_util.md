@@ -157,9 +157,9 @@ Modify a specification for ArithHomFA.
 
 - **-h**, **--help**: Print a help message and exit
 - **-i**, **--input**: The file to load the input
-- **--reverse** BOOLEAN: Reverse the given specification
-- **--negate** BOOLEAN: Negate the given specification
-- **--minimize** BOOLEAN: Minimize the given specification
+- **--reverse**: Reverse the given specification
+- **--negate**: Negate the given specification
+- **--minimize**: Minimize the given specification
 - **-o**, **--output**: The file to write the result
 
 ## Exit Status
@@ -174,7 +174,7 @@ Modify a specification for ArithHomFA.
 
 The following is an example of generating a CKKS secret key using a configuration file **config.json** and writing the output to **ckks.key**.
 
-`./build/ahomfa_util ckks genkey -c ./example/config.json -o /tmp/ckks.key`
+`./build/ahomfa_util ckks genkey -c ./examples/blood_glucose/config.json -o /tmp/ckks.key`
 
 The command to decrypt the result of the monitor execution is as follows.
 
@@ -184,8 +184,8 @@ This command reads the TFHE secret key from **/tmp/tfhe.key**, the input to decr
 
 Here is an example of using the spec2spec command:
 
-`./build/ahomfa_util spec2spec --reverse true --input ./example/specification.spec --output /tmp/specification_reversed.spec`
+`./build/ahomfa_util spec2spec --reverse -i ./examples/blood_glucose/bg1.spec -o /tmp/bg1.reversed.spec`
 
-This command reads the specification from **./example/specification.spec**, reverses the specification, and writes the result to **/tmp/specification_reversed.spec**.
+This command reads the specification from **./examples/blood_glucose/bg1.spec**, reverses the specification, and writes the result to **/tmp/bg1.reversed.spec**.
 
 By default, ahomfa_util reads input from **stdin** and writes output to **stdout** if no input or output file is specified.
