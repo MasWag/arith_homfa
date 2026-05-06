@@ -92,7 +92,7 @@ RUN mkdir /arith_homfa
 WORKDIR /arith_homfa
 RUN git init && \
     git remote add origin https://github.com/MasWag/arith_homfa.git && \
-    git fetch --depth 1 origin 8fb07f1b2b06c847f6a21ce79ffb26a425b4b119 && \
+    git fetch --depth 1 origin f0f2f45f7187dca40940a4eb0bd29f18d65be783 && \
     git checkout FETCH_HEAD && \
     git submodule update --recursive --init && \
     eval "$(opam env)" && \
