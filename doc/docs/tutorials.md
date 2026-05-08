@@ -64,7 +64,7 @@ cmake --build examples/build --target ahomfa_util blood_glucose_seven
 
 ```sh
 cmake --build examples/build --target vehicle_rss
-./examples/run_vrss.sh  # or run make keys/specs/sample_data/encrypt_sample manually
+./examples/run_vrss.sh
 ```
 
-The RSS example monitors eight simultaneous predicates derived from `vrss.ltl`, which is generated from `vrss.xltl` using [`ltlconv`](https://github.com/gfngfn/ltlconv/). Inspect `examples/vehicle_rss/README.md` for the predicate definitions and data format, then adapt the Make targets when bringing your own traces.
+The RSS example monitors eight simultaneous predicates derived from `vrss.ltl`, which is generated from `vrss.xltl` using [`ltlconv`](https://github.com/gfngfn/ltlconv/). Inspect `examples/vehicle_rss/README.md` for the predicate definitions and data format, then adapt the example workflow when bringing your own traces.

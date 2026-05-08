@@ -42,7 +42,7 @@ Requirements
 How to build
 ------------
 
-The following shows how to build `ahomfa_util` and `libahomfa_runner.a` using CMake.
+The following shows how to build `ahomfa_util` and `libahomfa_runner.a` using CMake. See [this page](https://maswag.github.io/arith_homfa/installation/) for detailed instructions, especially dependency installation.
 
 ```sh
 git submodule update --init --recursive
@@ -67,14 +67,7 @@ Each curated example under `examples/` ships an automation script that prepares 
 
 `run_bg.sh` accepts `--formula`, `--dataset`, `--mode`, `--block-size`, and `--bootstrap` flags so you can choose among the curated blood-glucose formulas, datasets, and encrypted-monitor settings without editing example files. It maps the selected formula to a `blood_glucose_*` monitor, derives plaintext glucose samples from the CSV traces under `examples/blood_glucose/homfa-experiment/`, writes encrypted and decrypted outputs under `examples/blood_glucose/results/`, and prompts for result cleanup when run interactively.
 
-`run_vrss.sh` has no command-line flags. It creates and builds `examples/build` when that directory is missing, drives the Vehicle RSS Make targets (`keys`, `specs`, `move15.vrss.txt`, `move15.vrss.ckks`), runs plain, block, and reverse monitoring with the `vehicle_rss` binary, decrypts the block/reverse TFHE outputs, compares them with the plaintext baseline, writes `examples/vehicle_rss/result_*` files, and prompts for cleanup when run interactively.
-
-The individual Make targets are still useful when iterating on one stage:
-
-- `make keys` – create CKKS/TFHE secret keys plus the relinearization/bootstrapping keys.
-- `make specs` – transform the bundled LTL formulas (e.g., `bg1.ltl`, `vrss.ltl`) into DFA specs and reversed specs.
-- `make sample_data` / `make encrypt_sample` – synthesize or prepare representative traces and encrypt them with CKKS where the example provides those targets.
-- `make release` (blood_glucose) – build the monitor binary without rebuilding every example target.
+`run_vrss.sh` has no command-line flags. It creates and builds `examples/build` when that directory is missing, prepares keys, specifications, plaintext traces, and CKKS inputs, runs plain, block, and reverse monitoring with the `vehicle_rss` binary, decrypts the block/reverse TFHE outputs, compares them with the plaintext baseline, writes `examples/vehicle_rss/result_*` files, and prompts for cleanup when run interactively.
 
 Use the scripts for quick smoke tests, then switch to the manual steps below when adapting the workflow to your own predicates and traces.
 
@@ -115,7 +108,7 @@ The predicate is given by an implementation of a C++ class `ArithHomFA::CKKSPred
 
 #### Step 2: Monitor Building
 
-Then, on the server side, build a monitor using the predicate in C++ and `libahomfa_runner.a`. A concrete example of a `Makefile` is shown in `examples/blood_glucose/Makefile`. For a release build, run `make -C ./examples/blood_glucose release` or `make release` inside `examples/blood_glucose`.
+Then, on the server side, build a monitor using the predicate in C++ and `libahomfa_runner.a`. A concrete CMake example is shown in `examples/blood_glucose/CMakeLists.txt`. For the blood-glucose example, run `cmake --build ./examples/build --target blood_glucose_one` after configuring `./examples/build`.
 
 #### Step 3: Spec Transformation
 

@@ -33,8 +33,8 @@ Implements safety monitoring for autonomous vehicles using RSS predicates to ens
 
 ### System Requirements
 - Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported.
-- GCC 10+ with C++17 support (Clang is currently unsupported because of template instantiation issues)
-- CMake (>= 3.16) plus Make or Ninja
+- GCC with C++20 support (Clang is currently unsupported because of template instantiation issues)
+- CMake (>= 3.16)
 - OpenMP-capable CPU for best performance
 
 ### Dependencies
@@ -44,7 +44,6 @@ sudo apt-get update
 sudo apt-get install -y \
     build-essential \
     cmake \
-    ninja-build \
     libomp-dev \
     libtbb-dev \
     libssl-dev \
@@ -70,27 +69,16 @@ cmake --build build --target ahomfa_util ahomfa_runner
 
 ## General Usage Pattern
 
-Each example follows a similar workflow. The automation scripts (`run_bg.sh`, `run_vrss.sh`) run every step for you, while the individual `make` targets remain handy when iterating on a specific stage.
+Each example follows a similar workflow. The automation scripts (`run_bg.sh`, `run_vrss.sh`) run every step for you.
 
 ### 1. Key Generation
-Generate encryption keys for both CKKS and TFHE schemes:
-```bash
-cd examples/<example_name>
-make keys
-```
+Generate encryption keys for both CKKS and TFHE schemes.
 
 ### 2. Specification Generation
-Convert temporal logic formulas to automata specifications:
-```bash
-make specs
-```
+Convert temporal logic formulas to automata specifications.
 
 ### 3. Data Preparation
-Create and encrypt sample data:
-```bash
-make sample_data
-make encrypt_sample
-```
+Create and encrypt sample data.
 
 ### 4. Homomorphic Monitoring
 Run the monitoring algorithm on encrypted data. From the `examples/` directory you can call the curated orchestration scripts:
@@ -99,7 +87,7 @@ Run the monitoring algorithm on encrypted data. From the `examples/` directory y
 ./run_vrss.sh                         # Vehicle RSS suite; no script flags
 ```
 
-`run_bg.sh` maps the selected formula to the matching `blood_glucose_*` monitor, derives plaintext samples from the bundled CSV traces, encrypts them, runs plain/block/reverse monitoring, writes outputs under `blood_glucose/results/`, decrypts the encrypted verdicts, and compares them with the plaintext baseline. `run_vrss.sh` drives the Vehicle RSS Make targets, writes `vehicle_rss/result_*` outputs, decrypts the block/reverse verdicts, and compares plain, block, and reverse results.
+`run_bg.sh` maps the selected formula to the matching `blood_glucose_*` monitor, derives plaintext samples from the bundled CSV traces, encrypts them, runs plain/block/reverse monitoring, writes outputs under `blood_glucose/results/`, decrypts the encrypted verdicts, and compares them with the plaintext baseline. `run_vrss.sh` prepares the Vehicle RSS inputs, writes `vehicle_rss/result_*` outputs, decrypts the block/reverse verdicts, and compares plain, block, and reverse results.
 
 ### 5. Result Decryption
 Decrypt and interpret monitoring results from an example directory:

@@ -18,7 +18,7 @@ cmake -S ./examples -B ./examples/build -DCMAKE_BUILD_TYPE=Release
 cmake --build ./examples/build --target ahomfa_util blood_glucose_one
 ```
 
-If you have, using `ninja` by specifying `-GNinja` in configuring `cmake` may make the compilation much faster. The resulting `ahomfa_util` binary is generated at `examples/build/arith_homfa/ahomfa_util` and `blood_glucose_one` binary is generated at `examples/build/blood_glucose/blood_glucose_one`. `blood_glucose_one` exposes plain, block, pointwise, and reversed execution modes for experimentation.
+The resulting `ahomfa_util` binary is generated at `examples/build/arith_homfa/ahomfa_util` and the `blood_glucose_one` binary is generated at `examples/build/blood_glucose/blood_glucose_one`. `blood_glucose_one` exposes plain, block, pointwise, and reversed execution modes for experimentation.
 
 ## 3.3 Generate keys and encrypted data
 
