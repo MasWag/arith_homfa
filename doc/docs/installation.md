@@ -5,7 +5,7 @@
 - 64-bit Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported; other Linux distributions may work but are outside the supported configuration.
 - CMake ≥ 3.16, make, and a C++17-capable GCC from the supported distribution. Clang currently fails due to template instantiation issues.
 - Boost headers/libraries.
-- [Microsoft SEAL 4.1.1](https://github.com/microsoft/SEAL) installed system-wide (`libseal.a` symlink may be required).
+- [Microsoft SEAL](https://github.com/microsoft/SEAL) >= 4.1.0 installed system-wide. The Docker images build SEAL 4.3.2 by default, and a `libseal.a` symlink may be required for some manual builds.
 - [Spot](https://spot.lre.epita.fr/) ≥ 2.4.3 for LTL parsing and automata construction.
 - Optional: bats for shell tests.
 

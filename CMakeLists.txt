@@ -71,7 +71,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 # Import Microsoft SEAL
-find_package(SEAL 4.1.1 REQUIRED)
+find_package(SEAL REQUIRED)
+if(SEAL_VERSION VERSION_LESS 4.1.0)
+    message(FATAL_ERROR "SEAL < 4.1.0 is not supported")
+elseif(SEAL_VERSION VERSION_GREATER_EQUAL 5.0.0)
+    message(FATAL_ERROR "SEAL >= 5.0.0 is not supported")
+endif()
+
 if(SEAL_STATIC_FOUND)
     set(SEAL_LIB SEAL::seal)
 elseif(SEAL_SHARED_FOUND)
@@ -86,7 +92,10 @@ find_package(TBB REQUIRED)
 
 # Import spot
 find_package(PkgConfig)
-pkg_check_modules(SPOT REQUIRED libspot)
+pkg_check_modules(SPOT libspot REQUIRED)
+if(SPOT_VERSION VERSION_LESS 2.4.3)
+    message(FATAL_ERROR "Spot < 2.4.3 is not supported")
+endif()
 pkg_check_modules(BDDX REQUIRED libbddx)
 
 # Import Boost

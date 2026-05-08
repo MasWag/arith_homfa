@@ -12,7 +12,7 @@ Both images:
 
 - start from the official `ubuntu:noble` or `debian:trixie` image,
 - install build dependencies with `apt`,
-- build and install Microsoft SEAL 4.1.1,
+- build and install Microsoft SEAL 4.3.2 by default,
 - build and install Spot from source,
 - fetch the pinned upstream repository commit into the image, and
 - build the repository with CMake/Ninja.
@@ -33,6 +33,34 @@ Manual build:
 ```sh
 docker build -f docker/ubuntu24.04/Dockerfile -t maswag/arith_homfa:noble .
 docker build -f docker/debian-trixie/Dockerfile -t maswag/arith_homfa:trixie .
+```
+
+## SEAL version
+
+Both Dockerfiles build Microsoft SEAL from source. The default SEAL version is
+`4.3.2`.
+
+To build both supported images with a different compatible SEAL version, set
+`SEAL_VERSION` when running the build script:
+
+```sh
+SEAL_VERSION=4.2.0 ./docker/build_images.sh
+```
+
+For a manual build, pass the same value as a Docker build argument:
+
+```sh
+docker build \
+  -f docker/ubuntu24.04/Dockerfile \
+  --build-arg SEAL_VERSION=4.2.0 \
+  -t maswag/arith_homfa:noble-seal4.2.0 \
+  .
+
+docker build \
+  -f docker/debian-trixie/Dockerfile \
+  --build-arg SEAL_VERSION=4.2.0 \
+  -t maswag/arith_homfa:trixie-seal4.2.0 \
+  .
 ```
 
 ## Spot version

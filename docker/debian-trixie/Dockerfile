@@ -3,7 +3,7 @@ FROM debian:trixie
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG SEAL_VERSION=4.1.1
+ARG SEAL_VERSION=4.3.2
 ARG SPOT_VERSION=2.15.1
 ARG MSGSL_VERSION=4.0.0
 
