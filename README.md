@@ -26,13 +26,13 @@ Requirements
 
 ### Supported platforms
 
-The artifact is supported on Linux/x86-64 machines with AVX2 and FMA support.
+The artifact is supported on Linux/x86-64 machines with AVX2 and FMA support. Use the distribution GCC from Ubuntu 24.04 or Debian 13.
 
 macOS is not a supported platform for this artifact.
 
 - Supported OS: 64-bit Ubuntu 24.04 LTS (noble) or Debian 13 (trixie).
 - GCC
-    - Use the distribution GCC from Ubuntu 24.04 or Debian 13.
+    - Use the distribution GCC from Ubuntu 24.04 or Debian 13. Clang is not supported (template instantiation issues with link-time optimization).
 - CMake
 - Boost
 - [Microsoft SEAL](https://github.com/microsoft/SEAL): A CKKS library.
