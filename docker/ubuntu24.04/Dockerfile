@@ -97,9 +97,9 @@ RUN git init && \
     git submodule update --recursive --init && \
     eval "$(opam env)" && \
     opam install ./thirdparty/ltlconv --deps-only --with-test -y && \
-    cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release && \
+    cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -D ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF && \
     cmake --build cmake-build-release -j"$(nproc)" && \
-    cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && \
+    cmake -S examples -B examples/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -D ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF && \
     cmake --build examples/build -j"$(nproc)"
 
 

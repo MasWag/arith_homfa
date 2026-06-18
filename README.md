@@ -24,6 +24,16 @@ Both sites are rebuilt automatically from the files under `doc/` on every push t
 Requirements
 ------------
 
+### Supported platforms
+
+The artifact is supported on Linux/x86-64 machines with AVX2 and FMA support.
+
+macOS is not a supported platform for this artifact for the following reasons:
+
+* GCC on Ubuntu 24.04 or Debian 13 is required; macOS ships only Apple Clang.
+  ArithHomFA cannot build on clang (template instantiation issue with LTO).
+* The TFHEpp FMA backend used in the published images needs x86-64-v3.
+
 - Supported OS: 64-bit Ubuntu 24.04 LTS (noble) or Debian 13 (trixie).
 - GCC
     - Currently, Clang is not supported because of an issue on link-time optimization of clang.
@@ -49,6 +59,29 @@ git submodule update --init --recursive
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target ahomfa_util ahomfa_runner
 ```
+
+### Native CPU tuning
+
+By default, ArithHomFA uses `-march=native` for the best performance on the build machine. **If `-march=native` is not supported by the compiler, ArithHomFA automatically falls back to `-march=x86-64-v3` (x86-64-v3 baseline, AVX2 + FMA).** This is safe for local builds and benchmarks.
+
+The published Docker images set `ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF`, which also targets the **x86-64-v3** baseline for portable binaries.
+
+To disable native tuning locally:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -D ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF
+```
+
+If your compiler supports neither `-march=native` nor `-march=x86-64-v3`, check your toolchain and compiler version.
+
+Check AVX2/FMA availability on Linux with:
+
+```sh
+lscpu | grep -i -E 'avx2|fma'
+```
+
+> [!WARNING]
+> Do not use `-march=native` for binaries you plan to distribute to other machines.
 
 Usage Example
 -------------
