@@ -20,7 +20,7 @@ Both images:
 - build the repository with CMake.
 
 The Dockerfiles build the pinned upstream commit
-`8fb07f1b2b06c847f6a21ce79ffb26a425b4b119` for reproducibility.
+`ac4e9e29c297f83d622d18c1a8ac35a8fe88bfe4` for reproducibility.
 
 ## Published images
 
