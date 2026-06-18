@@ -58,14 +58,54 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
 
+## Architecture tuning
+##
+## By default -march=native is used so that local builds get the best
+## performance on the build machine.  If the compiler does not support
+## -march=native the build falls back to -march=x86-64-v3
+## (x86-64-v3 baseline, AVX2+FMA).  For portable binaries (e.g. Docker
+## images) set ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF, which also targets
+## the x86-64-v3 baseline.
+
+option(ARITHHOMFA_ENABLE_NATIVE_ARCH "Add -march=native to C and C++ compile flags (with x86-64-v3 fallback)" ON)
+
+if(ARITHHOMFA_ENABLE_NATIVE_ARCH)
+    include(CheckCCompilerFlag)
+    include(CheckCXXCompilerFlag)
+    check_c_compiler_flag("-march=native" C_SUPPORTS_MARCH_NATIVE)
+    check_cxx_compiler_flag("-march=native" CXX_SUPPORTS_MARCH_NATIVE)
+    if(C_SUPPORTS_MARCH_NATIVE AND CXX_SUPPORTS_MARCH_NATIVE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+        message(STATUS "Architecture flag: -march=native")
+    else()
+        message(WARNING "-march=native is not supported by the compiler. Falling back to -march=x86-64-v3.")
+        check_c_compiler_flag("-march=x86-64-v3" C_SUPPORTS_X86_64_V3)
+        check_cxx_compiler_flag("-march=x86-64-v3" CXX_SUPPORTS_X86_64_V3)
+        if(C_SUPPORTS_X86_64_V3 AND CXX_SUPPORTS_X86_64_V3)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
+            message(STATUS "Architecture flag: -march=x86-64-v3 (fallback)")
+        else()
+            message(FATAL_ERROR "Neither -march=native nor -march=x86-64-v3 is supported by the compiler. Check your toolchain and compiler version.")
+        endif()
+    endif()
+else()
+    include(CheckCCompilerFlag)
+    include(CheckCXXCompilerFlag)
+    check_c_compiler_flag("-march=x86-64-v3" C_SUPPORTS_X86_64_V3)
+    check_cxx_compiler_flag("-march=x86-64-v3" CXX_SUPPORTS_X86_64_V3)
+    if(C_SUPPORTS_X86_64_V3 AND CXX_SUPPORTS_X86_64_V3)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
+        message(STATUS "Architecture flag: -march=x86-64-v3 (portable)")
+    else()
+        message(FATAL_ERROR "-march=x86-64-v3 is not supported by the compiler. Check your toolchain.")
+    endif()
+endif()
+
 add_subdirectory(thirdparty/TFHEpp)
 
-# Hack to disable -march=native if it is not supported
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-if(COMPILER_SUPPORTS_MARCH_NATIVE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)

@@ -2,6 +2,8 @@
 
 ## 2.1 System requirements
 
+- **Host CPU:** x86-64 with AVX2 and FMA support (x86-64-v3 baseline). Check with `lscpu | grep -i -E 'avx2|fma'`.
+- **macOS is not a supported platform**; ArithHomFA requires GCC on Ubuntu 24.04 or Debian 13.
 - 64-bit Ubuntu 24.04 LTS or Debian 13 (trixie). Ubuntu 22.04 and older releases are not supported; other Linux distributions may work but are outside the supported configuration.
 - CMake >= 3.16 and a C++20-capable GCC from the supported distribution. Clang currently fails due to template instantiation issues.
 - Boost headers/libraries.
@@ -145,6 +147,21 @@ If you only need the command-line utility and runner library, build those target
 ```sh
 cmake --build cmake-build-release --target ahomfa_util ahomfa_runner
 ```
+
+#### Native CPU tuning
+
+By default, ArithHomFA uses `-march=native`, which is what most users want for their local builds. **If the compiler does not support `-march=native`, it falls back to `-march=x86-64-v3` (x86-64-v3 baseline, AVX2 + FMA).**
+
+To disable native tuning (for example, to build a portable binary), set `ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF` which also targets the **x86-64-v3** baseline:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -D ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF
+```
+
+If your compiler supports neither `-march=native` nor `-march=x86-64-v3`, check your toolchain and compiler version.
+
+> [!WARNING]
+> Do not use `ARITHHOMFA_ENABLE_NATIVE_ARCH=ON` for binaries you plan to distribute to other machines.
 
 ## 2.4 Optional Vehicle RSS example dependency
 
