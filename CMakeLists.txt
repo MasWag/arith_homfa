@@ -58,8 +58,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif()
 list(APPEND COMPILE_DEFINITIONS GIT_REVISION="${GIT_REVISION}")
 
-add_subdirectory(thirdparty/TFHEpp)
-
 ## Architecture tuning
 ##
 ## By default -march=native is used so that local builds get the best
@@ -105,6 +103,9 @@ else()
         message(FATAL_ERROR "-march=x86-64-v3 is not supported by the compiler. Check your toolchain.")
     endif()
 endif()
+
+add_subdirectory(thirdparty/TFHEpp)
+
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DRELEASE")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)

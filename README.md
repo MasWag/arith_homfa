@@ -28,16 +28,10 @@ Requirements
 
 The artifact is supported on Linux/x86-64 machines with AVX2 and FMA support.
 
-macOS is not a supported platform for this artifact for the following reasons:
-
-* GCC on Ubuntu 24.04 or Debian 13 is required; macOS ships only Apple Clang.
-  ArithHomFA cannot build on clang (template instantiation issue with LTO).
-* The TFHEpp FMA backend used in the published images needs x86-64-v3.
+macOS is not a supported platform for this artifact.
 
 - Supported OS: 64-bit Ubuntu 24.04 LTS (noble) or Debian 13 (trixie).
 - GCC
-    - Currently, Clang is not supported because of an issue on link-time optimization of clang.
-        - See [here](https://stackoverflow.com/questions/60225945/explicit-c-template-instantiation-with-clang) for the details of the issue.
     - Use the distribution GCC from Ubuntu 24.04 or Debian 13.
 - CMake
 - Boost
