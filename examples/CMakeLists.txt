@@ -50,12 +50,6 @@ execute_process(
         COMMAND_ERROR_IS_FATAL ANY)
 add_subdirectory(${TFHEPP_HEXL_STAGING_DIR} hexl)
 
-# Hack to disable -march=native if it is not supported
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-if (COMPILER_SUPPORTS_MARCH_NATIVE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-endif ()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DRELEASE -DNDEBUG")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
