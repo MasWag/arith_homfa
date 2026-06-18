@@ -1,0 +1,28 @@
+diff --git a/benchmark/CMakeLists.txt b/benchmark/CMakeLists.txt
+index 0e7ee2f..4adcf0b 100644
+--- a/benchmark/CMakeLists.txt
++++ b/benchmark/CMakeLists.txt
+@@ -28 +28 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+-    target_compile_options(bench_hexl PRIVATE -Wall -Wextra -march=native -O3)
++    target_compile_options(bench_hexl PRIVATE -Wall -Wextra -march=x86-64-v3 -O3)
+diff --git a/cmake/hexl/hexl-util.cmake b/cmake/hexl/hexl-util.cmake
+index 291c48e..9b32601 100644
+--- a/cmake/hexl/hexl-util.cmake
++++ b/cmake/hexl/hexl-util.cmake
+@@ -10 +10 @@ function(hexl_check_compile_flag SOURCE_FILE OUTPUT_FLAG)
+-        set(NATIVE_COMPILE_DEFINITIONS "-march=native")
++        set(NATIVE_COMPILE_DEFINITIONS "-march=x86-64-v3")
+diff --git a/hexl/CMakeLists.txt b/hexl/CMakeLists.txt
+index e3ca175..d3f9e7d 100644
+--- a/hexl/CMakeLists.txt
++++ b/hexl/CMakeLists.txt
+@@ -79 +79 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+-        -Wno-unknown-pragmas -march=native -O3 -fomit-frame-pointer
++        -Wno-unknown-pragmas -march=x86-64-v3 -O3 -fomit-frame-pointer
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 376e9ad..d019f33 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -43 +43 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+-    target_compile_options(unit-test PRIVATE -Wall -Wextra -march=native)
++    target_compile_options(unit-test PRIVATE -Wall -Wextra -march=x86-64-v3)

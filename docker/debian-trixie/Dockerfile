@@ -82,12 +82,15 @@ RUN wget -O spot.tar.gz "https://www.lre.epita.fr/dload/spot/spot-${SPOT_VERSION
 
 # Clone and build arith_homfa
 RUN mkdir /arith_homfa
+COPY docker/apply-portable-arch-patches.sh /tmp/arith-homfa-patches/apply.sh
+COPY docker/patches/ /tmp/arith-homfa-patches/
 WORKDIR /arith_homfa
 RUN git init && \
     git remote add origin https://github.com/MasWag/arith_homfa.git && \
     git fetch --depth 1 origin ac4e9e29c297f83d622d18c1a8ac35a8fe88bfe4 && \
     git checkout FETCH_HEAD && \
     git submodule update --recursive --init && \
+    bash /tmp/arith-homfa-patches/apply.sh /arith_homfa /tmp/arith-homfa-patches && \
     eval "$(opam env)" && \
     opam install ./thirdparty/ltlconv --deps-only --with-test -y && \
     cmake -S . -B cmake-build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -D ARITHHOMFA_ENABLE_NATIVE_ARCH=OFF && \

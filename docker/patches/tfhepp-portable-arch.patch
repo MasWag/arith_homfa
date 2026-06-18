@@ -1,0 +1,10 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0ba6f8a..414c825 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7 +7 @@ if(DEBUG)
+-      "-march=native -g -Wall -Wextra -pedantic -Wno-sign-compare")
++      "-march=x86-64-v3 -maes -g -Wall -Wextra -pedantic -Wno-sign-compare")
+@@ -10 +10 @@ else()
+-      "-march=native -O3 -g -funroll-loops -Wall -Wextra -pedantic -Wno-sign-compare"
++      "-march=x86-64-v3 -maes -O3 -g -funroll-loops -Wall -Wextra -pedantic -Wno-sign-compare"

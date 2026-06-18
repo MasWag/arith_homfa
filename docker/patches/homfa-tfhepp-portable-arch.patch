@@ -1,0 +1,7 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 38ce837..3c9ca37 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5 +5 @@ set(CMAKE_CXX_FLAGS
+-    "-march=native -O3 -g -funroll-loops -Wall -Wextra -pedantic -Wno-sign-compare"
++    "-march=x86-64-v3 -maes -O3 -g -funroll-loops -Wall -Wextra -pedantic -Wno-sign-compare"
