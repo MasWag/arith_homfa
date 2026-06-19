@@ -4,7 +4,7 @@ Arithmetic HomFA (ArithHomFA)
 [![Users Manual](https://img.shields.io/badge/docs-Users-yellow)](https://maswag.github.io/arith_homfa/)
 [![Developers Manual](https://img.shields.io/badge/docs-Dev-green)](https://maswag.github.io/arith_homfa/developer_manual)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
-[![DOI](https://zenodo.org/badge/630259638.svg)](https://doi.org/10.5281/zenodo.17879145)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20754335.svg)](https://doi.org/10.5281/zenodo.20754335)
 [![Docker Pulls](https://img.shields.io/docker/pulls/maswag/arith_homfa)](https://hub.docker.com/r/maswag/arith_homfa)
 
 
